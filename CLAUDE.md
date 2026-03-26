@@ -251,12 +251,12 @@ R2_PUBLIC_URL=https://media.your-domain.com
 The scheduled agent picks the next unchecked `[ ]` item, implements it, commits, and pushes to main.
 
 ### Phase 1: Next.js Project Scaffold
-- [ ] Initialize Next.js 15 with App Router + TypeScript in `postflow/`
-- [ ] Set up Tailwind CSS + shadcn/ui
-- [ ] Set up Prisma ORM with PostgreSQL schema
-- [ ] Create docker-compose.yml (PostgreSQL + Redis)
-- [ ] Create .env.example with all required vars
-- [ ] Set up ESLint + TypeScript strict mode
+- [x] Initialize Next.js 15 with App Router + TypeScript in `postflow/`
+- [x] Set up Tailwind CSS + shadcn/ui
+- [x] Set up Prisma ORM with PostgreSQL schema
+- [x] Create docker-compose.yml (PostgreSQL + Redis)
+- [x] Create .env.example with all required vars
+- [x] Set up ESLint + TypeScript strict mode
 
 ### Phase 2: Auth & Database
 - [ ] Set up NextAuth.js v5 (email/password or magic link)
