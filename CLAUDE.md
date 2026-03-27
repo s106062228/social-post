@@ -293,11 +293,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Retry logic with exponential backoff (max 3 retries)
 
 ### Phase 7: Frontend UI
-- [ ] Dashboard layout with sidebar navigation
-- [ ] Social accounts page — OAuth connect buttons, account list
-- [ ] Post composer — text editor, platform selector, media upload
-- [ ] Calendar view — scheduled posts visualization
-- [ ] Post list — status, actions (edit, delete, reschedule)
+- [x] Dashboard layout with sidebar navigation
+- [x] Social accounts page — OAuth connect buttons, account list
+- [x] Post composer — text editor, platform selector, media upload
+- [x] Calendar view — scheduled posts visualization
+- [x] Post list — status, actions (edit, delete, reschedule)
 
 ### Phase 8: Polish & Production
 - [ ] Error handling across all API routes
