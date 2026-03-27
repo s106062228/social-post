@@ -279,10 +279,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Media upload to Cloudflare R2 (`src/lib/platforms/media.ts`)
 
 ### Phase 5: Post Management API
-- [ ] CRUD API routes for posts (`/api/posts`)
-- [ ] Zod validation for all API inputs
-- [ ] Publish API route (`/api/publish`)
-- [ ] Post status tracking (DRAFT → SCHEDULED → PUBLISHING → PUBLISHED)
+- [x] CRUD API routes for posts (`/api/posts`)
+- [x] Zod validation for all API inputs
+- [x] Publish API route (`/api/publish`)
+- [x] Post status tracking (DRAFT → SCHEDULED → PUBLISHING → PUBLISHED)
 
 ### Phase 6: BullMQ Scheduling
 - [ ] Set up BullMQ with Redis connection
