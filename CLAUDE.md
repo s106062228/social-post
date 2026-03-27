@@ -272,11 +272,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Token refresh logic (`src/lib/auth/token-manager.ts`)
 
 ### Phase 4: Platform Adapters
-- [ ] Define unified PlatformAdapter interface (`src/lib/platforms/types.ts`)
-- [ ] Implement Facebook adapter (text, image, video, native scheduling)
-- [ ] Implement Instagram adapter (two-step container + publish)
-- [ ] Implement Threads adapter (two-step, graph.threads.net base URL)
-- [ ] Media upload to Cloudflare R2 (`src/lib/platforms/media.ts`)
+- [x] Define unified PlatformAdapter interface (`src/lib/platforms/types.ts`)
+- [x] Implement Facebook adapter (text, image, video, native scheduling)
+- [x] Implement Instagram adapter (two-step container + publish)
+- [x] Implement Threads adapter (two-step, graph.threads.net base URL)
+- [x] Media upload to Cloudflare R2 (`src/lib/platforms/media.ts`)
 
 ### Phase 5: Post Management API
 - [ ] CRUD API routes for posts (`/api/posts`)
