@@ -259,10 +259,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Set up ESLint + TypeScript strict mode
 
 ### Phase 2: Auth & Database
-- [ ] Set up NextAuth.js v5 (email/password or magic link)
-- [ ] Run Prisma migration for core tables (User, SocialAccount, Post, PublishResult)
-- [ ] Create Prisma client singleton (`src/lib/db.ts`)
-- [ ] Implement AES-256-GCM token encryption (`src/lib/encryption.ts`)
+- [x] Set up NextAuth.js v5 (email/password or magic link)
+- [x] Run Prisma migration for core tables (User, SocialAccount, Post, PublishResult)
+- [x] Create Prisma client singleton (`src/lib/db.ts`)
+- [x] Implement AES-256-GCM token encryption (`src/lib/encryption.ts`)
 
 ### Phase 3: Meta OAuth 2.0 Flow
 - [ ] Implement OAuth connect route (`/api/oauth/meta/connect`)
