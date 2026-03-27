@@ -285,12 +285,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Post status tracking (DRAFT → SCHEDULED → PUBLISHING → PUBLISHED)
 
 ### Phase 6: BullMQ Scheduling
-- [ ] Set up BullMQ with Redis connection
-- [ ] Publish worker (`src/lib/queue/workers/publish.ts`)
-- [ ] Token refresh worker (`src/lib/queue/workers/refresh.ts`)
-- [ ] Scheduler logic for delayed jobs (`src/lib/queue/scheduler.ts`)
-- [ ] Independent worker process (`workers/queue-worker.ts`)
-- [ ] Retry logic with exponential backoff (max 3 retries)
+- [x] Set up BullMQ with Redis connection
+- [x] Publish worker (`src/lib/queue/workers/publish.ts`)
+- [x] Token refresh worker (`src/lib/queue/workers/refresh.ts`)
+- [x] Scheduler logic for delayed jobs (`src/lib/queue/scheduler.ts`)
+- [x] Independent worker process (`workers/queue-worker.ts`)
+- [x] Retry logic with exponential backoff (max 3 retries)
 
 ### Phase 7: Frontend UI
 - [ ] Dashboard layout with sidebar navigation
