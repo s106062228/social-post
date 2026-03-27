@@ -265,11 +265,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Implement AES-256-GCM token encryption (`src/lib/encryption.ts`)
 
 ### Phase 3: Meta OAuth 2.0 Flow
-- [ ] Implement OAuth connect route (`/api/oauth/meta/connect`)
-- [ ] Implement OAuth callback route (`/api/oauth/meta/callback`)
-- [ ] Token exchange: short-lived → long-lived → page tokens
-- [ ] Store encrypted tokens in SocialAccount table
-- [ ] Token refresh logic (`src/lib/auth/token-manager.ts`)
+- [x] Implement OAuth connect route (`/api/oauth/meta/connect`)
+- [x] Implement OAuth callback route (`/api/oauth/meta/callback`)
+- [x] Token exchange: short-lived → long-lived → page tokens
+- [x] Store encrypted tokens in SocialAccount table
+- [x] Token refresh logic (`src/lib/auth/token-manager.ts`)
 
 ### Phase 4: Platform Adapters
 - [ ] Define unified PlatformAdapter interface (`src/lib/platforms/types.ts`)
