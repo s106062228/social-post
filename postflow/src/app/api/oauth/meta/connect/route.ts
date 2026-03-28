@@ -35,7 +35,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     return response;
   } catch (err) {
     const message = err instanceof Error ? err.message : "Configuration error";
-    console.error("OAuth connect error:", message);
+    console.error("[OAuth] connect error:", message, err);
 
     const url = new URL("/accounts?error=config_error", request.url);
     return NextResponse.redirect(url);

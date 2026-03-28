@@ -138,9 +138,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         tokenExpiresAt,
         scopes: META_SCOPES,
       });
-    } catch {
+    } catch (threadsErr) {
       // Threads may be unavailable if the user has no Threads account
       // or if the scope was not granted. Don't fail the entire OAuth flow.
+      console.warn("[OAuth] Threads account fetch skipped:", threadsErr instanceof Error ? threadsErr.message : threadsErr);
     }
 
     const successResp = NextResponse.redirect(
@@ -150,7 +151,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return successResp;
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    console.error("OAuth callback error:", message);
+    console.error("[OAuth] callback error:", message, err);
 
     const errorResp = NextResponse.redirect(
       new URL("/accounts?error=oauth_failed", request.url)

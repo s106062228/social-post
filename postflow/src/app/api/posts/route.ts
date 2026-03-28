@@ -3,6 +3,7 @@ import { z } from "zod";
 import { MediaType, PostStatus } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { handleRouteError } from "@/lib/errors";
 
 // ── Zod Schemas ───────────────────────────────────────────────────────────────
 
@@ -22,104 +23,112 @@ const listPostsSchema = z.object({
 // ── GET /api/posts ─────────────────────────────────────────────────────────────
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const searchParams = Object.fromEntries(request.nextUrl.searchParams.entries());
-  const parsed = listPostsSchema.safeParse(searchParams);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid query parameters", issues: parsed.error.flatten().fieldErrors },
-      { status: 400 }
-    );
-  }
+    const searchParams = Object.fromEntries(request.nextUrl.searchParams.entries());
+    const parsed = listPostsSchema.safeParse(searchParams);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid query parameters", issues: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
 
-  const { status, page, limit } = parsed.data;
-  const skip = (page - 1) * limit;
+    const { status, page, limit } = parsed.data;
+    const skip = (page - 1) * limit;
 
-  const where = {
-    userId: session.user.id,
-    ...(status ? { status } : {}),
-  };
+    const where = {
+      userId: session.user.id,
+      ...(status ? { status } : {}),
+    };
 
-  const [posts, total] = await Promise.all([
-    prisma.post.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: limit,
-      include: {
-        publishResults: {
-          select: {
-            id: true,
-            platform: true,
-            accountId: true,
-            status: true,
-            platformPostId: true,
-            publishedUrl: true,
-            publishedAt: true,
-            error: true,
+    const [posts, total] = await Promise.all([
+      prisma.post.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+        include: {
+          publishResults: {
+            select: {
+              id: true,
+              platform: true,
+              accountId: true,
+              status: true,
+              platformPostId: true,
+              publishedUrl: true,
+              publishedAt: true,
+              error: true,
+            },
           },
         },
-      },
-    }),
-    prisma.post.count({ where }),
-  ]);
+      }),
+      prisma.post.count({ where }),
+    ]);
 
-  return NextResponse.json({
-    posts,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    },
-  });
+    return NextResponse.json({
+      posts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (err) {
+    return handleRouteError(err);
+  }
 }
 
 // ── POST /api/posts ────────────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  let body: unknown;
   try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
+
+    const parsed = createPostSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Validation failed", issues: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    const { content, mediaType, mediaUrls, scheduledAt } = parsed.data;
+
+    // Determine initial status
+    const status = scheduledAt ? PostStatus.SCHEDULED : PostStatus.DRAFT;
+
+    const post = await prisma.post.create({
+      data: {
+        userId: session.user.id,
+        content,
+        mediaType,
+        mediaUrls,
+        scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+        status,
+      },
+      include: {
+        publishResults: true,
+      },
+    });
+
+    return NextResponse.json(post, { status: 201 });
+  } catch (err) {
+    return handleRouteError(err);
   }
-
-  const parsed = createPostSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Validation failed", issues: parsed.error.flatten().fieldErrors },
-      { status: 400 }
-    );
-  }
-
-  const { content, mediaType, mediaUrls, scheduledAt } = parsed.data;
-
-  // Determine initial status
-  const status = scheduledAt ? PostStatus.SCHEDULED : PostStatus.DRAFT;
-
-  const post = await prisma.post.create({
-    data: {
-      userId: session.user.id,
-      content,
-      mediaType,
-      mediaUrls,
-      scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
-      status,
-    },
-    include: {
-      publishResults: true,
-    },
-  });
-
-  return NextResponse.json(post, { status: 201 });
 }

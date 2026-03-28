@@ -300,8 +300,8 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Post list — status, actions (edit, delete, reschedule)
 
 ### Phase 8: Polish & Production
-- [ ] Error handling across all API routes
-- [ ] Webhook endpoint for Meta status updates
+- [x] Error handling across all API routes
+- [x] Webhook endpoint for Meta status updates
 - [ ] Analytics/insights page (basic)
-- [ ] Seed script for development data
+- [x] Seed script for development data
 - [ ] README with setup instructions
