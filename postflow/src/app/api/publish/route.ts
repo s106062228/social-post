@@ -112,7 +112,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Create pending PublishResult rows
     const publishResultData = accounts.map((account) => ({
-      postId,
+      postId: postId as string,
       platform: account.platform,
       accountId: account.id,
       status: PublishStatus.PENDING,
