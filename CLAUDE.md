@@ -305,3 +305,8 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Analytics/insights page (basic)
 - [x] Seed script for development data
 - [x] README with setup instructions
+
+### Phase 9: Media Upload
+- [x] Create /api/media/upload endpoint (presigned R2 URL generation + direct delete)
+- [x] Add media upload UI to post composer (file picker, preview, carousel support)
+- [x] Wire mediaType + mediaUrls through post creation flow end-to-end
