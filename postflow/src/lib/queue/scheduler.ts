@@ -1,5 +1,5 @@
 import { Queue, QueueEvents } from "bullmq";
-import { Platform, PostStatus, PublishStatus } from "@prisma/client";
+import { PostStatus, PublishStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { createRedisConnection, QUEUE_NAMES } from "./connection";
 import type { PublishJobData } from "./workers/publish";

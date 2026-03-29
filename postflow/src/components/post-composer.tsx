@@ -28,7 +28,11 @@ export function PostComposer({ defaultScheduledAt }: PostComposerProps) {
 
   async function savePost(publish: boolean) {
     setError(null);
-    publish ? setPublishing(true) : setSaving(true);
+    if (publish) {
+      setPublishing(true);
+    } else {
+      setSaving(true);
+    }
 
     try {
       const body: Record<string, unknown> = {
