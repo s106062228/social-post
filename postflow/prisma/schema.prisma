@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Platform {
+  FACEBOOK
+  INSTAGRAM
+  THREADS
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  PARTIALLY_PUBLISHED
+  FAILED
+}
+
+enum MediaType {
+  NONE
+  IMAGE
+  VIDEO
+  CAROUSEL
+}
+
+enum PublishStatus {
+  PENDING
+  PROCESSING
+  PUBLISHED
+  FAILED
+}
+
+model User {
+  id        String          @id @default(cuid())
+  email     String          @unique
+  name      String?
+  password  String?
+  accounts  SocialAccount[]
+  posts     Post[]
+  createdAt DateTime        @default(now())
+}
+
+model SocialAccount {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  platform          Platform
+  platformAccountId String
+  accountName       String
+  encryptedToken    String
+  tokenExpiresAt    DateTime?
+  scopes            String
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([userId, platform, platformAccountId])
+}
+
+model Post {
+  id             String          @id @default(cuid())
+  userId         String
+  user           User            @relation(fields: [userId], references: [id])
+  content        String
+  mediaType      MediaType
+  mediaUrls      String[]
+  status         PostStatus
+  scheduledAt    DateTime?
+  publishResults PublishResult[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model PublishResult {
+  id             String        @id @default(cuid())
+  postId         String
+  post           Post          @relation(fields: [postId], references: [id])
+  platform       Platform
+  accountId      String
+  platformPostId String?
+  status         PublishStatus
+  error          String?
+  publishedUrl   String?
+  publishedAt    DateTime?
+  retryCount     Int           @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}

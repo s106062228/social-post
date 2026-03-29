@@ -251,57 +251,57 @@ R2_PUBLIC_URL=https://media.your-domain.com
 The scheduled agent picks the next unchecked `[ ]` item, implements it, commits, and pushes to main.
 
 ### Phase 1: Next.js Project Scaffold
-- [ ] Initialize Next.js 15 with App Router + TypeScript in `postflow/`
-- [ ] Set up Tailwind CSS + shadcn/ui
-- [ ] Set up Prisma ORM with PostgreSQL schema
-- [ ] Create docker-compose.yml (PostgreSQL + Redis)
-- [ ] Create .env.example with all required vars
-- [ ] Set up ESLint + TypeScript strict mode
+- [x] Initialize Next.js 15 with App Router + TypeScript in `postflow/`
+- [x] Set up Tailwind CSS + shadcn/ui
+- [x] Set up Prisma ORM with PostgreSQL schema
+- [x] Create docker-compose.yml (PostgreSQL + Redis)
+- [x] Create .env.example with all required vars
+- [x] Set up ESLint + TypeScript strict mode
 
 ### Phase 2: Auth & Database
-- [ ] Set up NextAuth.js v5 (email/password or magic link)
-- [ ] Run Prisma migration for core tables (User, SocialAccount, Post, PublishResult)
-- [ ] Create Prisma client singleton (`src/lib/db.ts`)
-- [ ] Implement AES-256-GCM token encryption (`src/lib/encryption.ts`)
+- [x] Set up NextAuth.js v5 (email/password or magic link)
+- [x] Run Prisma migration for core tables (User, SocialAccount, Post, PublishResult)
+- [x] Create Prisma client singleton (`src/lib/db.ts`)
+- [x] Implement AES-256-GCM token encryption (`src/lib/encryption.ts`)
 
 ### Phase 3: Meta OAuth 2.0 Flow
-- [ ] Implement OAuth connect route (`/api/oauth/meta/connect`)
-- [ ] Implement OAuth callback route (`/api/oauth/meta/callback`)
-- [ ] Token exchange: short-lived → long-lived → page tokens
-- [ ] Store encrypted tokens in SocialAccount table
-- [ ] Token refresh logic (`src/lib/auth/token-manager.ts`)
+- [x] Implement OAuth connect route (`/api/oauth/meta/connect`)
+- [x] Implement OAuth callback route (`/api/oauth/meta/callback`)
+- [x] Token exchange: short-lived → long-lived → page tokens
+- [x] Store encrypted tokens in SocialAccount table
+- [x] Token refresh logic (`src/lib/auth/token-manager.ts`)
 
 ### Phase 4: Platform Adapters
-- [ ] Define unified PlatformAdapter interface (`src/lib/platforms/types.ts`)
-- [ ] Implement Facebook adapter (text, image, video, native scheduling)
-- [ ] Implement Instagram adapter (two-step container + publish)
-- [ ] Implement Threads adapter (two-step, graph.threads.net base URL)
-- [ ] Media upload to Cloudflare R2 (`src/lib/platforms/media.ts`)
+- [x] Define unified PlatformAdapter interface (`src/lib/platforms/types.ts`)
+- [x] Implement Facebook adapter (text, image, video, native scheduling)
+- [x] Implement Instagram adapter (two-step container + publish)
+- [x] Implement Threads adapter (two-step, graph.threads.net base URL)
+- [x] Media upload to Cloudflare R2 (`src/lib/platforms/media.ts`)
 
 ### Phase 5: Post Management API
-- [ ] CRUD API routes for posts (`/api/posts`)
-- [ ] Zod validation for all API inputs
-- [ ] Publish API route (`/api/publish`)
-- [ ] Post status tracking (DRAFT → SCHEDULED → PUBLISHING → PUBLISHED)
+- [x] CRUD API routes for posts (`/api/posts`)
+- [x] Zod validation for all API inputs
+- [x] Publish API route (`/api/publish`)
+- [x] Post status tracking (DRAFT → SCHEDULED → PUBLISHING → PUBLISHED)
 
 ### Phase 6: BullMQ Scheduling
-- [ ] Set up BullMQ with Redis connection
-- [ ] Publish worker (`src/lib/queue/workers/publish.ts`)
-- [ ] Token refresh worker (`src/lib/queue/workers/refresh.ts`)
-- [ ] Scheduler logic for delayed jobs (`src/lib/queue/scheduler.ts`)
-- [ ] Independent worker process (`workers/queue-worker.ts`)
-- [ ] Retry logic with exponential backoff (max 3 retries)
+- [x] Set up BullMQ with Redis connection
+- [x] Publish worker (`src/lib/queue/workers/publish.ts`)
+- [x] Token refresh worker (`src/lib/queue/workers/refresh.ts`)
+- [x] Scheduler logic for delayed jobs (`src/lib/queue/scheduler.ts`)
+- [x] Independent worker process (`workers/queue-worker.ts`)
+- [x] Retry logic with exponential backoff (max 3 retries)
 
 ### Phase 7: Frontend UI
-- [ ] Dashboard layout with sidebar navigation
-- [ ] Social accounts page — OAuth connect buttons, account list
-- [ ] Post composer — text editor, platform selector, media upload
-- [ ] Calendar view — scheduled posts visualization
-- [ ] Post list — status, actions (edit, delete, reschedule)
+- [x] Dashboard layout with sidebar navigation
+- [x] Social accounts page — OAuth connect buttons, account list
+- [x] Post composer — text editor, platform selector, media upload
+- [x] Calendar view — scheduled posts visualization
+- [x] Post list — status, actions (edit, delete, reschedule)
 
 ### Phase 8: Polish & Production
-- [ ] Error handling across all API routes
-- [ ] Webhook endpoint for Meta status updates
-- [ ] Analytics/insights page (basic)
-- [ ] Seed script for development data
-- [ ] README with setup instructions
+- [x] Error handling across all API routes
+- [x] Webhook endpoint for Meta status updates
+- [x] Analytics/insights page (basic)
+- [x] Seed script for development data
+- [x] README with setup instructions
