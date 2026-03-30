@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { createPresignedUploadUrl, deleteMedia } from "@/lib/platforms/media";
 import { handleRouteError } from "@/lib/errors";
+import { checkRateLimit, rateLimitExceededResponse, RATE_LIMITS } from "@/lib/rate-limit";
 
 // ── Validation ────────────────────────────────────────────────────────────────
 
@@ -34,6 +35,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Rate limiting: 30 presigned URL requests per minute per user
+    const rl = await checkRateLimit(`ratelimit:mediaUpload:${session.user.id}`, RATE_LIMITS.mediaUpload);
+    if (!rl.success) {
+      return rateLimitExceededResponse(rl);
     }
 
     let body: unknown;

@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
 import { handleRouteError } from "@/lib/errors";
+import { checkRateLimit, rateLimitExceededResponse, RATE_LIMITS } from "@/lib/rate-limit";
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -10,8 +11,17 @@ const registerSchema = z.object({
   name: z.string().min(1).optional(),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: 10 registration attempts per minute per IP
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+      ?? request.headers.get("x-real-ip")
+      ?? "unknown";
+    const rl = await checkRateLimit(`ratelimit:auth:${ip}`, RATE_LIMITS.auth);
+    if (!rl.success) {
+      return rateLimitExceededResponse(rl);
+    }
+
     let body: unknown;
     try {
       body = await request.json();
