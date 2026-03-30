@@ -4,6 +4,7 @@ import { MediaType, PostStatus } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { handleRouteError } from "@/lib/errors";
+import { checkRateLimit, rateLimitExceededResponse, RATE_LIMITS } from "@/lib/rate-limit";
 
 // ── Zod Schemas ───────────────────────────────────────────────────────────────
 
@@ -91,6 +92,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Rate limiting: 60 post mutations per minute per user
+    const rl = await checkRateLimit(`ratelimit:postMutate:${session.user.id}`, RATE_LIMITS.postMutate);
+    if (!rl.success) {
+      return rateLimitExceededResponse(rl);
     }
 
     let body: unknown;

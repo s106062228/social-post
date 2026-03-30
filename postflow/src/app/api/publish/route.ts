@@ -9,6 +9,7 @@ import { instagramAdapter } from "@/lib/platforms/instagram";
 import { threadsAdapter } from "@/lib/platforms/threads";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { handleRouteError } from "@/lib/errors";
+import { checkRateLimit, rateLimitExceededResponse, buildRateLimitHeaders, RATE_LIMITS } from "@/lib/rate-limit";
 
 // ── Zod Schema ────────────────────────────────────────────────────────────────
 
@@ -39,6 +40,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Rate limiting: 20 publish calls per minute per user
+    const rl = await checkRateLimit(`ratelimit:publish:${session.user.id}`, RATE_LIMITS.publish);
+    if (!rl.success) {
+      return rateLimitExceededResponse(rl);
     }
 
     let body: unknown;
@@ -235,7 +242,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     };
 
     const httpStatus = succeeded === 0 ? 500 : failed > 0 ? 207 : 200;
-    return NextResponse.json(response, { status: httpStatus });
+    return NextResponse.json(response, {
+      status: httpStatus,
+      headers: buildRateLimitHeaders(rl),
+    });
   } catch (err) {
     // If we already transitioned the post to PUBLISHING, attempt to mark it FAILED
     // so it doesn't get stuck in an unrecoverable state.

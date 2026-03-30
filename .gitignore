@@ -1,0 +1,14 @@
+node_modules/
+.next/
+.env
+.env.local
+*.log
+dist/
+build/
+.DS_Store
+*.tsbuildinfo
+postflow/node_modules/
+postflow/.next/
+postflow/.env
+postflow/.env.local
+prisma/generated/
