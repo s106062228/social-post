@@ -17,7 +17,7 @@ const createPostSchema = z.object({
 
 const listPostsSchema = z.object({
   status: z.nativeEnum(PostStatus).optional(),
-  page: z.coerce.number().int().min(1).default(1),
+  cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
@@ -39,45 +39,50 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { status, page, limit } = parsed.data;
-    const skip = (page - 1) * limit;
+    const { status, cursor, limit } = parsed.data;
 
     const where = {
       userId: session.user.id,
       ...(status ? { status } : {}),
     };
 
-    const [posts, total] = await Promise.all([
-      prisma.post.findMany({
-        where,
-        orderBy: { createdAt: "desc" },
-        skip,
-        take: limit,
-        include: {
-          publishResults: {
-            select: {
-              id: true,
-              platform: true,
-              accountId: true,
-              status: true,
-              platformPostId: true,
-              publishedUrl: true,
-              publishedAt: true,
-              error: true,
-            },
+    // Fetch one extra item to determine if there is a next page
+    const posts = await prisma.post.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: limit + 1,
+      ...(cursor
+        ? {
+            cursor: { id: cursor },
+            skip: 1, // exclude the cursor item itself
+          }
+        : {}),
+      include: {
+        publishResults: {
+          select: {
+            id: true,
+            platform: true,
+            accountId: true,
+            status: true,
+            platformPostId: true,
+            publishedUrl: true,
+            publishedAt: true,
+            error: true,
           },
         },
-      }),
-      prisma.post.count({ where }),
-    ]);
+      },
+    });
+
+    const hasNextPage = posts.length > limit;
+    const items = hasNextPage ? posts.slice(0, limit) : posts;
+    const nextCursor = hasNextPage ? items[items.length - 1].id : null;
 
     return NextResponse.json({
-      posts,
+      posts: items,
       pagination: {
-        page,
         limit,
-        total,
-        totalPages: Math.ceil(total / limit),
+        nextCursor,
+        hasNextPage,
       },
     });
   } catch (err) {

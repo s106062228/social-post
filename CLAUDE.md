@@ -314,5 +314,5 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 ### Phase 10: Production Hardening
 - [x] Add `/api/health` endpoint with DB + Redis connectivity checks
 - [x] Add Redis-based rate limiting middleware for API routes
-- [ ] Add `POST /api/posts/[id]/reschedule` endpoint to change scheduled time
-- [ ] Add cursor-based pagination to `GET /api/posts`
+- [x] Add `POST /api/posts/[id]/reschedule` endpoint to change scheduled time
+- [x] Add cursor-based pagination to `GET /api/posts`
