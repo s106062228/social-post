@@ -21,6 +21,8 @@ const updatePostSchema = z
     message: "At least one field must be provided",
   });
 
+const postIdSchema = z.string().cuid();
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 async function getOwnedPost(postId: string, userId: string) {
@@ -43,6 +45,9 @@ export async function GET(
     }
 
     const { id } = await params;
+    if (!postIdSchema.safeParse(id).success) {
+      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+    }
 
     const post = await prisma.post.findUnique({
       where: { id },
@@ -86,6 +91,9 @@ export async function PATCH(
     }
 
     const { id } = await params;
+    if (!postIdSchema.safeParse(id).success) {
+      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+    }
     const post = await getOwnedPost(id, session.user.id);
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
@@ -161,6 +169,9 @@ export async function DELETE(
     }
 
     const { id } = await params;
+    if (!postIdSchema.safeParse(id).success) {
+      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+    }
     const post = await getOwnedPost(id, session.user.id);
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
