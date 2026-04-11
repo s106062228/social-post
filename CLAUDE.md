@@ -305,3 +305,8 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Analytics/insights page (basic)
 - [x] Seed script for development data
 - [x] README with setup instructions
+
+### Phase 9: Production Hardening
+- [x] Environment variable validation on startup (`src/lib/env.ts`)
+- [x] Health check API endpoint (`/api/health`) for Docker/K8s
+- [x] GitHub Actions CI workflow (lint + type-check on push)
