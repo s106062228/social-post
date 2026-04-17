@@ -4,12 +4,14 @@ import { prisma } from "@/lib/db";
 import { createRedisConnection, QUEUE_NAMES } from "./connection";
 import type { PublishJobData } from "./workers/publish";
 import type { TokenRefreshJobData } from "./workers/refresh";
+import type { TokenExpiryCheckJobData } from "./workers/token-expiry";
 
 // ── Queue singletons ───────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
 
 let publishQueue: Queue<PublishJobData> | null = null;
 let tokenRefreshQueue: Queue<TokenRefreshJobData> | null = null;
+let tokenExpiryCheckQueue: Queue<TokenExpiryCheckJobData> | null = null;
 
 function getPublishQueue(): Queue<PublishJobData> {
   if (!publishQueue) {
@@ -48,6 +50,24 @@ function getTokenRefreshQueue(): Queue<TokenRefreshJobData> {
     );
   }
   return tokenRefreshQueue;
+}
+
+function getTokenExpiryCheckQueue(): Queue<TokenExpiryCheckJobData> {
+  if (!tokenExpiryCheckQueue) {
+    tokenExpiryCheckQueue = new Queue<TokenExpiryCheckJobData>(
+      QUEUE_NAMES.TOKEN_EXPIRY_CHECK,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 3,
+          backoff: { type: "exponential", delay: 5000 },
+          removeOnComplete: { count: 30 },
+          removeOnFail: { count: 50 },
+        },
+      }
+    );
+  }
+  return tokenExpiryCheckQueue;
 }
 
 // ── Publish scheduling ─────────────────────────────────────────────────────────
@@ -204,6 +224,28 @@ export async function scheduleExpiringTokenRefreshes(
   }
 
   return expiringAccounts.length;
+}
+
+// ── Token expiry cron ──────────────────────────────────────────────────────────
+
+/**
+ * Registers (or upserts) the daily BullMQ repeatable job that checks for
+ * expired / expiring tokens. Safe to call on every worker startup — BullMQ
+ * deduplicates repeatable jobs by their key.
+ *
+ * Schedule: 02:00 UTC every day.
+ */
+export async function scheduleTokenExpiryCheck(): Promise<void> {
+  const queue = getTokenExpiryCheckQueue();
+
+  await queue.add(
+    "token-expiry-check",
+    { triggeredAt: new Date().toISOString() },
+    {
+      repeat: { pattern: "0 2 * * *" },
+      jobId: "token-expiry-check:daily",
+    }
+  );
 }
 
 // ── Queue event helpers ────────────────────────────────────────────────────────
