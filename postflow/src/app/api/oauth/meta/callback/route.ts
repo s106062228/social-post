@@ -10,6 +10,7 @@ import {
   META_SCOPES,
 } from "@/lib/auth/meta-oauth";
 import { storeOrUpdateSocialAccount } from "@/lib/auth/token-manager";
+import { oauthLogger } from "@/lib/logger";
 
 /**
  * GET /api/oauth/meta/callback
@@ -141,7 +142,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     } catch (threadsErr) {
       // Threads may be unavailable if the user has no Threads account
       // or if the scope was not granted. Don't fail the entire OAuth flow.
-      console.warn("[OAuth] Threads account fetch skipped:", threadsErr instanceof Error ? threadsErr.message : threadsErr);
+      oauthLogger.warn({ err: threadsErr instanceof Error ? threadsErr.message : threadsErr }, "Threads account fetch skipped");
     }
 
     const successResp = NextResponse.redirect(
@@ -151,7 +152,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return successResp;
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    console.error("[OAuth] callback error:", message, err);
+    oauthLogger.error({ err }, `Callback error: ${message}`);
 
     const errorResp = NextResponse.redirect(
       new URL("/accounts?error=oauth_failed", request.url)

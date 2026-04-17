@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
+import { dbLogger, apiLogger } from "@/lib/logger";
 
 // ── Custom Error Classes ──────────────────────────────────────────────────────
 
@@ -85,19 +86,21 @@ export function handleRouteError(err: unknown): NextResponse {
           { error: "Resource not found" },
           { status: 404 }
         );
-      default:
-        console.error("[DB] PrismaClientKnownRequestError:", err.code, err.message);
+      default: {
+        const e = err as { code: string; message: string };
+        dbLogger.error({ code: e.code }, e.message);
         return NextResponse.json({ error: "Database error" }, { status: 500 });
+      }
     }
   }
 
   if (err instanceof Prisma.PrismaClientValidationError) {
-    console.error("[DB] PrismaClientValidationError:", err.message);
+    dbLogger.error((err as { message: string }).message);
     return NextResponse.json({ error: "Invalid data" }, { status: 400 });
   }
 
   if (err instanceof Prisma.PrismaClientInitializationError) {
-    console.error("[DB] PrismaClientInitializationError:", err.message);
+    dbLogger.error((err as { message: string }).message);
     return NextResponse.json(
       { error: "Database unavailable" },
       { status: 503 }
@@ -105,6 +108,6 @@ export function handleRouteError(err: unknown): NextResponse {
   }
 
   // ── Unexpected errors ──────────────────────────────────────────────────────
-  console.error("[API] Unexpected error:", err);
+  apiLogger.error({ err }, "Unexpected error");
   return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 }

@@ -10,6 +10,7 @@ import { threadsAdapter } from "@/lib/platforms/threads";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { handleRouteError } from "@/lib/errors";
 import { publishLimiter, rateLimitHeaders } from "@/lib/rate-limit";
+import { publishLogger } from "@/lib/logger";
 
 // ── Zod Schema ────────────────────────────────────────────────────────────────
 
@@ -255,7 +256,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           data: { status: PostStatus.FAILED },
         })
         .catch((updateErr: unknown) => {
-          console.error("[publish] Failed to reset post status after error:", updateErr);
+          publishLogger.error({ err: updateErr }, "Failed to reset post status after error");
         });
     }
 

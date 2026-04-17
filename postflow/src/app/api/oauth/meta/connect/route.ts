@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 import { auth } from "@/auth";
 import { buildOAuthUrl } from "@/lib/auth/meta-oauth";
 import { oauthLimiter, rateLimitHeaders } from "@/lib/rate-limit";
+import { oauthLogger } from "@/lib/logger";
 
 /**
  * GET /api/oauth/meta/connect
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return response;
   } catch (err) {
     const message = err instanceof Error ? err.message : "Configuration error";
-    console.error("[OAuth] connect error:", message, err);
+    oauthLogger.error({ err }, `Connect error: ${message}`);
 
     const url = new URL("/accounts?error=config_error", request.url);
     return NextResponse.redirect(url);

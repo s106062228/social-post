@@ -7,6 +7,7 @@ import { instagramAdapter } from "@/lib/platforms/instagram";
 import { threadsAdapter } from "@/lib/platforms/threads";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { createRedisConnection, QUEUE_NAMES } from "../connection";
+import { publishLogger } from "@/lib/logger";
 
 // ── Job payload types ──────────────────────────────────────────────────────────
 
@@ -186,8 +187,7 @@ export function createPublishWorker(): Worker<PublishJobData> {
   });
 
   worker.on("error", (error: Error) => {
-    // Log worker-level errors (connection issues, etc.)
-    console.error("[PublishWorker] Worker error:", error.message);
+    publishLogger.error({ err: error }, "PublishWorker error");
   });
 
   return worker;

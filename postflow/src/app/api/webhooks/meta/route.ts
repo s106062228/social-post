@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { PublishStatus } from "@prisma/client";
 import { handleRouteError } from "@/lib/errors";
+import { webhookLogger } from "@/lib/logger";
 
 // ── Signature verification ────────────────────────────────────────────────────
 
@@ -78,7 +79,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   const verifyToken = process.env.META_WEBHOOK_VERIFY_TOKEN;
   if (!verifyToken) {
-    console.error("[Webhook] META_WEBHOOK_VERIFY_TOKEN is not configured");
+    webhookLogger.error("META_WEBHOOK_VERIFY_TOKEN is not configured");
     return NextResponse.json(
       { error: "Webhook verification token not configured" },
       { status: 500 }

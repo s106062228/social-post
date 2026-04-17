@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { encryptToken, decryptToken } from "@/lib/encryption";
 import { exchangeForLongLivedToken } from "@/lib/auth/meta-oauth";
 import { createRedisConnection, QUEUE_NAMES } from "../connection";
+import { workerLogger } from "@/lib/logger";
 
 // ── Job payload types ──────────────────────────────────────────────────────────
 
@@ -70,15 +71,12 @@ export function createTokenRefreshWorker(): Worker<TokenRefreshJobData> {
     "failed",
     (job: Job<TokenRefreshJobData> | undefined, error: Error) => {
       const accountId = job?.data.socialAccountId ?? "unknown";
-      console.error(
-        `[TokenRefreshWorker] Failed to refresh token for account ${accountId}:`,
-        error.message
-      );
+      workerLogger.error({ accountId }, `Failed to refresh token: ${error.message}`);
     }
   );
 
   worker.on("error", (error: Error) => {
-    console.error("[TokenRefreshWorker] Worker error:", error.message);
+    workerLogger.error({ err: error }, "TokenRefreshWorker error");
   });
 
   return worker;

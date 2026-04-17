@@ -17,14 +17,15 @@ import "dotenv/config";
 import { createPublishWorker } from "../src/lib/queue/workers/publish";
 import { createTokenRefreshWorker } from "../src/lib/queue/workers/refresh";
 import { scheduleExpiringTokenRefreshes } from "../src/lib/queue/scheduler";
+import { workerLogger } from "../src/lib/logger";
 
 // ── Start workers ──────────────────────────────────────────────────────────────
 
 const publishWorker = createPublishWorker();
 const tokenRefreshWorker = createTokenRefreshWorker();
 
-console.log("[Worker] Publish worker started");
-console.log("[Worker] Token refresh worker started");
+workerLogger.info("Publish worker started");
+workerLogger.info("Token refresh worker started");
 
 // ── Token expiry cron ──────────────────────────────────────────────────────────
 // Check for tokens expiring within 7 days every 6 hours.
@@ -35,13 +36,11 @@ async function runTokenRefreshScan(): Promise<void> {
   try {
     const count = await scheduleExpiringTokenRefreshes(7);
     if (count > 0) {
-      console.log(
-        `[Worker] Scheduled token refresh for ${count} expiring account(s)`
-      );
+      workerLogger.info({ count }, "Scheduled token refresh for expiring accounts");
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error("[Worker] Token refresh scan failed:", message);
+    workerLogger.error({ err: message }, "Token refresh scan failed");
   }
 }
 
@@ -55,13 +54,13 @@ const tokenScanInterval = setInterval(
 // ── Graceful shutdown ──────────────────────────────────────────────────────────
 
 async function shutdown(signal: string): Promise<void> {
-  console.log(`[Worker] Received ${signal}, shutting down gracefully...`);
+  workerLogger.info({ signal }, "Received signal, shutting down gracefully");
 
   clearInterval(tokenScanInterval);
 
   await Promise.all([publishWorker.close(), tokenRefreshWorker.close()]);
 
-  console.log("[Worker] All workers stopped. Exiting.");
+  workerLogger.info("All workers stopped. Exiting.");
   process.exit(0);
 }
 
@@ -69,11 +68,11 @@ process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT", () => shutdown("SIGINT"));
 
 process.on("uncaughtException", (error: Error) => {
-  console.error("[Worker] Uncaught exception:", error.message);
+  workerLogger.error({ err: error }, "Uncaught exception");
   shutdown("uncaughtException");
 });
 
 process.on("unhandledRejection", (reason: unknown) => {
   const message = reason instanceof Error ? reason.message : String(reason);
-  console.error("[Worker] Unhandled rejection:", message);
+  workerLogger.error({ err: message }, "Unhandled rejection");
 });
