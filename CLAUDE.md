@@ -310,3 +310,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Environment variable validation on startup (`src/lib/env.ts`)
 - [x] Health check API endpoint (`/api/health`) for Docker/K8s
 - [x] GitHub Actions CI workflow (lint + type-check on push)
+
+### Phase 10: Observability & Reliability
+- [x] API rate limiting middleware (Redis sliding window, per-user and per-IP)
+- [ ] Structured logging with pino (replace console.log in server code)
+- [ ] Database performance indexes (Prisma migration for common query patterns)
+- [ ] Unit tests for encryption.ts and rate-limit.ts (Jest + ts-jest)
+- [ ] Automated token expiry cron job (BullMQ repeatable job, daily check)

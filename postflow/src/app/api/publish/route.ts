@@ -9,6 +9,7 @@ import { instagramAdapter } from "@/lib/platforms/instagram";
 import { threadsAdapter } from "@/lib/platforms/threads";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { handleRouteError } from "@/lib/errors";
+import { publishLimiter, rateLimitHeaders } from "@/lib/rate-limit";
 
 // ── Zod Schema ────────────────────────────────────────────────────────────────
 
@@ -39,6 +40,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rl = await publishLimiter(session.user.id);
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429, headers: rateLimitHeaders(rl) }
+      );
     }
 
     let body: unknown;

@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { auth } from "@/auth";
 import { buildOAuthUrl } from "@/lib/auth/meta-oauth";
+import { oauthLimiter, rateLimitHeaders } from "@/lib/rate-limit";
 
 /**
  * GET /api/oauth/meta/connect
@@ -10,7 +11,7 @@ import { buildOAuthUrl } from "@/lib/auth/meta-oauth";
  * Generates a CSRF state token, stores it in an httpOnly cookie, and redirects
  * the browser to the Meta OAuth consent dialog.
  */
-export async function GET(request: Request): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -18,6 +19,17 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   try {
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      request.headers.get("x-real-ip") ??
+      "unknown";
+    const rl = await oauthLimiter(ip);
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429, headers: rateLimitHeaders(rl) }
+      );
+    }
     // Generate a random CSRF state token
     const state = randomBytes(32).toString("hex");
     const oauthUrl = buildOAuthUrl(state);

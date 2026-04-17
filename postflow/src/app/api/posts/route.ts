@@ -4,6 +4,7 @@ import { MediaType, PostStatus } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { handleRouteError } from "@/lib/errors";
+import { apiLimiter, rateLimitHeaders } from "@/lib/rate-limit";
 
 // ── Zod Schemas ───────────────────────────────────────────────────────────────
 
@@ -27,6 +28,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rl = await apiLimiter(session.user.id);
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429, headers: rateLimitHeaders(rl) }
+      );
     }
 
     const searchParams = Object.fromEntries(request.nextUrl.searchParams.entries());
@@ -91,6 +100,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rl = await apiLimiter(session.user.id);
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429, headers: rateLimitHeaders(rl) }
+      );
     }
 
     let body: unknown;
