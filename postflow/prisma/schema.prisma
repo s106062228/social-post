@@ -63,6 +63,8 @@ model SocialAccount {
   updatedAt         DateTime  @updatedAt
 
   @@unique([userId, platform, platformAccountId])
+  @@index([userId])
+  @@index([isActive, tokenExpiresAt])
 }
 
 model Post {
@@ -77,6 +79,12 @@ model Post {
   publishResults PublishResult[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([userId, status])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([scheduledAt])
+  @@index([status, scheduledAt])
 }
 
 model PublishResult {
@@ -93,4 +101,8 @@ model PublishResult {
   retryCount     Int           @default(0)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+
+  @@index([postId])
+  @@index([postId, status])
+  @@index([status])
 }
