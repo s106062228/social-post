@@ -315,5 +315,5 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] API rate limiting middleware (Redis sliding window, per-user and per-IP)
 - [x] Structured logging with pino (replace console.log in server code)
 - [x] Database performance indexes (Prisma migration for common query patterns)
-- [ ] Unit tests for encryption.ts and rate-limit.ts (Jest + ts-jest)
+- [x] Unit tests for encryption.ts and rate-limit.ts (Jest + ts-jest)
 - [ ] Automated token expiry cron job (BullMQ repeatable job, daily check)
