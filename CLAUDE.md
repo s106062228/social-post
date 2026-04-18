@@ -317,3 +317,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Database performance indexes (Prisma migration for common query patterns)
 - [x] Unit tests for encryption.ts and rate-limit.ts (Jest + ts-jest)
 - [x] Automated token expiry cron job (BullMQ repeatable job, daily check)
+
+### Phase 11: Platform Adapter Unit Tests
+- [x] Unit tests for Facebook platform adapter (mocked fetch)
+- [x] Unit tests for Instagram platform adapter (mocked fetch)
+- [x] Unit tests for Threads platform adapter (mocked fetch)
+- [x] Extend CI workflow to run jest unit tests on push (no DB/Redis needed)
