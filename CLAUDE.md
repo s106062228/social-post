@@ -328,3 +328,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Integration tests for GET /api/health (mock Prisma, healthy + degraded states)
 - [x] Integration tests for GET /api/posts and POST /api/posts (mock auth, Prisma, rate limiter)
 - [x] Integration tests for GET/PATCH/DELETE /api/posts/[id] (mock auth, Prisma)
+
+### Phase 13: Remaining Route & Worker Tests
+- [x] Integration tests for POST /api/publish (publishing flow, conflict states, partial success)
+- [x] Integration tests for GET/POST /api/webhooks/meta (hub challenge, HMAC signature, status updates)
+- [ ] Integration tests for GET /api/oauth/meta/connect (state generation, redirect URL)
+- [ ] Unit tests for BullMQ publish worker (mocked adapters, Prisma, queue)
+- [ ] Unit tests for BullMQ token refresh and token-expiry workers
