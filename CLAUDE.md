@@ -332,6 +332,6 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 ### Phase 13: Remaining Route & Worker Tests
 - [x] Integration tests for POST /api/publish (publishing flow, conflict states, partial success)
 - [x] Integration tests for GET/POST /api/webhooks/meta (hub challenge, HMAC signature, status updates)
-- [ ] Integration tests for GET /api/oauth/meta/connect (state generation, redirect URL)
+- [x] Integration tests for GET /api/oauth/meta/connect (state generation, redirect URL)
 - [ ] Unit tests for BullMQ publish worker (mocked adapters, Prisma, queue)
 - [ ] Unit tests for BullMQ token refresh and token-expiry workers
