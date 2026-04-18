@@ -323,3 +323,8 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Unit tests for Instagram platform adapter (mocked fetch)
 - [x] Unit tests for Threads platform adapter (mocked fetch)
 - [x] Extend CI workflow to run jest unit tests on push (no DB/Redis needed)
+
+### Phase 12: API Route Integration Tests
+- [x] Integration tests for GET /api/health (mock Prisma, healthy + degraded states)
+- [x] Integration tests for GET /api/posts and POST /api/posts (mock auth, Prisma, rate limiter)
+- [x] Integration tests for GET/PATCH/DELETE /api/posts/[id] (mock auth, Prisma)
