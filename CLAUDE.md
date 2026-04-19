@@ -335,3 +335,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Integration tests for GET /api/oauth/meta/connect (state generation, redirect URL)
 - [x] Unit tests for BullMQ publish worker (mocked adapters, Prisma, queue)
 - [x] Unit tests for BullMQ token refresh and token-expiry workers
+
+### Phase 14: End-to-End Tests with Playwright
+- [x] Install and configure Playwright in postflow/ (TypeScript, chromium only for CI speed)
+- [x] E2E test: unauthenticated redirect (visiting /dashboard redirects to /login)
+- [x] E2E test: login flow (fill credentials, submit, land on dashboard)
+- [x] E2E test: post composer — create a draft post and verify it appears in post list
+- [x] E2E test: accounts page renders connect buttons for FB/IG/Threads
+- [x] Add Playwright E2E job to GitHub Actions CI (uses built app, runs headed=false)
