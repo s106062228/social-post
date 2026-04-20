@@ -145,7 +145,7 @@ describe("createPublishWorker", () => {
       }
     );
 
-    (Worker as jest.Mock).mockImplementation(
+    (Worker as unknown as jest.Mock).mockImplementation(
       (_name: string, proc: ProcessorFn) => {
         processor = proc;
         return { on: mockOn };

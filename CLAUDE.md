@@ -348,3 +348,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Security headers middleware (X-Frame-Options, HSTS, CSP, X-Content-Type-Options, Referrer-Policy) via Next.js middleware
 - [x] Server-side input sanitization for post content (strip HTML, control chars, zero-width chars)
 - [x] Unit tests for the sanitization utility
+
+### Phase 16: Monitoring & Observability
+- [x] Fix TypeScript strict-mode violations in worker test files (Worker cast via unknown)
+- [x] Prometheus-compatible `/api/metrics` endpoint (request counts, queue depth, error rates via Redis counters)
+- [x] Request-ID tracing middleware (attach unique `x-request-id` to every request/response and log it)
+- [x] Unit tests for the metrics module

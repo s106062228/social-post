@@ -1,8 +1,49 @@
 import { auth } from "@/auth";
+import { type NextFetchEvent, NextRequest, NextResponse } from "next/server";
 
-// Re-export auth as proxy for Next.js 16 route protection.
-// The authorized callback in auth.ts handles redirect logic.
-export { auth as proxy };
+type AuthProxyFn = (
+  request: NextRequest,
+  event: NextFetchEvent
+) => Promise<Response | undefined>;
+
+export async function proxy(
+  request: NextRequest,
+  event: NextFetchEvent
+): Promise<Response | undefined> {
+  const requestId = crypto.randomUUID();
+
+  // Stamp the request ID onto downstream headers so route handlers can log it
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-request-id", requestId);
+
+  const requestWithId = new NextRequest(request.url, {
+    method: request.method,
+    headers: requestHeaders,
+  });
+
+  // Run NextAuth's auth middleware — returns a Response (redirect/block) or
+  // undefined to allow the request to proceed
+  const authResult = await (auth as unknown as AuthProxyFn)(
+    requestWithId,
+    event
+  );
+
+  if (authResult instanceof Response) {
+    const response = new NextResponse(authResult.body, {
+      status: authResult.status,
+      headers: authResult.headers,
+    });
+    response.headers.set("x-request-id", requestId);
+    return response;
+  }
+
+  // Allow through — propagate request ID to route handlers and back to client
+  const response = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+  response.headers.set("x-request-id", requestId);
+  return response;
+}
 
 export const config = {
   matcher: [
