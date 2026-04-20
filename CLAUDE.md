@@ -359,3 +359,8 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Toast notification system for user actions (post saved, published, deleted, errors)
 - [x] Retry button for failed posts (POST /api/posts/[id]/retry endpoint + UI)
 - [x] Unit tests for the retry API endpoint
+
+### Phase 18: Advanced Content Management
+- [x] Post duplication endpoint (`POST /api/posts/[id]/duplicate`) + duplicate button in UI
+- [x] Post keyword search (extend GET /api/posts + posts page search input)
+- [x] Unit tests for the duplicate API endpoint

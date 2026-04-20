@@ -18,6 +18,7 @@ const createPostSchema = z.object({
 
 const listPostsSchema = z.object({
   status: z.nativeEnum(PostStatus).optional(),
+  search: z.string().max(200).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
@@ -48,12 +49,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { status, page, limit } = parsed.data;
+    const { status, search, page, limit } = parsed.data;
     const skip = (page - 1) * limit;
 
     const where = {
       userId: session.user.id,
       ...(status ? { status } : {}),
+      ...(search ? { content: { contains: search, mode: "insensitive" as const } } : {}),
     };
 
     const [posts, total] = await Promise.all([

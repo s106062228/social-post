@@ -13,27 +13,31 @@ import {
 import { Plus, FileText } from "lucide-react";
 import { DeletePostButton } from "./delete-post-button";
 import { RetryPostButton } from "./retry-post-button";
+import { DuplicatePostButton } from "./duplicate-post-button";
+import { SearchInput } from "./search-input";
 
 export default async function PostsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; page?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; search?: string }>;
 }) {
   const session = await auth();
   const userId = session!.user!.id;
 
-  const { status: statusFilter, page: pageStr } = await searchParams;
+  const { status: statusFilter, page: pageStr, search: searchQuery } = await searchParams;
   const page = Math.max(1, parseInt(pageStr ?? "1", 10));
   const limit = 20;
   const skip = (page - 1) * limit;
 
   const statusEnum = statusFilter as PostStatus | undefined;
+  const search = searchQuery?.trim() ?? "";
 
   const where = {
     userId,
     ...(statusEnum && Object.values(PostStatus).includes(statusEnum)
       ? { status: statusEnum }
       : {}),
+    ...(search ? { content: { contains: search, mode: "insensitive" as const } } : {}),
   };
 
   const [posts, total] = await Promise.all([
@@ -61,6 +65,18 @@ export default async function PostsPage({
     { value: "FAILED", label: "Failed" },
   ];
 
+  function buildHref(opts: { status?: string; page?: number; search?: string }) {
+    const params = new URLSearchParams();
+    const s = opts.status ?? statusFilter ?? "";
+    if (s) params.set("status", s);
+    const q = opts.search !== undefined ? opts.search : search;
+    if (q) params.set("search", q);
+    const p = opts.page ?? page;
+    if (p > 1) params.set("page", String(p));
+    const qs = params.toString();
+    return `/posts${qs ? `?${qs}` : ""}`;
+  }
+
   return (
     <div className="flex flex-col gap-8 p-8">
       <div className="flex items-center justify-between">
@@ -79,10 +95,10 @@ export default async function PostsPage({
       </div>
 
       {/* Status filter tabs */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {statuses.map(({ value, label }) => {
           const isActive = (statusFilter ?? "") === value;
-          const href = value ? `/posts?status=${value}` : "/posts";
+          const href = buildHref({ status: value, page: 1 });
           return (
             <Link
               key={value}
@@ -99,13 +115,21 @@ export default async function PostsPage({
         })}
       </div>
 
+      {/* Keyword search */}
+      <SearchInput defaultValue={search} />
+
       {/* Posts list */}
       <Card>
         <CardHeader>
           <CardTitle>{total} post{total !== 1 ? "s" : ""}</CardTitle>
-          {statusFilter && (
+          {(statusFilter || search) && (
             <CardDescription>
-              Filtered by: {statusFilter.toLowerCase()}
+              {[
+                statusFilter && `Status: ${statusFilter.toLowerCase()}`,
+                search && `Search: "${search}"`,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
             </CardDescription>
           )}
         </CardHeader>
@@ -151,6 +175,7 @@ export default async function PostsPage({
                       post.status === PostStatus.PARTIALLY_PUBLISHED) && (
                       <RetryPostButton postId={post.id} />
                     )}
+                    <DuplicatePostButton postId={post.id} />
                     <DeletePostButton postId={post.id} status={post.status} />
                   </div>
                 </div>
@@ -165,11 +190,7 @@ export default async function PostsPage({
         <div className="flex justify-center gap-2">
           {page > 1 && (
             <Button variant="outline" size="sm" asChild>
-              <Link
-                href={`/posts?page=${page - 1}${statusFilter ? `&status=${statusFilter}` : ""}`}
-              >
-                Previous
-              </Link>
+              <Link href={buildHref({ page: page - 1 })}>Previous</Link>
             </Button>
           )}
           <span className="flex items-center text-sm text-muted-foreground">
@@ -177,11 +198,7 @@ export default async function PostsPage({
           </span>
           {page < totalPages && (
             <Button variant="outline" size="sm" asChild>
-              <Link
-                href={`/posts?page=${page + 1}${statusFilter ? `&status=${statusFilter}` : ""}`}
-              >
-                Next
-              </Link>
+              <Link href={buildHref({ page: page + 1 })}>Next</Link>
             </Button>
           )}
         </div>
