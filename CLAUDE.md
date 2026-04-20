@@ -343,3 +343,8 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] E2E test: post composer — create a draft post and verify it appears in post list
 - [x] E2E test: accounts page renders connect buttons for FB/IG/Threads
 - [x] Add Playwright E2E job to GitHub Actions CI (uses built app, runs headed=false)
+
+### Phase 15: Security Hardening
+- [x] Security headers middleware (X-Frame-Options, HSTS, CSP, X-Content-Type-Options, Referrer-Policy) via Next.js middleware
+- [x] Server-side input sanitization for post content (strip HTML, control chars, zero-width chars)
+- [x] Unit tests for the sanitization utility

@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { handleRouteError } from "@/lib/errors";
 import { apiLimiter, rateLimitHeaders } from "@/lib/rate-limit";
+import { sanitizePostContent } from "@/lib/sanitize";
 
 // ── Zod Schemas ───────────────────────────────────────────────────────────────
 
@@ -125,7 +126,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { content, mediaType, mediaUrls, scheduledAt } = parsed.data;
+    const { mediaType, mediaUrls, scheduledAt } = parsed.data;
+    const content = sanitizePostContent(parsed.data.content);
+
+    if (content.length === 0) {
+      return NextResponse.json(
+        { error: "Validation failed", issues: { content: ["Content cannot be empty after sanitization"] } },
+        { status: 400 }
+      );
+    }
 
     // Determine initial status
     const status = scheduledAt ? PostStatus.SCHEDULED : PostStatus.DRAFT;
