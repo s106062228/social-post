@@ -354,3 +354,8 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Prometheus-compatible `/api/metrics` endpoint (request counts, queue depth, error rates via Redis counters)
 - [x] Request-ID tracing middleware (attach unique `x-request-id` to every request/response and log it)
 - [x] Unit tests for the metrics module
+
+### Phase 17: User Experience Improvements
+- [x] Toast notification system for user actions (post saved, published, deleted, errors)
+- [x] Retry button for failed posts (POST /api/posts/[id]/retry endpoint + UI)
+- [x] Unit tests for the retry API endpoint

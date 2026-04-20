@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Plus, FileText } from "lucide-react";
 import { DeletePostButton } from "./delete-post-button";
+import { RetryPostButton } from "./retry-post-button";
 
 export default async function PostsPage({
   searchParams,
@@ -145,6 +146,10 @@ export default async function PostsPage({
                       <Button variant="ghost" size="sm" asChild>
                         <Link href={`/posts/${post.id}/edit`}>Edit</Link>
                       </Button>
+                    )}
+                    {(post.status === PostStatus.FAILED ||
+                      post.status === PostStatus.PARTIALLY_PUBLISHED) && (
+                      <RetryPostButton postId={post.id} />
                     )}
                     <DeletePostButton postId={post.id} status={post.status} />
                   </div>

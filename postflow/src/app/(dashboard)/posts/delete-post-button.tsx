@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Loader2, Trash2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 interface DeletePostButtonProps {
   postId: string;
@@ -21,8 +22,19 @@ export function DeletePostButton({ postId, status }: DeletePostButtonProps) {
     if (!confirm("Delete this post? This cannot be undone.")) return;
     setLoading(true);
     try {
-      await fetch(`/api/posts/${postId}`, { method: "DELETE" });
+      const res = await fetch(`/api/posts/${postId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string };
+        throw new Error(data.error ?? "Failed to delete post");
+      }
+      toast({ title: "Post deleted", variant: "success" });
       router.refresh();
+    } catch (err) {
+      toast({
+        title: "Failed to delete post",
+        description: err instanceof Error ? err.message : undefined,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

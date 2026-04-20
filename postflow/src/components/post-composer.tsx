@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import type { Platform } from "@prisma/client";
 
 interface Account {
@@ -35,7 +36,6 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   );
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const charCount = content.length;
   const maxChars = 63206;
@@ -53,10 +53,8 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   }
 
   async function savePost(publish: boolean) {
-    setError(null);
-
     if (publish && selectedAccountIds.size === 0) {
-      setError("Select at least one account to publish to.");
+      toast({ title: "Select at least one account to publish to.", variant: "destructive" });
       return;
     }
 
@@ -102,12 +100,21 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           const pubData = (await pubRes.json()) as { error?: string };
           throw new Error(pubData.error ?? "Failed to publish post");
         }
+        toast({ title: "Post published", variant: "success" });
+      } else if (scheduledAt) {
+        toast({ title: "Post scheduled", variant: "success" });
+      } else {
+        toast({ title: "Draft saved", variant: "success" });
       }
 
       router.push("/posts");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      toast({
+        title: "Something went wrong",
+        description: err instanceof Error ? err.message : "An error occurred",
+        variant: "destructive",
+      });
     } finally {
       setSaving(false);
       setPublishing(false);
@@ -191,13 +198,6 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           onChange={(e) => setScheduledAt(e.target.value)}
         />
       </div>
-
-      {/* Error */}
-      {error && (
-        <p className="rounded-md border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          {error}
-        </p>
-      )}
 
       {/* Actions */}
       <div className="flex gap-3">
