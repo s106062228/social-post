@@ -385,3 +385,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Recurring schedules page in dashboard (`/schedules`) — list, toggle active/pause, delete, inline create form
 - [x] Add "Schedules" to sidebar navigation
 - [x] Unit tests for the recurring schedules API (25 tests)
+
+### Phase 22: User Settings & Preferences
+- [x] Extend User model with preferences fields (timezone, emailNotifications) + Prisma migration
+- [x] GET/PATCH `/api/settings` endpoint — fetch and update user profile + preferences
+- [x] Settings page in dashboard (`/settings`) — profile name, timezone selector, email notifications toggle
+- [x] Add "Settings" to sidebar navigation
+- [x] Unit tests for the settings API (GET and PATCH)
