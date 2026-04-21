@@ -8,6 +8,7 @@ import { threadsAdapter } from "@/lib/platforms/threads";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { createRedisConnection, QUEUE_NAMES } from "../connection";
 import { publishLogger } from "@/lib/logger";
+import { notifyPostOutcome } from "@/lib/email";
 
 // ── Job payload types ──────────────────────────────────────────────────────────
 
@@ -133,6 +134,8 @@ async function reconcilePostStatus(postId: string): Promise<void> {
     where: { id: postId },
     data: { status: finalStatus },
   });
+
+  notifyPostOutcome(postId, finalStatus);
 }
 
 // ── Worker factory ─────────────────────────────────────────────────────────────

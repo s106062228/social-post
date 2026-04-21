@@ -401,3 +401,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Activity feed page in dashboard (`/activity`) — timeline of recent actions
 - [x] Add "Activity" to sidebar navigation
 - [x] Unit tests for the activity log endpoint
+
+### Phase 24: Email Notifications for Post Events
+- [x] Install nodemailer (SMTP email transport)
+- [x] Email service (`src/lib/email.ts`) — SMTP transport singleton, HTML templates (published / failed / partially published), fire-and-forget `notifyPostOutcome` respecting user's emailNotifications preference
+- [x] Integrate `notifyPostOutcome` into BullMQ publish worker — called after post status is reconciled
+- [x] Update `.env.example` with optional SMTP vars (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM)
+- [x] Unit tests for email service (16 tests — template rendering, sendEmail with/without SMTP, notifyPostOutcome for all terminal statuses)
