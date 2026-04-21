@@ -39,14 +39,15 @@ enum PublishStatus {
 }
 
 model User {
-  id        String          @id @default(cuid())
-  email     String          @unique
-  name      String?
-  password  String?
-  accounts  SocialAccount[]
-  posts     Post[]
-  templates Template[]
-  createdAt DateTime        @default(now())
+  id                String              @id @default(cuid())
+  email             String              @unique
+  name              String?
+  password          String?
+  accounts          SocialAccount[]
+  posts             Post[]
+  templates         Template[]
+  recurringSchedules RecurringSchedule[]
+  createdAt         DateTime            @default(now())
 }
 
 model SocialAccount {
@@ -101,6 +102,27 @@ model Template {
 
   @@index([userId])
   @@index([userId, createdAt(sort: Desc)])
+}
+
+model RecurringSchedule {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  content   String
+  mediaType MediaType @default(NONE)
+  mediaUrls String[]
+  platforms Platform[]
+  cronExpr  String
+  timezone  String    @default("UTC")
+  isActive  Boolean   @default(true)
+  lastRunAt DateTime?
+  nextRunAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([isActive, nextRunAt])
 }
 
 model PublishResult {

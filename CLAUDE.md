@@ -377,3 +377,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Bulk delete endpoint (`DELETE /api/posts/bulk`) — accepts array of post IDs, validates ownership, skips PUBLISHING posts
 - [x] Posts list client component with checkbox-based bulk selection and "Delete Selected" button
 - [x] Unit tests for the bulk delete endpoint
+
+### Phase 21: Recurring Post Schedules
+- [x] `RecurringSchedule` model in Prisma (id, userId, name, content, mediaType, mediaUrls, platforms, cronExpr, timezone, isActive, lastRunAt, nextRunAt) + migration
+- [x] CRUD API for recurring schedules (`GET /api/schedules`, `POST /api/schedules`, `DELETE /api/schedules/[id]`, `POST /api/schedules/[id]/toggle`)
+- [x] BullMQ recurring schedule worker (minutely cron, finds due schedules, creates Posts, dispatches to publish queue)
+- [x] Recurring schedules page in dashboard (`/schedules`) — list, toggle active/pause, delete, inline create form
+- [x] Add "Schedules" to sidebar navigation
+- [x] Unit tests for the recurring schedules API (25 tests)

@@ -1,10 +1,12 @@
 import { Queue, QueueEvents } from "bullmq";
 import { PostStatus, PublishStatus } from "@prisma/client";
+import { CronExpressionParser } from "cron-parser";
 import { prisma } from "@/lib/db";
 import { createRedisConnection, QUEUE_NAMES } from "./connection";
 import type { PublishJobData } from "./workers/publish";
 import type { TokenRefreshJobData } from "./workers/refresh";
 import type { TokenExpiryCheckJobData } from "./workers/token-expiry";
+import type { RecurringScheduleJobData } from "./workers/recurring-schedule";
 
 // ── Queue singletons ───────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -246,6 +248,71 @@ export async function scheduleTokenExpiryCheck(): Promise<void> {
       jobId: "token-expiry-check:daily",
     }
   );
+}
+
+// ── Recurring schedule queue ───────────────────────────────────────────────────
+
+let recurringScheduleQueue: Queue<RecurringScheduleJobData> | null = null;
+
+function getRecurringScheduleQueue(): Queue<RecurringScheduleJobData> {
+  if (!recurringScheduleQueue) {
+    recurringScheduleQueue = new Queue<RecurringScheduleJobData>(
+      QUEUE_NAMES.RECURRING_SCHEDULE,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 3,
+          backoff: { type: "exponential", delay: 5000 },
+          removeOnComplete: { count: 50 },
+          removeOnFail: { count: 100 },
+        },
+      }
+    );
+  }
+  return recurringScheduleQueue;
+}
+
+/**
+ * Registers the BullMQ repeatable job that checks for due recurring schedules
+ * every minute. Safe to call on every worker startup — BullMQ deduplicates
+ * repeatable jobs by their key.
+ */
+export async function scheduleRecurringCheck(): Promise<void> {
+  const queue = getRecurringScheduleQueue();
+
+  await queue.add(
+    "recurring-schedule-check",
+    { triggeredAt: new Date().toISOString() },
+    {
+      repeat: { pattern: "* * * * *" },
+      jobId: "recurring-schedule-check:minutely",
+    }
+  );
+}
+
+/**
+ * Calculates the first nextRunAt for a new recurring schedule.
+ * Returns null if the cron expression is invalid.
+ */
+export function calcNextRunAt(cronExpr: string, timezone: string): Date | null {
+  try {
+    const interval = CronExpressionParser.parse(cronExpr, { tz: timezone });
+    return interval.next().toDate();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Validates a cron expression. Returns true if valid.
+ */
+export function isValidCronExpr(cronExpr: string): boolean {
+  try {
+    CronExpressionParser.parse(cronExpr);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // ── Queue event helpers ────────────────────────────────────────────────────────

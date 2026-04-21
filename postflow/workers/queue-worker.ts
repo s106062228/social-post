@@ -20,9 +20,11 @@ import "dotenv/config";
 import { createPublishWorker } from "../src/lib/queue/workers/publish";
 import { createTokenRefreshWorker } from "../src/lib/queue/workers/refresh";
 import { createTokenExpiryCheckWorker } from "../src/lib/queue/workers/token-expiry";
+import { createRecurringScheduleWorker } from "../src/lib/queue/workers/recurring-schedule";
 import {
   scheduleTokenExpiryCheck,
   scheduleExpiringTokenRefreshes,
+  scheduleRecurringCheck,
 } from "../src/lib/queue/scheduler";
 import { workerLogger } from "../src/lib/logger";
 
@@ -31,14 +33,14 @@ import { workerLogger } from "../src/lib/logger";
 const publishWorker = createPublishWorker();
 const tokenRefreshWorker = createTokenRefreshWorker();
 const tokenExpiryCheckWorker = createTokenExpiryCheckWorker();
+const recurringScheduleWorker = createRecurringScheduleWorker();
 
 workerLogger.info("Publish worker started");
 workerLogger.info("Token refresh worker started");
 workerLogger.info("Token expiry check worker started");
+workerLogger.info("Recurring schedule worker started");
 
-// ── Register daily repeatable cron ────────────────────────────────────────────
-// Registers the BullMQ repeatable job (daily at 02:00 UTC) for token expiry
-// checks. Idempotent — safe to call on every startup.
+// ── Register repeatable cron jobs ─────────────────────────────────────────────
 
 async function registerCronJobs(): Promise<void> {
   try {
@@ -47,6 +49,14 @@ async function registerCronJobs(): Promise<void> {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     workerLogger.error({ err: message }, "Failed to register token expiry cron");
+  }
+
+  try {
+    await scheduleRecurringCheck();
+    workerLogger.info("Registered minutely recurring schedule check cron");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    workerLogger.error({ err: message }, "Failed to register recurring schedule cron");
   }
 }
 
@@ -81,6 +91,7 @@ async function shutdown(signal: string): Promise<void> {
     publishWorker.close(),
     tokenRefreshWorker.close(),
     tokenExpiryCheckWorker.close(),
+    recurringScheduleWorker.close(),
   ]);
 
   workerLogger.info("All workers stopped. Exiting.");

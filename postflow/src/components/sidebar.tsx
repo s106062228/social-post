@@ -9,6 +9,7 @@ import {
   Users,
   BarChart2,
   LayoutTemplate,
+  Repeat,
   LogOut,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/accounts", label: "Accounts", icon: Users },
   { href: "/templates", label: "Templates", icon: LayoutTemplate },
+  { href: "/schedules", label: "Schedules", icon: Repeat },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
 ];
 
