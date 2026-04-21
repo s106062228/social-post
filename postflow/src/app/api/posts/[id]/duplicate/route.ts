@@ -4,6 +4,7 @@ import { PostStatus } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { handleRouteError } from "@/lib/errors";
+import { logActivity } from "@/lib/activity-log";
 
 const postIdSchema = z.string().cuid();
 
@@ -39,6 +40,14 @@ export async function POST(
         scheduledAt: null,
       },
       include: { publishResults: true },
+    });
+
+    logActivity({
+      userId: session.user.id,
+      action: "post.duplicated",
+      entityId: duplicate.id,
+      entityType: "post",
+      metadata: { sourcePostId: id },
     });
 
     return NextResponse.json(duplicate, { status: 201 });

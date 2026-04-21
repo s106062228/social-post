@@ -9,6 +9,7 @@ import { instagramAdapter } from "@/lib/platforms/instagram";
 import { threadsAdapter } from "@/lib/platforms/threads";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { handleRouteError } from "@/lib/errors";
+import { logActivity } from "@/lib/activity-log";
 
 const postIdSchema = z.string().cuid();
 
@@ -178,6 +179,14 @@ export async function POST(
           },
         },
       },
+    });
+
+    logActivity({
+      userId: session.user.id,
+      action: "post.retried",
+      entityId: id,
+      entityType: "post",
+      metadata: { succeeded, failed, total: accounts.length, finalStatus },
     });
 
     const httpStatus = succeeded === 0 ? 500 : failed > 0 ? 207 : 200;

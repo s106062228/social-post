@@ -392,3 +392,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Settings page in dashboard (`/settings`) — profile name, timezone selector, email notifications toggle
 - [x] Add "Settings" to sidebar navigation
 - [x] Unit tests for the settings API (GET and PATCH)
+
+### Phase 23: Post Activity Log & Audit Trail
+- [x] `ActivityLog` model in Prisma (id, userId, action, entityId, entityType, metadata, createdAt) + migration
+- [x] Activity logging helper (`src/lib/activity-log.ts`) — fire-and-forget log writer
+- [x] Integrate activity logging in post routes (create, update, delete, duplicate, retry, publish)
+- [x] GET `/api/activity` endpoint — paginated activity feed for the current user
+- [x] Activity feed page in dashboard (`/activity`) — timeline of recent actions
+- [x] Add "Activity" to sidebar navigation
+- [x] Unit tests for the activity log endpoint

@@ -4,6 +4,7 @@ import { MediaType, PostStatus } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { handleRouteError } from "@/lib/errors";
+import { logActivity } from "@/lib/activity-log";
 
 // ── Zod Schemas ───────────────────────────────────────────────────────────────
 
@@ -150,6 +151,14 @@ export async function PATCH(
       },
     });
 
+    logActivity({
+      userId: session.user.id,
+      action: "post.updated",
+      entityId: id,
+      entityType: "post",
+      metadata: { fields: Object.keys(parsed.data) },
+    });
+
     return NextResponse.json(updated);
   } catch (err) {
     return handleRouteError(err);
@@ -190,6 +199,13 @@ export async function DELETE(
       prisma.publishResult.deleteMany({ where: { postId: id } }),
       prisma.post.delete({ where: { id } }),
     ]);
+
+    logActivity({
+      userId: session.user.id,
+      action: "post.deleted",
+      entityId: id,
+      entityType: "post",
+    });
 
     return new NextResponse(null, { status: 204 });
   } catch (err) {

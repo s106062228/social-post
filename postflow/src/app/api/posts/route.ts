@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { handleRouteError } from "@/lib/errors";
 import { apiLimiter, rateLimitHeaders } from "@/lib/rate-limit";
 import { sanitizePostContent } from "@/lib/sanitize";
+import { logActivity } from "@/lib/activity-log";
 
 // ── Zod Schemas ───────────────────────────────────────────────────────────────
 
@@ -153,6 +154,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       include: {
         publishResults: true,
       },
+    });
+
+    logActivity({
+      userId: session.user.id,
+      action: "post.created",
+      entityId: post.id,
+      entityType: "post",
+      metadata: { status: post.status },
     });
 
     return NextResponse.json(post, { status: 201 });

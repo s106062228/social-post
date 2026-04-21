@@ -49,6 +49,7 @@ model User {
   posts              Post[]
   templates          Template[]
   recurringSchedules RecurringSchedule[]
+  activityLogs       ActivityLog[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -126,6 +127,20 @@ model RecurringSchedule {
 
   @@index([userId])
   @@index([isActive, nextRunAt])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action     String
+  entityId   String?
+  entityType String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, entityType])
 }
 
 model PublishResult {
