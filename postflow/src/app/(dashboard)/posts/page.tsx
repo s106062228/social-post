@@ -10,12 +10,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Plus, FileText } from "lucide-react";
-import { DeletePostButton } from "./delete-post-button";
-import { RetryPostButton } from "./retry-post-button";
-import { DuplicatePostButton } from "./duplicate-post-button";
-import { SaveAsTemplateButton } from "./save-as-template-button";
+import { Plus } from "lucide-react";
 import { SearchInput } from "./search-input";
+import { PostsListClient } from "./posts-list-client";
 
 export default async function PostsPage({
   searchParams,
@@ -135,59 +132,7 @@ export default async function PostsPage({
           )}
         </CardHeader>
         <CardContent>
-          {posts.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-12 text-center">
-              <FileText className="h-8 w-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">No posts found</p>
-              <Button size="sm" asChild>
-                <Link href="/posts/new">Create a post</Link>
-              </Button>
-            </div>
-          ) : (
-            <div className="divide-y">
-              {posts.map((post) => (
-                <div key={post.id} className="flex items-start gap-4 py-4 first:pt-0 last:pb-0">
-                  <div className="flex-1 min-w-0">
-                    <p className="line-clamp-2 text-sm">{post.content}</p>
-                    <div className="mt-1 flex flex-wrap items-center gap-2">
-                      <StatusBadge status={post.status} />
-                      {post.scheduledAt && (
-                        <span className="text-xs text-muted-foreground">
-                          {post.status === PostStatus.SCHEDULED
-                            ? `Scheduled: ${new Date(post.scheduledAt).toLocaleString()}`
-                            : new Date(post.scheduledAt).toLocaleString()}
-                        </span>
-                      )}
-                      {post.publishResults.length > 0 && (
-                        <span className="text-xs text-muted-foreground">
-                          {post.publishResults.map((r) => r.platform).join(", ")}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    {(post.status === PostStatus.DRAFT ||
-                      post.status === PostStatus.SCHEDULED) && (
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/posts/${post.id}/edit`}>Edit</Link>
-                      </Button>
-                    )}
-                    {(post.status === PostStatus.FAILED ||
-                      post.status === PostStatus.PARTIALLY_PUBLISHED) && (
-                      <RetryPostButton postId={post.id} />
-                    )}
-                    <DuplicatePostButton postId={post.id} />
-                    <SaveAsTemplateButton
-                      postContent={post.content}
-                      postMediaType={post.mediaType}
-                      postMediaUrls={post.mediaUrls}
-                    />
-                    <DeletePostButton postId={post.id} status={post.status} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <PostsListClient posts={posts} />
         </CardContent>
       </Card>
 
@@ -213,20 +158,3 @@ export default async function PostsPage({
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    DRAFT: "bg-gray-100 text-gray-700",
-    SCHEDULED: "bg-blue-100 text-blue-700",
-    PUBLISHING: "bg-yellow-100 text-yellow-700",
-    PUBLISHED: "bg-green-100 text-green-700",
-    PARTIALLY_PUBLISHED: "bg-orange-100 text-orange-700",
-    FAILED: "bg-red-100 text-red-700",
-  };
-  return (
-    <span
-      className={`rounded-full px-2 py-0.5 text-xs font-medium ${styles[status] ?? "bg-gray-100 text-gray-700"}`}
-    >
-      {status.replace(/_/g, " ").toLowerCase()}
-    </span>
-  );
-}

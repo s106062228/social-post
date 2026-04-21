@@ -372,3 +372,8 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] "Save as Template" button in posts list (saves post content as a named template)
 - [x] Template selector in post composer (load template to pre-fill content)
 - [x] Unit tests for the templates API
+
+### Phase 20: Bulk Post Operations
+- [x] Bulk delete endpoint (`DELETE /api/posts/bulk`) — accepts array of post IDs, validates ownership, skips PUBLISHING posts
+- [x] Posts list client component with checkbox-based bulk selection and "Delete Selected" button
+- [x] Unit tests for the bulk delete endpoint
