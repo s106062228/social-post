@@ -364,3 +364,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Post duplication endpoint (`POST /api/posts/[id]/duplicate`) + duplicate button in UI
 - [x] Post keyword search (extend GET /api/posts + posts page search input)
 - [x] Unit tests for the duplicate API endpoint
+
+### Phase 19: Content Templates
+- [x] Template model in Prisma (id, userId, name, content, mediaType, mediaUrls) + migration
+- [x] CRUD API for templates (`GET /api/templates`, `POST /api/templates`, `DELETE /api/templates/[id]`)
+- [x] Templates page in dashboard (`/templates`) — list, delete
+- [x] "Save as Template" button in posts list (saves post content as a named template)
+- [x] Template selector in post composer (load template to pre-fill content)
+- [x] Unit tests for the templates API

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,12 @@ interface Account {
   id: string;
   accountName: string;
   platform: Platform;
+}
+
+interface Template {
+  id: string;
+  name: string;
+  content: string;
 }
 
 interface PostComposerProps {
@@ -36,6 +42,16 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   );
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [templates, setTemplates] = useState<Template[]>([]);
+
+  useEffect(() => {
+    fetch("/api/templates?limit=50")
+      .then((r) => r.json())
+      .then((data: { templates?: Template[] }) => {
+        if (data.templates) setTemplates(data.templates);
+      })
+      .catch(() => undefined);
+  }, []);
 
   const charCount = content.length;
   const maxChars = 63206;
@@ -159,6 +175,30 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           </p>
         )}
       </div>
+
+      {/* Template selector */}
+      {templates.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="template-select">Load from template</Label>
+          <select
+            id="template-select"
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            defaultValue=""
+            onChange={(e) => {
+              const tpl = templates.find((t) => t.id === e.target.value);
+              if (tpl) {
+                setContent(tpl.content);
+                e.target.value = "";
+              }
+            }}
+          >
+            <option value="" disabled>Select a template…</option>
+            {templates.map((t) => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex flex-col gap-2">

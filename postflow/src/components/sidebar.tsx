@@ -8,6 +8,7 @@ import {
   Calendar,
   Users,
   BarChart2,
+  LayoutTemplate,
   LogOut,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -18,6 +19,7 @@ const navItems = [
   { href: "/posts", label: "Posts", icon: FileText },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/accounts", label: "Accounts", icon: Users },
+  { href: "/templates", label: "Templates", icon: LayoutTemplate },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
 ];
 

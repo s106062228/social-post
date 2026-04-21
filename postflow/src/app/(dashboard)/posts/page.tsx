@@ -14,6 +14,7 @@ import { Plus, FileText } from "lucide-react";
 import { DeletePostButton } from "./delete-post-button";
 import { RetryPostButton } from "./retry-post-button";
 import { DuplicatePostButton } from "./duplicate-post-button";
+import { SaveAsTemplateButton } from "./save-as-template-button";
 import { SearchInput } from "./search-input";
 
 export default async function PostsPage({
@@ -176,6 +177,11 @@ export default async function PostsPage({
                       <RetryPostButton postId={post.id} />
                     )}
                     <DuplicatePostButton postId={post.id} />
+                    <SaveAsTemplateButton
+                      postContent={post.content}
+                      postMediaType={post.mediaType}
+                      postMediaUrls={post.mediaUrls}
+                    />
                     <DeletePostButton postId={post.id} status={post.status} />
                   </div>
                 </div>

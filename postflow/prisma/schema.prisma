@@ -45,6 +45,7 @@ model User {
   password  String?
   accounts  SocialAccount[]
   posts     Post[]
+  templates Template[]
   createdAt DateTime        @default(now())
 }
 
@@ -85,6 +86,21 @@ model Post {
   @@index([userId, createdAt(sort: Desc)])
   @@index([scheduledAt])
   @@index([status, scheduledAt])
+}
+
+model Template {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  content   String
+  mediaType MediaType @default(NONE)
+  mediaUrls String[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 model PublishResult {
