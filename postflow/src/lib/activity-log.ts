@@ -36,7 +36,7 @@ export function logActivity(opts: LogActivityOptions): void {
         action: opts.action,
         entityId: opts.entityId ?? null,
         entityType: opts.entityType ?? null,
-        metadata: opts.metadata ?? undefined,
+        metadata: opts.metadata ? JSON.parse(JSON.stringify(opts.metadata)) : undefined,
       },
     })
     .catch((err: unknown) => {

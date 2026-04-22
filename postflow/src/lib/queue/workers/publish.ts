@@ -9,6 +9,7 @@ import type { PlatformAdapter } from "@/lib/platforms/types";
 import { createRedisConnection, QUEUE_NAMES } from "../connection";
 import { publishLogger } from "@/lib/logger";
 import { notifyPostOutcome } from "@/lib/email";
+import { notifyPostOutcomeInApp } from "@/lib/notifications";
 
 // ── Job payload types ──────────────────────────────────────────────────────────
 
@@ -130,12 +131,14 @@ async function reconcilePostStatus(postId: string): Promise<void> {
     finalStatus = PostStatus.FAILED;
   }
 
-  await prisma.post.update({
+  const updatedPost = await prisma.post.update({
     where: { id: postId },
     data: { status: finalStatus },
+    select: { id: true, userId: true },
   });
 
   notifyPostOutcome(postId, finalStatus);
+  notifyPostOutcomeInApp(postId, updatedPost.userId, finalStatus);
 }
 
 // ── Worker factory ─────────────────────────────────────────────────────────────

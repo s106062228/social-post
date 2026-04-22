@@ -415,3 +415,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Export button in posts list page — links to `/api/posts/export` with current filters (status, search) passed as query params
 - [x] Unit tests for analytics summary API (auth, rate limit, counts shape)
 - [x] Unit tests for CSV export API (auth, correct Content-Disposition header, row content)
+
+### Phase 26: In-App Notification Center
+- [x] `Notification` model in Prisma (id, userId, type, title, body, read, entityId, entityType, createdAt) + migration
+- [x] GET `/api/notifications` + POST `/api/notifications/[id]/read` + POST `/api/notifications/read-all` endpoints
+- [x] Notification helper (`src/lib/notifications.ts`) — fire-and-forget createNotification, used by publish worker on terminal post states
+- [x] Notification bell icon in dashboard header with unread count badge (client component, polling every 30s)
+- [x] Notification dropdown panel with list of recent notifications, mark as read on click
+- [x] Unit tests for the notifications API endpoints
