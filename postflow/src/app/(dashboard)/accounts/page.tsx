@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Users, AlertCircle } from "lucide-react";
+import { DisconnectAccountButton } from "./disconnect-account-button";
 
 export default async function AccountsPage({
   searchParams,
@@ -110,6 +111,10 @@ export default async function AccountsPage({
                   <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
                     Active
                   </span>
+                  <DisconnectAccountButton
+                    accountId={account.id}
+                    accountName={account.accountName}
+                  />
                 </div>
               ))}
             </div>

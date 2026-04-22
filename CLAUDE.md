@@ -423,3 +423,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Notification bell icon in dashboard header with unread count badge (client component, polling every 30s)
 - [x] Notification dropdown panel with list of recent notifications, mark as read on click
 - [x] Unit tests for the notifications API endpoints
+
+### Phase 27: Social Account Management
+- [x] DELETE `/api/accounts/[id]` endpoint — soft-disconnect a social account (set isActive=false, log activity)
+- [x] POST `/api/accounts/[id]/check` endpoint — verify stored token validity via Graph API `/me` call
+- [x] Disconnect button in accounts page UI (client component, confirmation prompt, toast feedback)
+- [x] Unit tests for account management endpoints (DELETE and POST /check)
