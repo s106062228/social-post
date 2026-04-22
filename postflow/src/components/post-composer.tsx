@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { TagSelector } from "@/components/tag-selector";
 import type { Platform } from "@prisma/client";
 
 interface Account {
@@ -43,6 +44,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   useEffect(() => {
     fetch("/api/templates?limit=50")
@@ -85,6 +87,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         content,
         mediaType: "NONE",
         mediaUrls: [],
+        tagIds: selectedTagIds,
       };
       if (scheduledAt) {
         body.scheduledAt = new Date(scheduledAt).toISOString();
@@ -199,6 +202,12 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           </select>
         </div>
       )}
+
+      {/* Tags */}
+      <div className="flex flex-col gap-2">
+        <Label>Tags</Label>
+        <TagSelector selectedTagIds={selectedTagIds} onChange={setSelectedTagIds} />
+      </div>
 
       {/* Content */}
       <div className="flex flex-col gap-2">

@@ -52,6 +52,7 @@ model User {
   activityLogs       ActivityLog[]
   notifications      Notification[]
   mediaAssets        MediaAsset[]
+  tags               Tag[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -101,6 +102,7 @@ model Post {
   status         PostStatus
   scheduledAt    DateTime?
   publishResults PublishResult[]
+  tags           PostTag[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -193,4 +195,29 @@ model MediaAsset {
   createdAt DateTime @default(now())
 
   @@index([userId, createdAt(sort: Desc)])
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  color     String    @default("#6366f1")
+  posts     PostTag[]
+  createdAt DateTime  @default(now())
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model PostTag {
+  postId     String
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tagId      String
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+
+  @@id([postId, tagId])
+  @@index([postId])
+  @@index([tagId])
 }

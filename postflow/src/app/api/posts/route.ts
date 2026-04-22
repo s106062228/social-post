@@ -15,11 +15,13 @@ const createPostSchema = z.object({
   mediaType: z.nativeEnum(MediaType).default(MediaType.NONE),
   mediaUrls: z.array(z.string().url()).default([]),
   scheduledAt: z.string().datetime().nullable().optional(),
+  tagIds: z.array(z.string()).default([]),
 });
 
 const listPostsSchema = z.object({
   status: z.nativeEnum(PostStatus).optional(),
   search: z.string().max(200).optional(),
+  tag: z.string().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
@@ -50,13 +52,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { status, search, page, limit } = parsed.data;
+    const { status, search, tag, page, limit } = parsed.data;
     const skip = (page - 1) * limit;
 
     const where = {
       userId: session.user.id,
       ...(status ? { status } : {}),
       ...(search ? { content: { contains: search, mode: "insensitive" as const } } : {}),
+      ...(tag ? { tags: { some: { tagId: tag } } } : {}),
     };
 
     const [posts, total] = await Promise.all([
@@ -76,6 +79,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
               publishedUrl: true,
               publishedAt: true,
               error: true,
+            },
+          },
+          tags: {
+            select: {
+              tag: { select: { id: true, name: true, color: true } },
             },
           },
         },
@@ -129,7 +137,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { mediaType, mediaUrls, scheduledAt } = parsed.data;
+    const { mediaType, mediaUrls, scheduledAt, tagIds } = parsed.data;
     const content = sanitizePostContent(parsed.data.content);
 
     if (content.length === 0) {
@@ -142,6 +150,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Determine initial status
     const status = scheduledAt ? PostStatus.SCHEDULED : PostStatus.DRAFT;
 
+    // Validate tag ownership
+    let validTagIds: string[] = [];
+    if (tagIds.length > 0) {
+      const ownedTags = await prisma.tag.findMany({
+        where: { id: { in: tagIds }, userId: session.user.id },
+        select: { id: true },
+      });
+      validTagIds = ownedTags.map((t) => t.id);
+    }
+
     const post = await prisma.post.create({
       data: {
         userId: session.user.id,
@@ -150,9 +168,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         mediaUrls,
         scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
         status,
+        tags: validTagIds.length > 0
+          ? { create: validTagIds.map((tagId) => ({ tagId })) }
+          : undefined,
       },
       include: {
         publishResults: true,
+        tags: { select: { tag: { select: { id: true, name: true, color: true } } } },
       },
     });
 

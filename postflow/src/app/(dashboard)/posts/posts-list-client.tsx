@@ -17,6 +17,10 @@ type PublishResult = {
   publishedUrl: string | null;
 };
 
+type PostTagItem = {
+  tag: { id: string; name: string; color: string };
+};
+
 export type PostListItem = {
   id: string;
   content: string;
@@ -25,6 +29,7 @@ export type PostListItem = {
   mediaUrls: string[];
   scheduledAt: Date | string | null;
   publishResults: PublishResult[];
+  tags: PostTagItem[];
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -197,6 +202,15 @@ export function PostsListClient({ posts }: PostsListClientProps) {
                       {post.publishResults.map((r) => r.platform).join(", ")}
                     </span>
                   )}
+                  {post.tags.map(({ tag }) => (
+                    <span
+                      key={tag.id}
+                      className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                      style={{ backgroundColor: tag.color }}
+                    >
+                      {tag.name}
+                    </span>
+                  ))}
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-2">

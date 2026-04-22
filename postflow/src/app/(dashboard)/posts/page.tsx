@@ -17,12 +17,12 @@ import { PostsListClient } from "./posts-list-client";
 export default async function PostsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; page?: string; search?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; search?: string; tag?: string }>;
 }) {
   const session = await auth();
   const userId = session!.user!.id;
 
-  const { status: statusFilter, page: pageStr, search: searchQuery } = await searchParams;
+  const { status: statusFilter, page: pageStr, search: searchQuery, tag: tagFilter } = await searchParams;
   const page = Math.max(1, parseInt(pageStr ?? "1", 10));
   const limit = 20;
   const skip = (page - 1) * limit;
@@ -36,9 +36,10 @@ export default async function PostsPage({
       ? { status: statusEnum }
       : {}),
     ...(search ? { content: { contains: search, mode: "insensitive" as const } } : {}),
+    ...(tagFilter ? { tags: { some: { tagId: tagFilter } } } : {}),
   };
 
-  const [posts, total] = await Promise.all([
+  const [posts, total, userTags] = await Promise.all([
     prisma.post.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -48,9 +49,19 @@ export default async function PostsPage({
         publishResults: {
           select: { platform: true, status: true, publishedUrl: true },
         },
+        tags: {
+          select: {
+            tag: { select: { id: true, name: true, color: true } },
+          },
+        },
       },
     }),
     prisma.post.count({ where }),
+    prisma.tag.findMany({
+      where: { userId },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, color: true },
+    }),
   ]);
 
   const totalPages = Math.ceil(total / limit);
@@ -63,12 +74,14 @@ export default async function PostsPage({
     { value: "FAILED", label: "Failed" },
   ];
 
-  function buildHref(opts: { status?: string; page?: number; search?: string }) {
+  function buildHref(opts: { status?: string; page?: number; search?: string; tag?: string }) {
     const params = new URLSearchParams();
     const s = opts.status ?? statusFilter ?? "";
     if (s) params.set("status", s);
     const q = opts.search !== undefined ? opts.search : search;
     if (q) params.set("search", q);
+    const t = opts.tag !== undefined ? opts.tag : (tagFilter ?? "");
+    if (t) params.set("tag", t);
     const p = opts.page ?? page;
     if (p > 1) params.set("page", String(p));
     const qs = params.toString();
@@ -132,18 +145,57 @@ export default async function PostsPage({
         })}
       </div>
 
-      {/* Keyword search */}
-      <SearchInput defaultValue={search} />
+      {/* Keyword search + tag filter row */}
+      <div className="flex flex-wrap items-center gap-3">
+        <SearchInput defaultValue={search} />
+        {userTags.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-muted-foreground">Tag:</span>
+            <Link
+              href={buildHref({ tag: "", page: 1 })}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors border ${
+                !tagFilter
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-input text-muted-foreground hover:bg-accent"
+              }`}
+            >
+              All
+            </Link>
+            {userTags.map((tag) => {
+              const isTagActive = tagFilter === tag.id;
+              return (
+                <Link
+                  key={tag.id}
+                  href={buildHref({ tag: isTagActive ? "" : tag.id, page: 1 })}
+                  className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                    isTagActive
+                      ? "text-white"
+                      : "border border-input text-muted-foreground hover:bg-accent"
+                  }`}
+                  style={isTagActive ? { backgroundColor: tag.color } : undefined}
+                >
+                  <span
+                    className="h-2 w-2 rounded-full shrink-0"
+                    style={{ backgroundColor: tag.color }}
+                  />
+                  {tag.name}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Posts list */}
       <Card>
         <CardHeader>
           <CardTitle>{total} post{total !== 1 ? "s" : ""}</CardTitle>
-          {(statusFilter || search) && (
+          {(statusFilter || search || tagFilter) && (
             <CardDescription>
               {[
                 statusFilter && `Status: ${statusFilter.toLowerCase()}`,
                 search && `Search: "${search}"`,
+                tagFilter && `Tag: ${userTags.find((t) => t.id === tagFilter)?.name ?? tagFilter}`,
               ]
                 .filter(Boolean)
                 .join(" · ")}
@@ -176,4 +228,3 @@ export default async function PostsPage({
     </div>
   );
 }
-

@@ -437,3 +437,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Media library page in dashboard (`/media`) — grid view of uploaded assets with upload button, delete, copy-URL actions
 - [x] Add "Media" to sidebar navigation
 - [x] Unit tests for media API endpoints (GET, POST, DELETE)
+
+### Phase 29: Post Tags & Categorization
+- [x] `Tag` model (id, userId, name, color) + `PostTag` join table (postId, tagId) in Prisma + migration
+- [x] CRUD API for tags (`GET /api/tags`, `POST /api/tags`, `DELETE /api/tags/[id]`)
+- [x] Extend `POST /api/posts` to accept optional `tagIds` array; extend `GET /api/posts` to filter by `?tag=tagId`; include tags in post responses
+- [x] `TagSelector` component — multi-select chip input with inline tag creation, integrated into post composer
+- [x] Tag filter in posts list page — dropdown to filter posts by tag; tag chips displayed on each post row
+- [x] Unit tests for tags API (GET, POST, DELETE — auth, rate limit, CRUD shape)
