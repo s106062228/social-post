@@ -408,3 +408,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Integrate `notifyPostOutcome` into BullMQ publish worker — called after post status is reconciled
 - [x] Update `.env.example` with optional SMTP vars (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM)
 - [x] Unit tests for email service (16 tests — template rendering, sendEmail with/without SMTP, notifyPostOutcome for all terminal statuses)
+
+### Phase 25: Analytics API & CSV Export
+- [x] Analytics summary API (`GET /api/analytics/summary`) — JSON endpoint: post counts by status, platform publish breakdown, overall success rate, daily activity for last 14 days
+- [x] CSV export endpoint (`GET /api/posts/export`) — streams all user posts as a downloadable CSV (id, content, status, mediaType, scheduledAt, createdAt, platforms published to)
+- [x] Export button in posts list page — links to `/api/posts/export` with current filters (status, search) passed as query params
+- [x] Unit tests for analytics summary API (auth, rate limit, counts shape)
+- [x] Unit tests for CSV export API (auth, correct Content-Disposition header, row content)

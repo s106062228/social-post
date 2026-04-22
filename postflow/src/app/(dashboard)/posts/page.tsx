@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 import { SearchInput } from "./search-input";
 import { PostsListClient } from "./posts-list-client";
 
@@ -84,12 +84,31 @@ export default async function PostsPage({
             Manage and track all your posts.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/posts/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New post
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link
+              href={`/api/posts/export${
+                (() => {
+                  const p = new URLSearchParams();
+                  if (statusFilter) p.set("status", statusFilter);
+                  if (search) p.set("search", search);
+                  const qs = p.toString();
+                  return qs ? `?${qs}` : "";
+                })()
+              }`}
+              download="posts-export.csv"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/posts/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New post
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Status filter tabs */}
