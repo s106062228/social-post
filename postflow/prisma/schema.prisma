@@ -51,6 +51,7 @@ model User {
   recurringSchedules RecurringSchedule[]
   activityLogs       ActivityLog[]
   notifications      Notification[]
+  mediaAssets        MediaAsset[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -178,4 +179,18 @@ model PublishResult {
   @@index([postId])
   @@index([postId, status])
   @@index([status])
+}
+
+model MediaAsset {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  filename  String
+  mimeType  String
+  size      Int
+  r2Key     String
+  publicUrl String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
 }

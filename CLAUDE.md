@@ -429,3 +429,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] POST `/api/accounts/[id]/check` endpoint — verify stored token validity via Graph API `/me` call
 - [x] Disconnect button in accounts page UI (client component, confirmation prompt, toast feedback)
 - [x] Unit tests for account management endpoints (DELETE and POST /check)
+
+### Phase 28: Media Library & Asset Management
+- [x] `MediaAsset` model in Prisma (id, userId, filename, mimeType, size, r2Key, publicUrl, createdAt) + migration
+- [x] `GET /api/media` + `POST /api/media` endpoints — list user assets (paginated) and upload a file to R2
+- [x] `DELETE /api/media/[id]` endpoint — remove asset from R2 and DB
+- [x] Media library page in dashboard (`/media`) — grid view of uploaded assets with upload button, delete, copy-URL actions
+- [x] Add "Media" to sidebar navigation
+- [x] Unit tests for media API endpoints (GET, POST, DELETE)
