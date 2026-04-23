@@ -486,3 +486,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Webhook configs page in dashboard (`/webhooks`) — list, add, delete, toggle active/inactive
 - [x] Add "Webhooks" to sidebar navigation
 - [x] Unit tests for webhook dispatch utility and webhook configs API
+
+### Phase 35: AI-Powered Content Suggestions
+- [x] Install `@anthropic-ai/sdk`; add `ANTHROPIC_API_KEY` (optional) to `.env.example` and `src/lib/env.ts`
+- [x] AI service (`src/lib/ai.ts`) — `generateContentVariants(topic, tone, platforms)` and `suggestHashtags(content, platforms)` using `claude-haiku-4-5` with prompt caching on system blocks
+- [x] `POST /api/ai/suggest` route — auth + rate limit + zod validation, returns `{variants: string[]}`
+- [x] `POST /api/ai/hashtags` route — auth + rate limit + zod validation, returns `{hashtags: string[]}`
+- [x] "AI Suggest" dialog in post composer — button opens modal with topic/tone inputs, shows 3 content variants to select from
+- [x] "Suggest Hashtags" button in post composer — calls `/api/ai/hashtags` with current content, appends suggestions
+- [x] Unit tests for AI API routes (auth, rate limit, validation, success, AI disabled, error — 20 tests)

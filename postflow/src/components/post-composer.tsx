@@ -6,12 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
 import { PostPreview } from "@/components/post-preview";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import type { Platform } from "@prisma/client";
 
 interface Account {
@@ -57,6 +64,14 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+
+  // AI suggestions state
+  const [showAiDialog, setShowAiDialog] = useState(false);
+  const [aiTopic, setAiTopic] = useState("");
+  const [aiTone, setAiTone] = useState("professional");
+  const [aiVariants, setAiVariants] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [hashtagsLoading, setHashtagsLoading] = useState(false);
 
   useEffect(() => {
     fetch("/api/templates?limit=50")
@@ -230,6 +245,78 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
     }
   }
 
+  async function fetchAiVariants() {
+    if (!aiTopic.trim()) {
+      toast({ title: "Enter a topic first.", variant: "destructive" });
+      return;
+    }
+    setAiLoading(true);
+    setAiVariants([]);
+    try {
+      const res = await fetch("/api/ai/suggest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic: aiTopic,
+          tone: aiTone,
+          platforms: selectedPlatforms.length > 0 ? selectedPlatforms : ["FACEBOOK"],
+        }),
+      });
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string };
+        throw new Error(data.error ?? "Failed to generate suggestions");
+      }
+      const data = (await res.json()) as { variants: string[] };
+      setAiVariants(data.variants);
+    } catch (err) {
+      toast({
+        title: "AI suggestions failed",
+        description: err instanceof Error ? err.message : "An error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  async function fetchHashtagSuggestions() {
+    if (!content.trim()) {
+      toast({ title: "Add post content first.", variant: "destructive" });
+      return;
+    }
+    setHashtagsLoading(true);
+    try {
+      const res = await fetch("/api/ai/hashtags", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content,
+          platforms: selectedPlatforms.length > 0 ? selectedPlatforms : ["FACEBOOK"],
+        }),
+      });
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string };
+        throw new Error(data.error ?? "Failed to suggest hashtags");
+      }
+      const data = (await res.json()) as { hashtags: string[] };
+      if (data.hashtags.length > 0) {
+        const suffix = data.hashtags.join(" ");
+        setContent((prev) =>
+          prev.trim() ? `${prev.trimEnd()}\n\n${suffix}` : suffix
+        );
+        toast({ title: "Hashtags added", variant: "success" });
+      }
+    } catch (err) {
+      toast({
+        title: "Hashtag suggestions failed",
+        description: err instanceof Error ? err.message : "An error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setHashtagsLoading(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       {/* Account selection */}
@@ -330,7 +417,32 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
       {/* Content */}
       <div className="flex flex-col gap-2">
-        <Label htmlFor="content">Post content</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="content">Post content</Label>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowAiDialog(true)}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <Sparkles className="h-3 w-3" />
+              AI Suggest
+            </button>
+            <button
+              type="button"
+              onClick={fetchHashtagSuggestions}
+              disabled={hashtagsLoading || !content.trim()}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:pointer-events-none disabled:opacity-50"
+            >
+              {hashtagsLoading ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Hash className="h-3 w-3" />
+              )}
+              Suggest Hashtags
+            </button>
+          </div>
+        </div>
         <Textarea
           id="content"
           placeholder="What do you want to share?"
@@ -342,6 +454,82 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           <PlatformCharCounter content={content} platforms={selectedPlatforms} />
         )}
       </div>
+
+      {/* AI Suggest Dialog */}
+      <Dialog open={showAiDialog} onOpenChange={setShowAiDialog}>
+        <DialogContent className="sm:max-w-[520px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              AI Content Suggestions
+            </DialogTitle>
+            <DialogDescription>
+              Describe your topic and tone to generate post variants.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-2">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="ai-topic">Topic</Label>
+              <Input
+                id="ai-topic"
+                placeholder="e.g. new product launch, summer sale, team update…"
+                value={aiTopic}
+                onChange={(e) => setAiTopic(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void fetchAiVariants();
+                }}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="ai-tone">Tone</Label>
+              <select
+                id="ai-tone"
+                className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                value={aiTone}
+                onChange={(e) => setAiTone(e.target.value)}
+              >
+                <option value="professional">Professional</option>
+                <option value="casual">Casual</option>
+                <option value="enthusiastic">Enthusiastic</option>
+                <option value="humorous">Humorous</option>
+                <option value="informative">Informative</option>
+                <option value="inspirational">Inspirational</option>
+              </select>
+            </div>
+            <Button
+              type="button"
+              onClick={fetchAiVariants}
+              disabled={aiLoading || !aiTopic.trim()}
+              className="w-full"
+            >
+              {aiLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="mr-2 h-4 w-4" />
+              )}
+              Generate Variants
+            </Button>
+            {aiVariants.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-medium text-foreground">Choose a variant:</p>
+                {aiVariants.map((variant, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => {
+                      setContent(variant);
+                      setShowAiDialog(false);
+                    }}
+                    className="rounded-md border border-input bg-background p-3 text-left text-sm text-foreground hover:bg-muted transition-colors"
+                  >
+                    {variant}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Post preview toggle */}
       <div className="flex flex-col gap-3">

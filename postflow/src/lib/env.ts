@@ -34,6 +34,9 @@ const envSchema = z.object({
   R2_BUCKET_NAME: z.string().optional(),
   R2_PUBLIC_URL: z.string().url().optional(),
 
+  // Anthropic AI (optional — required only for AI content suggestion features)
+  ANTHROPIC_API_KEY: z.string().optional(),
+
   // Node environment
   NODE_ENV: z
     .enum(["development", "test", "production"])
