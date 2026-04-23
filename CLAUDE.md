@@ -477,3 +477,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Add "Queue" to sidebar navigation
 - [x] "Add to Queue" button in post composer — alternative to manual datetime picker, calls queue endpoint after saving draft
 - [x] Unit tests for queue-slots API and post-queue endpoint (auth, validation, slot logic)
+
+### Phase 34: Outgoing Integration Webhooks
+- [x] `WebhookConfig` model in Prisma (id, userId, url, events[], secret, isActive, createdAt, updatedAt) + migration
+- [x] CRUD API for webhook configs (`GET /api/webhook-configs`, `POST /api/webhook-configs`, `DELETE /api/webhook-configs/[id]`, `PATCH /api/webhook-configs/[id]/toggle`)
+- [x] Webhook dispatch helper (`src/lib/webhook-dispatch.ts`) — HMAC-SHA256 signed POST to configured URLs, fire-and-forget
+- [x] Integrate webhook dispatch into BullMQ publish worker — fire after post status is reconciled
+- [x] Webhook configs page in dashboard (`/webhooks`) — list, add, delete, toggle active/inactive
+- [x] Add "Webhooks" to sidebar navigation
+- [x] Unit tests for webhook dispatch utility and webhook configs API

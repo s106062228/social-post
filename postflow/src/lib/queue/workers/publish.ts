@@ -10,6 +10,7 @@ import { createRedisConnection, QUEUE_NAMES } from "../connection";
 import { publishLogger } from "@/lib/logger";
 import { notifyPostOutcome } from "@/lib/email";
 import { notifyPostOutcomeInApp } from "@/lib/notifications";
+import { dispatchWebhooks, type WebhookEvent } from "@/lib/webhook-dispatch";
 
 // ── Job payload types ──────────────────────────────────────────────────────────
 
@@ -139,6 +140,16 @@ async function reconcilePostStatus(postId: string): Promise<void> {
 
   notifyPostOutcome(postId, finalStatus);
   notifyPostOutcomeInApp(postId, updatedPost.userId, finalStatus);
+
+  const eventMap: Partial<Record<PostStatus, WebhookEvent>> = {
+    [PostStatus.PUBLISHED]: "post.published",
+    [PostStatus.FAILED]: "post.failed",
+    [PostStatus.PARTIALLY_PUBLISHED]: "post.partially_published",
+  };
+  const webhookEvent = eventMap[finalStatus];
+  if (webhookEvent) {
+    dispatchWebhooks(updatedPost.userId, webhookEvent, { postId });
+  }
 }
 
 // ── Worker factory ─────────────────────────────────────────────────────────────

@@ -16,6 +16,7 @@ import {
   ImageIcon,
   Hash,
   ListOrdered,
+  Webhook,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,7 @@ const navItems = [
   { href: "/media", label: "Media", icon: ImageIcon },
   { href: "/hashtags", label: "Hashtags", icon: Hash },
   { href: "/queue", label: "Queue", icon: ListOrdered },
+  { href: "/webhooks", label: "Webhooks", icon: Webhook },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

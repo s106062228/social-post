@@ -55,6 +55,7 @@ model User {
   tags               Tag[]
   hashtagGroups      HashtagGroup[]
   postQueueSlots     PostQueueSlot[]
+  webhookConfigs     WebhookConfig[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -250,6 +251,21 @@ model PostQueueSlot {
   isActive   Boolean   @default(true)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([userId, isActive])
+}
+
+model WebhookConfig {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url       String
+  events    String[]
+  secret    String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([userId, isActive])
