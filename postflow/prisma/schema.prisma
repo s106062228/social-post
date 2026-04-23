@@ -53,6 +53,7 @@ model User {
   notifications      Notification[]
   mediaAssets        MediaAsset[]
   tags               Tag[]
+  hashtagGroups      HashtagGroup[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -220,4 +221,18 @@ model PostTag {
   @@id([postId, tagId])
   @@index([postId])
   @@index([tagId])
+}
+
+model HashtagGroup {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  hashtags  String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
 }

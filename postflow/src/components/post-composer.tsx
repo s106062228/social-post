@@ -23,6 +23,12 @@ interface Template {
   content: string;
 }
 
+interface HashtagGroup {
+  id: string;
+  name: string;
+  hashtags: string[];
+}
+
 interface PostComposerProps {
   defaultScheduledAt?: string;
   accounts: Account[];
@@ -44,6 +50,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -51,6 +58,13 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       .then((r) => r.json())
       .then((data: { templates?: Template[] }) => {
         if (data.templates) setTemplates(data.templates);
+      })
+      .catch(() => undefined);
+
+    fetch("/api/hashtags")
+      .then((r) => r.json())
+      .then((data: { groups?: HashtagGroup[] }) => {
+        if (data.groups) setHashtagGroups(data.groups);
       })
       .catch(() => undefined);
   }, []);
@@ -198,6 +212,35 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
             <option value="" disabled>Select a template…</option>
             {templates.map((t) => (
               <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Hashtag group insertion */}
+      {hashtagGroups.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="hashtag-group-select">Insert hashtag group</Label>
+          <select
+            id="hashtag-group-select"
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            defaultValue=""
+            onChange={(e) => {
+              const group = hashtagGroups.find((g) => g.id === e.target.value);
+              if (group) {
+                const suffix = group.hashtags.join(" ");
+                setContent((prev) =>
+                  prev.trim() ? `${prev.trimEnd()}\n\n${suffix}` : suffix
+                );
+                e.target.value = "";
+              }
+            }}
+          >
+            <option value="" disabled>Select a hashtag group…</option>
+            {hashtagGroups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name} ({g.hashtags.length})
+              </option>
             ))}
           </select>
         </div>

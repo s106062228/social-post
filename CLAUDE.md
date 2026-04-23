@@ -445,3 +445,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `TagSelector` component — multi-select chip input with inline tag creation, integrated into post composer
 - [x] Tag filter in posts list page — dropdown to filter posts by tag; tag chips displayed on each post row
 - [x] Unit tests for tags API (GET, POST, DELETE — auth, rate limit, CRUD shape)
+
+### Phase 30: Hashtag Groups & Management
+- [x] `HashtagGroup` model in Prisma (id, userId, name, hashtags[]) + migration
+- [x] CRUD API for hashtag groups (`GET /api/hashtags`, `POST /api/hashtags`, `DELETE /api/hashtags/[id]`)
+- [x] Hashtag groups page in dashboard (`/hashtags`) — list, inline create form, delete
+- [x] "Insert Hashtags" dropdown in post composer — select a group and append its hashtags to content
+- [x] Add "Hashtags" to sidebar navigation
+- [x] Unit tests for hashtags API (GET, POST, DELETE — auth, rate limit, CRUD shape)
