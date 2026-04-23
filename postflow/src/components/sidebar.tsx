@@ -15,6 +15,7 @@ import {
   Activity,
   ImageIcon,
   Hash,
+  ListOrdered,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,7 @@ const navItems = [
   { href: "/activity", label: "Activity", icon: Activity },
   { href: "/media", label: "Media", icon: ImageIcon },
   { href: "/hashtags", label: "Hashtags", icon: Hash },
+  { href: "/queue", label: "Queue", icon: ListOrdered },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -52,6 +52,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   );
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [queuing, setQueuing] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
@@ -167,6 +168,65 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
     } finally {
       setSaving(false);
       setPublishing(false);
+    }
+  }
+
+  async function addToQueue() {
+    if (!content.trim()) {
+      toast({ title: "Post content cannot be empty.", variant: "destructive" });
+      return;
+    }
+    if (overLimit) {
+      toast({
+        title: "Content exceeds platform character limit",
+        description: "Shorten your post before queuing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setQueuing(true);
+    try {
+      const saveRes = await fetch("/api/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content,
+          mediaType: "NONE",
+          mediaUrls: [],
+          tagIds: selectedTagIds,
+        }),
+      });
+      if (!saveRes.ok) {
+        const data = (await saveRes.json()) as { error?: string };
+        throw new Error(data.error ?? "Failed to save post");
+      }
+      const post = (await saveRes.json()) as { id: string };
+
+      const queueRes = await fetch(`/api/posts/${post.id}/queue`, { method: "POST" });
+      if (!queueRes.ok) {
+        const data = (await queueRes.json()) as { error?: string };
+        throw new Error(data.error ?? "Failed to add to queue");
+      }
+      const queued = (await queueRes.json()) as { scheduledAt?: string };
+
+      toast({
+        title: "Added to queue",
+        description: queued.scheduledAt
+          ? `Scheduled for ${new Date(queued.scheduledAt).toLocaleString()}`
+          : "Post scheduled",
+        variant: "success",
+      });
+      router.push("/posts");
+      router.refresh();
+    } catch (err) {
+      toast({
+        title: "Failed to add to queue",
+        description: err instanceof Error ? err.message : "An error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setQueuing(false);
     }
   }
 
@@ -319,15 +379,29 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <Button
           type="button"
           variant="outline"
           onClick={() => savePost(false)}
-          disabled={saving || publishing || !content.trim()}
+          disabled={saving || publishing || queuing || !content.trim()}
         >
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {scheduledAt ? "Schedule" : "Save draft"}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={addToQueue}
+          disabled={saving || publishing || queuing || !content.trim() || overLimit}
+          title="Save and schedule to next available queue slot"
+        >
+          {queuing ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <ListOrdered className="mr-2 h-4 w-4" />
+          )}
+          Add to queue
         </Button>
         <Button
           type="button"
@@ -335,6 +409,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           disabled={
             saving ||
             publishing ||
+            queuing ||
             !content.trim() ||
             selectedAccountIds.size === 0 ||
             overLimit
@@ -347,7 +422,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           type="button"
           variant="ghost"
           onClick={() => router.back()}
-          disabled={saving || publishing}
+          disabled={saving || publishing || queuing}
         >
           Cancel
         </Button>

@@ -54,6 +54,7 @@ model User {
   mediaAssets        MediaAsset[]
   tags               Tag[]
   hashtagGroups      HashtagGroup[]
+  postQueueSlots     PostQueueSlot[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -235,4 +236,21 @@ model HashtagGroup {
   @@unique([userId, name])
   @@index([userId])
   @@index([userId, createdAt(sort: Desc)])
+}
+
+model PostQueueSlot {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label      String    @default("")
+  platform   Platform?
+  hour       Int
+  minute     Int       @default(0)
+  daysOfWeek Int[]
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([userId, isActive])
 }

@@ -467,3 +467,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Post preview component (`src/components/post-preview.tsx`) — simulated platform-style preview cards for FB/IG/Threads with truncation and hashtag colouring
 - [x] Integrate character counter and collapsible post preview into post composer
 - [x] Unit tests for character limits utility (limits, remaining, over-limit detection, strictest limit, any-over-limit — 15 tests)
+
+### Phase 33: Optimal Posting Queue
+- [x] `PostQueueSlot` model in Prisma (id, userId, label, platform?, hour, minute, daysOfWeek[], isActive) + migration — stores preferred posting time windows per user
+- [x] CRUD API for queue slots (`GET /api/queue-slots`, `POST /api/queue-slots`, `DELETE /api/queue-slots/[id]`)
+- [x] `findNextAvailableSlot` library (`src/lib/queue-slots.ts`) — finds the next unoccupied slot datetime within 30 days, respecting user timezone and existing SCHEDULED posts
+- [x] POST `/api/posts/[id]/queue` endpoint — assigns a DRAFT post to the next available queue slot (sets scheduledAt + status=SCHEDULED)
+- [x] Queue management page in dashboard (`/queue`) — list/create/delete time slots, show next 7 upcoming slot previews
+- [x] Add "Queue" to sidebar navigation
+- [x] "Add to Queue" button in post composer — alternative to manual datetime picker, calls queue endpoint after saving draft
+- [x] Unit tests for queue-slots API and post-queue endpoint (auth, validation, slot logic)
