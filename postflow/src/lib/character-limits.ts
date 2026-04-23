@@ -1,0 +1,32 @@
+import type { Platform } from "@prisma/client";
+
+export const PLATFORM_CHAR_LIMITS: Record<Platform, number> = {
+  FACEBOOK: 63206,
+  INSTAGRAM: 2200,
+  THREADS: 500,
+};
+
+export interface CharacterInfo {
+  count: number;
+  limit: number;
+  remaining: number;
+  isOverLimit: boolean;
+  percentage: number;
+}
+
+export function getCharacterInfo(content: string, platform: Platform): CharacterInfo {
+  const count = content.length;
+  const limit = PLATFORM_CHAR_LIMITS[platform];
+  const remaining = limit - count;
+  const percentage = Math.min((count / limit) * 100, 100);
+  return { count, limit, remaining, isOverLimit: remaining < 0, percentage };
+}
+
+export function getStrictestLimit(platforms: Platform[]): number | null {
+  if (platforms.length === 0) return null;
+  return Math.min(...platforms.map((p) => PLATFORM_CHAR_LIMITS[p]));
+}
+
+export function isContentOverLimitForAny(content: string, platforms: Platform[]): boolean {
+  return platforms.some((p) => getCharacterInfo(content, p).isOverLimit);
+}

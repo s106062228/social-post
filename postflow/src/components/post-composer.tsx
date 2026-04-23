@@ -6,9 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
+import { PlatformCharCounter } from "@/components/platform-char-counter";
+import { PostPreview } from "@/components/post-preview";
+import { isContentOverLimitForAny } from "@/lib/character-limits";
 import type { Platform } from "@prisma/client";
 
 interface Account {
@@ -52,6 +55,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [templates, setTemplates] = useState<Template[]>([]);
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     fetch("/api/templates?limit=50")
@@ -69,8 +73,11 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       .catch(() => undefined);
   }, []);
 
-  const charCount = content.length;
-  const maxChars = 63206;
+  const selectedPlatforms = accounts
+    .filter((a) => selectedAccountIds.has(a.id))
+    .map((a) => a.platform);
+
+  const overLimit = isContentOverLimitForAny(content, selectedPlatforms);
 
   function toggleAccount(id: string) {
     setSelectedAccountIds((prev) => {
@@ -87,6 +94,15 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   async function savePost(publish: boolean) {
     if (publish && selectedAccountIds.size === 0) {
       toast({ title: "Select at least one account to publish to.", variant: "destructive" });
+      return;
+    }
+
+    if (overLimit) {
+      toast({
+        title: "Content exceeds platform character limit",
+        description: "Shorten your post before publishing.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -254,18 +270,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
       {/* Content */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="content">Post content</Label>
-          <span
-            className={
-              charCount > maxChars
-                ? "text-xs text-destructive"
-                : "text-xs text-muted-foreground"
-            }
-          >
-            {charCount}/{maxChars}
-          </span>
-        </div>
+        <Label htmlFor="content">Post content</Label>
         <Textarea
           id="content"
           placeholder="What do you want to share?"
@@ -273,6 +278,28 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           onChange={(e) => setContent(e.target.value)}
           className="min-h-[160px] resize-none"
         />
+        {selectedPlatforms.length > 0 && (
+          <PlatformCharCounter content={content} platforms={selectedPlatforms} />
+        )}
+      </div>
+
+      {/* Post preview toggle */}
+      <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={() => setShowPreview((v) => !v)}
+          className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {showPreview ? (
+            <EyeOff className="h-4 w-4" />
+          ) : (
+            <Eye className="h-4 w-4" />
+          )}
+          {showPreview ? "Hide preview" : "Show preview"}
+        </button>
+        {showPreview && (
+          <PostPreview content={content} platforms={selectedPlatforms} />
+        )}
       </div>
 
       {/* Schedule */}
@@ -309,7 +336,8 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
             saving ||
             publishing ||
             !content.trim() ||
-            selectedAccountIds.size === 0
+            selectedAccountIds.size === 0 ||
+            overLimit
           }
         >
           {publishing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

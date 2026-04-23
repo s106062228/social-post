@@ -460,3 +460,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Bulk reschedule endpoint (`PATCH /api/posts/bulk-reschedule`) — accepts array of SCHEDULED post IDs + shiftMinutes, shifts scheduledAt forward/backward
 - [x] Date range pickers and platform filter pills in posts page UI (client-side filter controls)
 - [x] Unit tests for the bulk reschedule endpoint (auth, validation, success, partial match)
+
+### Phase 32: Post Preview & Per-Platform Character Counting
+- [x] Platform character limits utility (`src/lib/character-limits.ts`) — defines per-platform limits (FB: 63,206, IG: 2,200, Threads: 500), `getCharacterInfo`, `getStrictestLimit`, `isContentOverLimitForAny`
+- [x] Per-platform character counter component (`src/components/platform-char-counter.tsx`) — shows count/limit per selected platform with colour indicators (green → yellow at 90% → red over limit)
+- [x] Post preview component (`src/components/post-preview.tsx`) — simulated platform-style preview cards for FB/IG/Threads with truncation and hashtag colouring
+- [x] Integrate character counter and collapsible post preview into post composer
+- [x] Unit tests for character limits utility (limits, remaining, over-limit detection, strictest limit, any-over-limit — 15 tests)
