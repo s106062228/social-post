@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { MediaType, PostStatus } from "@prisma/client";
+import { MediaType, Platform, PostStatus } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { handleRouteError } from "@/lib/errors";
@@ -22,6 +22,9 @@ const listPostsSchema = z.object({
   status: z.nativeEnum(PostStatus).optional(),
   search: z.string().max(200).optional(),
   tag: z.string().optional(),
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+  platform: z.nativeEnum(Platform).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
@@ -52,7 +55,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { status, search, tag, page, limit } = parsed.data;
+    const { status, search, tag, from, to, platform, page, limit } = parsed.data;
     const skip = (page - 1) * limit;
 
     const where = {
@@ -60,6 +63,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ...(status ? { status } : {}),
       ...(search ? { content: { contains: search, mode: "insensitive" as const } } : {}),
       ...(tag ? { tags: { some: { tagId: tag } } } : {}),
+      ...(from || to
+        ? {
+            scheduledAt: {
+              ...(from ? { gte: new Date(from) } : {}),
+              ...(to ? { lte: new Date(to) } : {}),
+            },
+          }
+        : {}),
+      ...(platform
+        ? { publishResults: { some: { platform } } }
+        : {}),
     };
 
     const [posts, total] = await Promise.all([

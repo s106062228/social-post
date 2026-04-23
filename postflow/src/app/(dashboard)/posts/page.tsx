@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { PostStatus } from "@prisma/client";
+import { Platform, PostStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,22 +13,29 @@ import {
 import { Download, Plus } from "lucide-react";
 import { SearchInput } from "./search-input";
 import { PostsListClient } from "./posts-list-client";
+import { DateRangeFilter } from "./date-range-filter";
+
+const PLATFORMS: Platform[] = [Platform.FACEBOOK, Platform.INSTAGRAM, Platform.THREADS];
 
 export default async function PostsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; page?: string; search?: string; tag?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; search?: string; tag?: string; from?: string; to?: string; platform?: string }>;
 }) {
   const session = await auth();
   const userId = session!.user!.id;
 
-  const { status: statusFilter, page: pageStr, search: searchQuery, tag: tagFilter } = await searchParams;
+  const { status: statusFilter, page: pageStr, search: searchQuery, tag: tagFilter, from: fromFilter, to: toFilter, platform: platformFilter } = await searchParams;
   const page = Math.max(1, parseInt(pageStr ?? "1", 10));
   const limit = 20;
   const skip = (page - 1) * limit;
 
   const statusEnum = statusFilter as PostStatus | undefined;
+  const platformEnum = PLATFORMS.includes(platformFilter as Platform) ? (platformFilter as Platform) : undefined;
   const search = searchQuery?.trim() ?? "";
+
+  const from = fromFilter && !isNaN(Date.parse(fromFilter)) ? new Date(fromFilter) : undefined;
+  const to = toFilter && !isNaN(Date.parse(toFilter)) ? new Date(toFilter) : undefined;
 
   const where = {
     userId,
@@ -37,6 +44,10 @@ export default async function PostsPage({
       : {}),
     ...(search ? { content: { contains: search, mode: "insensitive" as const } } : {}),
     ...(tagFilter ? { tags: { some: { tagId: tagFilter } } } : {}),
+    ...(from || to
+      ? { scheduledAt: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) } }
+      : {}),
+    ...(platformEnum ? { publishResults: { some: { platform: platformEnum } } } : {}),
   };
 
   const [posts, total, userTags] = await Promise.all([
@@ -74,7 +85,7 @@ export default async function PostsPage({
     { value: "FAILED", label: "Failed" },
   ];
 
-  function buildHref(opts: { status?: string; page?: number; search?: string; tag?: string }) {
+  function buildHref(opts: { status?: string; page?: number; search?: string; tag?: string; platform?: string }) {
     const params = new URLSearchParams();
     const s = opts.status ?? statusFilter ?? "";
     if (s) params.set("status", s);
@@ -82,6 +93,10 @@ export default async function PostsPage({
     if (q) params.set("search", q);
     const t = opts.tag !== undefined ? opts.tag : (tagFilter ?? "");
     if (t) params.set("tag", t);
+    const pl = opts.platform !== undefined ? opts.platform : (platformFilter ?? "");
+    if (pl) params.set("platform", pl);
+    if (fromFilter) params.set("from", fromFilter);
+    if (toFilter) params.set("to", toFilter);
     const p = opts.page ?? page;
     if (p > 1) params.set("page", String(p));
     const qs = params.toString();
@@ -105,6 +120,9 @@ export default async function PostsPage({
                   const p = new URLSearchParams();
                   if (statusFilter) p.set("status", statusFilter);
                   if (search) p.set("search", search);
+                  if (platformFilter) p.set("platform", platformFilter);
+                  if (fromFilter) p.set("from", fromFilter);
+                  if (toFilter) p.set("to", toFilter);
                   const qs = p.toString();
                   return qs ? `?${qs}` : "";
                 })()
@@ -186,16 +204,53 @@ export default async function PostsPage({
         )}
       </div>
 
+      {/* Platform filter pills */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm text-muted-foreground">Platform:</span>
+        <Link
+          href={buildHref({ platform: "", page: 1 })}
+          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors border ${
+            !platformEnum
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-input text-muted-foreground hover:bg-accent"
+          }`}
+        >
+          All
+        </Link>
+        {PLATFORMS.map((pl) => {
+          const isActive = platformEnum === pl;
+          return (
+            <Link
+              key={pl}
+              href={buildHref({ platform: isActive ? "" : pl, page: 1 })}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors border ${
+                isActive
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-input text-muted-foreground hover:bg-accent"
+              }`}
+            >
+              {pl.charAt(0) + pl.slice(1).toLowerCase()}
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Date range filter */}
+      <DateRangeFilter defaultFrom={fromFilter ?? ""} defaultTo={toFilter ?? ""} />
+
       {/* Posts list */}
       <Card>
         <CardHeader>
           <CardTitle>{total} post{total !== 1 ? "s" : ""}</CardTitle>
-          {(statusFilter || search || tagFilter) && (
+          {(statusFilter || search || tagFilter || platformEnum || fromFilter || toFilter) && (
             <CardDescription>
               {[
                 statusFilter && `Status: ${statusFilter.toLowerCase()}`,
                 search && `Search: "${search}"`,
                 tagFilter && `Tag: ${userTags.find((t) => t.id === tagFilter)?.name ?? tagFilter}`,
+                platformEnum && `Platform: ${platformEnum.charAt(0) + platformEnum.slice(1).toLowerCase()}`,
+                fromFilter && `From: ${fromFilter.slice(0, 10)}`,
+                toFilter && `To: ${toFilter.slice(0, 10)}`,
               ]
                 .filter(Boolean)
                 .join(" · ")}

@@ -10,6 +10,7 @@ import { DeletePostButton } from "./delete-post-button";
 import { RetryPostButton } from "./retry-post-button";
 import { DuplicatePostButton } from "./duplicate-post-button";
 import { SaveAsTemplateButton } from "./save-as-template-button";
+import { BulkRescheduleButton } from "./bulk-reschedule-button";
 
 type PublishResult = {
   platform: string;
@@ -150,16 +151,23 @@ export function PostsListClient({ posts }: PostsListClientProps) {
             : "Select all"}
         </label>
         {selected.size > 0 && (
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={handleBulkDelete}
-            disabled={isPending}
-            className="ml-auto"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete {selected.size} post{selected.size !== 1 ? "s" : ""}
-          </Button>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <BulkRescheduleButton
+              selectedIds={Array.from(selected).filter(
+                (id) => posts.find((p) => p.id === id)?.status === "SCHEDULED"
+              )}
+              onDone={() => setSelected(new Set())}
+            />
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleBulkDelete}
+              disabled={isPending}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete {selected.size} post{selected.size !== 1 ? "s" : ""}
+            </Button>
+          </div>
         )}
       </div>
 

@@ -453,3 +453,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] "Insert Hashtags" dropdown in post composer — select a group and append its hashtags to content
 - [x] Add "Hashtags" to sidebar navigation
 - [x] Unit tests for hashtags API (GET, POST, DELETE — auth, rate limit, CRUD shape)
+
+### Phase 31: Advanced Filtering & Bulk Reschedule
+- [x] Date range filter for posts (`GET /api/posts?from=&to=`) — filter by scheduledAt or createdAt within ISO date range
+- [x] Platform filter for posts (`GET /api/posts?platform=FACEBOOK`) — filter by publishResults platform
+- [x] Bulk reschedule endpoint (`PATCH /api/posts/bulk-reschedule`) — accepts array of SCHEDULED post IDs + shiftMinutes, shifts scheduledAt forward/backward
+- [x] Date range pickers and platform filter pills in posts page UI (client-side filter controls)
+- [x] Unit tests for the bulk reschedule endpoint (auth, validation, success, partial match)
