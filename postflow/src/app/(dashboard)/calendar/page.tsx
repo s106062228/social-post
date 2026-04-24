@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { PostStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { CalendarView } from "@/components/calendar-view";
+import { CalendarExport } from "@/components/calendar-export";
 import { Plus } from "lucide-react";
 
 export default async function CalendarPage() {
@@ -44,12 +45,15 @@ export default async function CalendarPage() {
             View and manage your scheduled posts.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/posts/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New post
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <CalendarExport />
+          <Button asChild>
+            <Link href="/posts/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New post
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <CalendarView posts={calendarPosts} />
