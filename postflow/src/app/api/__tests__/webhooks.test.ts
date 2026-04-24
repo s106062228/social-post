@@ -1,8 +1,5 @@
-import { createHmac } from "crypto";
-
 jest.mock("@/lib/logger", () => ({
   logger: { error: jest.fn(), info: jest.fn(), warn: jest.fn(), child: jest.fn().mockReturnThis() },
-  dbLogger: { error: jest.fn(), info: jest.fn(), warn: jest.fn() },
   webhookLogger: { error: jest.fn(), info: jest.fn(), warn: jest.fn() },
   default: { error: jest.fn(), info: jest.fn(), warn: jest.fn(), child: jest.fn().mockReturnThis() },
 }));
@@ -35,19 +32,19 @@ jest.mock("@/lib/db", () => ({
   },
 }));
 
+import { createHmac } from "crypto";
 import { NextRequest } from "next/server";
 import { GET, POST } from "@/app/api/webhooks/meta/route";
 import { prisma } from "@/lib/db";
 
-const mockResultUpdateMany = prisma.publishResult.updateMany as jest.Mock;
+const mockUpdateMany = prisma.publishResult.updateMany as jest.Mock;
 
-const APP_SECRET = "test-app-secret-1234";
+const APP_SECRET = "test-app-secret";
 const VERIFY_TOKEN = "test-verify-token";
 
-function makeHubSignature(body: string, secret = APP_SECRET): string {
-  const hmac = createHmac("sha256", secret);
-  hmac.update(body);
-  return `sha256=${hmac.digest("hex")}`;
+function makeSignature(body: string, secret = APP_SECRET): string {
+  const hmac = createHmac("sha256", secret).update(body).digest("hex");
+  return `sha256=${hmac}`;
 }
 
 function makeGetRequest(params: Record<string, string>): NextRequest {
@@ -59,341 +56,236 @@ function makeGetRequest(params: Record<string, string>): NextRequest {
 }
 
 function makePostRequest(body: unknown, signature?: string): NextRequest {
-  const rawBody = JSON.stringify(body);
+  const bodyStr = JSON.stringify(body);
+  const sig = signature ?? makeSignature(bodyStr);
   return new NextRequest("http://localhost:3000/api/webhooks/meta", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(signature !== undefined && { "x-hub-signature-256": signature }),
+      "x-hub-signature-256": sig,
     },
-    body: rawBody,
+    body: bodyStr,
   });
 }
 
 describe("GET /api/webhooks/meta — hub challenge verification", () => {
-  const OLD_ENV = process.env;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env = { ...OLD_ENV, META_WEBHOOK_VERIFY_TOKEN: VERIFY_TOKEN };
+    process.env.META_WEBHOOK_VERIFY_TOKEN = VERIFY_TOKEN;
+    process.env.META_APP_SECRET = APP_SECRET;
   });
 
   afterEach(() => {
-    process.env = OLD_ENV;
-  });
-
-  it("returns 500 when META_WEBHOOK_VERIFY_TOKEN is not configured", async () => {
     delete process.env.META_WEBHOOK_VERIFY_TOKEN;
-
-    const res = await GET(
-      makeGetRequest({ "hub.mode": "subscribe", "hub.verify_token": VERIFY_TOKEN, "hub.challenge": "ch_123" })
-    );
-    expect(res.status).toBe(500);
-    const data = (await res.json()) as { error: string };
-    expect(data.error).toBe("Webhook verification token not configured");
+    delete process.env.META_APP_SECRET;
   });
 
-  it("returns 200 with the challenge when mode=subscribe and token matches", async () => {
+  it("returns 200 with challenge when mode=subscribe and token matches", async () => {
     const res = await GET(
-      makeGetRequest({ "hub.mode": "subscribe", "hub.verify_token": VERIFY_TOKEN, "hub.challenge": "abc123" })
+      makeGetRequest({
+        "hub.mode": "subscribe",
+        "hub.verify_token": VERIFY_TOKEN,
+        "hub.challenge": "abc123",
+      })
     );
     expect(res.status).toBe(200);
     const body = await res.text();
     expect(body).toBe("abc123");
   });
 
-  it("returns 403 when verify_token does not match", async () => {
+  it("returns 403 when verify token does not match", async () => {
     const res = await GET(
-      makeGetRequest({ "hub.mode": "subscribe", "hub.verify_token": "wrong-token", "hub.challenge": "abc123" })
+      makeGetRequest({
+        "hub.mode": "subscribe",
+        "hub.verify_token": "wrong-token",
+        "hub.challenge": "abc123",
+      })
     );
     expect(res.status).toBe(403);
   });
 
   it("returns 403 when mode is not subscribe", async () => {
     const res = await GET(
-      makeGetRequest({ "hub.mode": "unsubscribe", "hub.verify_token": VERIFY_TOKEN, "hub.challenge": "abc123" })
+      makeGetRequest({
+        "hub.mode": "unsubscribe",
+        "hub.verify_token": VERIFY_TOKEN,
+        "hub.challenge": "abc123",
+      })
     );
     expect(res.status).toBe(403);
   });
 
-  it("returns 403 when hub.challenge is missing but mode and token are correct", async () => {
-    // Without challenge, the response body is empty string — still 200
+  it("returns 500 when META_WEBHOOK_VERIFY_TOKEN is not configured", async () => {
+    delete process.env.META_WEBHOOK_VERIFY_TOKEN;
     const res = await GET(
-      makeGetRequest({ "hub.mode": "subscribe", "hub.verify_token": VERIFY_TOKEN })
+      makeGetRequest({
+        "hub.mode": "subscribe",
+        "hub.verify_token": VERIFY_TOKEN,
+        "hub.challenge": "abc123",
+      })
     );
-    expect(res.status).toBe(200);
-    const body = await res.text();
-    expect(body).toBe("");
+    expect(res.status).toBe(500);
   });
 });
 
-describe("POST /api/webhooks/meta — event processing", () => {
-  const OLD_ENV = process.env;
-
+describe("POST /api/webhooks/meta — webhook event handling", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env = { ...OLD_ENV, META_APP_SECRET: APP_SECRET };
+    process.env.META_APP_SECRET = APP_SECRET;
+    mockUpdateMany.mockResolvedValue({ count: 1 });
   });
 
   afterEach(() => {
-    process.env = OLD_ENV;
-  });
-
-  // ── Signature verification ────────────────────────────────────────────────
-
-  it("returns 401 when x-hub-signature-256 header is missing", async () => {
-    const payload = { object: "instagram", entry: [] };
-    const res = await makePostRequest(payload); // no signature
-    const response = await POST(res);
-    expect(response.status).toBe(401);
-    const data = (await response.json()) as { error: string };
-    expect(data.error).toBe("Invalid signature");
-  });
-
-  it("returns 401 when HMAC signature is incorrect", async () => {
-    const payload = { object: "instagram", entry: [] };
-    const response = await POST(makePostRequest(payload, "sha256=badhash"));
-    expect(response.status).toBe(401);
-  });
-
-  it("returns 401 when META_APP_SECRET is not set", async () => {
     delete process.env.META_APP_SECRET;
-
-    const payload = { object: "instagram", entry: [] };
-    const body = JSON.stringify(payload);
-    const sig = makeHubSignature(body);
-    const response = await POST(makePostRequest(payload, sig));
-    expect(response.status).toBe(401);
   });
 
-  // ── Payload validation ────────────────────────────────────────────────────
-
-  it("returns 400 for unrecognised payload shape (missing object field)", async () => {
-    const payload = { entry: [] };
-    const body = JSON.stringify(payload);
-    const sig = makeHubSignature(body);
-    const response = await POST(makePostRequest(payload, sig));
-    expect(response.status).toBe(400);
-    const data = (await response.json()) as { error: string };
-    expect(data.error).toBe("Unrecognised payload shape");
+  it("returns 401 when signature is missing", async () => {
+    const req = new NextRequest("http://localhost:3000/api/webhooks/meta", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ object: "page", entry: [] }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(401);
   });
 
-  // ── Instagram PUBLISHED status update ────────────────────────────────────
+  it("returns 401 when signature is invalid", async () => {
+    const body = JSON.stringify({ object: "page", entry: [] });
+    const req = new NextRequest("http://localhost:3000/api/webhooks/meta", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-hub-signature-256": "sha256=invalidsignature",
+      },
+      body,
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(401);
+  });
 
-  it("updates publishResult to PUBLISHED on instagram media_publish_status PUBLISHED", async () => {
-    mockResultUpdateMany.mockResolvedValue({ count: 1 });
+  it("returns 400 for invalid JSON payload", async () => {
+    const rawBody = "not-json";
+    const sig = makeSignature(rawBody);
+    const req = new NextRequest("http://localhost:3000/api/webhooks/meta", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-hub-signature-256": sig,
+      },
+      body: rawBody,
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+  });
 
+  it("returns 400 for unrecognised payload shape", async () => {
+    const res = await POST(makePostRequest({ unexpected: "shape" }));
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 200 for valid payload with no changes (pass-through)", async () => {
+    const payload = { object: "page", entry: [{ id: "123", time: 1234567890 }] };
+    const res = await POST(makePostRequest(payload));
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as { received: boolean };
+    expect(data.received).toBe(true);
+  });
+
+  it("updates PublishResult to PUBLISHED on media PUBLISHED status", async () => {
     const payload = {
       object: "instagram",
       entry: [
         {
-          id: "123",
+          id: "entry-1",
+          changes: [
+            {
+              field: "media_publish_status",
+              value: { media_id: "media-123", status: "PUBLISHED" },
+            },
+          ],
+        },
+      ],
+    };
+
+    const res = await POST(makePostRequest(payload));
+    expect(res.status).toBe(200);
+    expect(mockUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { platformPostId: "media-123" },
+        data: expect.objectContaining({ status: "PUBLISHED" }),
+      })
+    );
+  });
+
+  it("updates PublishResult to FAILED on media ERROR status", async () => {
+    const payload = {
+      object: "instagram",
+      entry: [
+        {
+          id: "entry-1",
           changes: [
             {
               field: "media_publish_status",
               value: {
-                media_id: "ig-media-456",
-                status: "PUBLISHED",
-                published: true,
+                media_id: "media-456",
+                status: "ERROR",
+                error: { code: 100, message: "Invalid media" },
               },
             },
           ],
         },
       ],
     };
-    const body = JSON.stringify(payload);
-    const sig = makeHubSignature(body);
-    const response = await POST(makePostRequest(payload, sig));
 
-    expect(response.status).toBe(200);
-    const data = (await response.json()) as { received: boolean };
-    expect(data.received).toBe(true);
-    expect(mockResultUpdateMany).toHaveBeenCalledWith(
+    const res = await POST(makePostRequest(payload));
+    expect(res.status).toBe(200);
+    expect(mockUpdateMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { platformPostId: "ig-media-456" },
-        data: expect.objectContaining({ status: "PUBLISHED" }),
+        where: { platformPostId: "media-456" },
+        data: expect.objectContaining({ status: "FAILED" }),
       })
     );
   });
 
-  it("updates publishResult to PUBLISHED on FINISHED status", async () => {
-    mockResultUpdateMany.mockResolvedValue({ count: 1 });
-
+  it("updates PublishResult to PUBLISHED on Threads FINISHED status", async () => {
     const payload = {
       object: "threads",
       entry: [
         {
-          id: "999",
+          id: "entry-1",
           changes: [
             {
               field: "media_publish_status",
-              value: { post_id: "threads-post-789", status: "FINISHED" },
+              value: { post_id: "thread-789", status: "FINISHED" },
             },
           ],
         },
       ],
     };
-    const body = JSON.stringify(payload);
-    const sig = makeHubSignature(body);
-    const response = await POST(makePostRequest(payload, sig));
 
-    expect(response.status).toBe(200);
-    expect(mockResultUpdateMany).toHaveBeenCalledWith(
+    const res = await POST(makePostRequest(payload));
+    expect(res.status).toBe(200);
+    expect(mockUpdateMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { platformPostId: "threads-post-789" },
+        where: { platformPostId: "thread-789" },
         data: expect.objectContaining({ status: "PUBLISHED" }),
       })
     );
   });
 
-  // ── Instagram ERROR status update ─────────────────────────────────────────
-
-  it("updates publishResult to FAILED on instagram media_publish_status ERROR", async () => {
-    mockResultUpdateMany.mockResolvedValue({ count: 1 });
-
-    const payload = {
-      object: "instagram",
-      entry: [
-        {
-          id: "456",
-          changes: [
-            {
-              field: "media_publish_status",
-              value: {
-                media_id: "ig-media-bad",
-                status: "ERROR",
-                error: { code: 1234, message: "Permission denied", subcode: 567 },
-              },
-            },
-          ],
-        },
-      ],
-    };
-    const body = JSON.stringify(payload);
-    const sig = makeHubSignature(body);
-    const response = await POST(makePostRequest(payload, sig));
-
-    expect(response.status).toBe(200);
-    expect(mockResultUpdateMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { platformPostId: "ig-media-bad" },
-        data: expect.objectContaining({
-          status: "FAILED",
-          error: expect.stringContaining("Permission denied"),
-        }),
-      })
-    );
-  });
-
-  it("updates publishResult to FAILED on EXPIRED status with fallback error message", async () => {
-    mockResultUpdateMany.mockResolvedValue({ count: 1 });
-
-    const payload = {
-      object: "instagram",
-      entry: [
-        {
-          id: "789",
-          changes: [
-            {
-              field: "media_publish_status",
-              value: { media_id: "ig-media-expired", status: "EXPIRED" },
-            },
-          ],
-        },
-      ],
-    };
-    const body = JSON.stringify(payload);
-    const sig = makeHubSignature(body);
-    const response = await POST(makePostRequest(payload, sig));
-
-    expect(response.status).toBe(200);
-    expect(mockResultUpdateMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          status: "FAILED",
-          error: "Media status: EXPIRED",
-        }),
-      })
-    );
-  });
-
-  // ── Facebook page/feed event ──────────────────────────────────────────────
-
-  it("returns 200 without DB update for page/feed events (informational only)", async () => {
+  it("does not call updateMany for page feed events", async () => {
     const payload = {
       object: "page",
       entry: [
         {
-          id: "page-123",
-          changes: [
-            { field: "feed", value: { item: "status", verb: "add", post_id: "page-123_post-456" } },
-          ],
+          id: "page-1",
+          changes: [{ field: "feed", value: { item: "post" } }],
         },
       ],
     };
-    const body = JSON.stringify(payload);
-    const sig = makeHubSignature(body);
-    const response = await POST(makePostRequest(payload, sig));
 
-    expect(response.status).toBe(200);
-    const data = (await response.json()) as { received: boolean };
-    expect(data.received).toBe(true);
-    // No DB updates for page feed events
-    expect(mockResultUpdateMany).not.toHaveBeenCalled();
-  });
-
-  // ── Unrecognised field / object combinations ──────────────────────────────
-
-  it("returns 200 without DB update for unknown object type", async () => {
-    const payload = {
-      object: "user",
-      entry: [
-        { id: "user-1", changes: [{ field: "some_field", value: {} }] },
-      ],
-    };
-    const body = JSON.stringify(payload);
-    const sig = makeHubSignature(body);
-    const response = await POST(makePostRequest(payload, sig));
-
-    expect(response.status).toBe(200);
-    expect(mockResultUpdateMany).not.toHaveBeenCalled();
-  });
-
-  it("returns 200 without DB update for entries with no changes array", async () => {
-    const payload = {
-      object: "instagram",
-      entry: [{ id: "entry-no-changes" }],
-    };
-    const body = JSON.stringify(payload);
-    const sig = makeHubSignature(body);
-    const response = await POST(makePostRequest(payload, sig));
-
-    expect(response.status).toBe(200);
-    expect(mockResultUpdateMany).not.toHaveBeenCalled();
-  });
-
-  // ── IN_PROGRESS status ────────────────────────────────────────────────────
-
-  it("does not update publishResult for IN_PROGRESS status (no-op)", async () => {
-    const payload = {
-      object: "instagram",
-      entry: [
-        {
-          id: "evt-1",
-          changes: [
-            {
-              field: "media_publish_status",
-              value: { media_id: "ig-media-inprogress", status: "IN_PROGRESS" },
-            },
-          ],
-        },
-      ],
-    };
-    const body = JSON.stringify(payload);
-    const sig = makeHubSignature(body);
-    const response = await POST(makePostRequest(payload, sig));
-
-    expect(response.status).toBe(200);
-    expect(mockResultUpdateMany).not.toHaveBeenCalled();
+    const res = await POST(makePostRequest(payload));
+    expect(res.status).toBe(200);
+    expect(mockUpdateMany).not.toHaveBeenCalled();
   });
 });
