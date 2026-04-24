@@ -37,6 +37,9 @@ jest.mock("@/lib/db", () => ({
       update: jest.fn(),
       delete: jest.fn(),
     },
+    postVersion: {
+      create: jest.fn(),
+    },
     publishResult: {
       deleteMany: jest.fn(),
     },
@@ -167,11 +170,12 @@ describe("PATCH /api/posts/[id]", () => {
     expect(res.status).toBe(400);
   });
 
-  it("updates and returns the post on valid input", async () => {
+  it("updates and returns the post on valid input (content change uses $transaction)", async () => {
     mockAuth.mockResolvedValueOnce(AUTHED_SESSION);
     mockFindUnique.mockResolvedValueOnce(BASE_POST);
     const updated = { ...BASE_POST, content: "Updated content", publishResults: [] };
-    mockUpdate.mockResolvedValueOnce(updated);
+    // Content changes → snapshot is saved → $transaction is used
+    mockTransaction.mockResolvedValueOnce([updated, {}]);
 
     const res = await PATCH(makeRequest("PATCH", { content: "Updated content" }), makeParams(VALID_POST_ID));
     expect(res.status).toBe(200);

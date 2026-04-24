@@ -106,6 +106,7 @@ model Post {
   scheduledAt    DateTime?
   publishResults PublishResult[]
   tags           PostTag[]
+  versions       PostVersion[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -269,4 +270,18 @@ model WebhookConfig {
 
   @@index([userId])
   @@index([userId, isActive])
+}
+
+model PostVersion {
+  id        String    @id @default(cuid())
+  postId    String
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  content   String
+  mediaType MediaType
+  mediaUrls String[]
+  createdAt DateTime  @default(now())
+
+  @@index([postId, createdAt(sort: Desc)])
+  @@index([userId])
 }

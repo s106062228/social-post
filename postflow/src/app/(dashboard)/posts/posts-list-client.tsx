@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { FileText, Trash2 } from "lucide-react";
+import { FileText, History, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { DeletePostButton } from "./delete-post-button";
 import { RetryPostButton } from "./retry-post-button";
@@ -232,6 +232,11 @@ export function PostsListClient({ posts }: PostsListClientProps) {
                   <RetryPostButton postId={post.id} />
                 )}
                 <DuplicatePostButton postId={post.id} />
+                <Button variant="ghost" size="sm" asChild title="Version history">
+                  <Link href={`/posts/${post.id}/versions`}>
+                    <History className="h-4 w-4" />
+                  </Link>
+                </Button>
                 <SaveAsTemplateButton
                   postContent={post.content}
                   postMediaType={post.mediaType}

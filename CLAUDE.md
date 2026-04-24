@@ -495,3 +495,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] "AI Suggest" dialog in post composer — button opens modal with topic/tone inputs, shows 3 content variants to select from
 - [x] "Suggest Hashtags" button in post composer — calls `/api/ai/hashtags` with current content, appends suggestions
 - [x] Unit tests for AI API routes (auth, rate limit, validation, success, AI disabled, error — 20 tests)
+
+### Phase 36: Post Version History
+- [x] `PostVersion` model in Prisma (id, postId, userId, content, mediaType, mediaUrls, createdAt) + migration
+- [x] GET `/api/posts/[id]/versions` endpoint — list up to 20 versions for a post (auth + ownership check)
+- [x] POST `/api/posts/[id]/versions` endpoint — manually snapshot current post content
+- [x] POST `/api/posts/[id]/versions/[versionId]/restore` endpoint — saves current state as new version then restores chosen version
+- [x] Auto-snapshot in PATCH `/api/posts/[id]` — saves old content as a version before applying content/media changes
+- [x] Version history page (`/posts/[id]/versions`) — timeline of versions with preview and restore buttons
+- [x] History button in posts list linking to the version history page
+- [x] Unit tests for versions API (GET list, POST snapshot, restore — auth, ownership, conflict states)

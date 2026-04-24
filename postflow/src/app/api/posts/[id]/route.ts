@@ -135,7 +135,15 @@ export async function PATCH(
       newStatus = scheduledAt ? PostStatus.SCHEDULED : PostStatus.DRAFT;
     }
 
-    const updated = await prisma.post.update({
+    // Save a version snapshot before overwriting content so history is preserved.
+    const contentChanging = content !== undefined && content !== post.content;
+    const mediaTypeChanging = mediaType !== undefined && mediaType !== post.mediaType;
+    const mediaUrlsChanging =
+      mediaUrls !== undefined &&
+      JSON.stringify(mediaUrls) !== JSON.stringify(post.mediaUrls);
+    const shouldSnapshot = contentChanging || mediaTypeChanging || mediaUrlsChanging;
+
+    const updateOp = prisma.post.update({
       where: { id },
       data: {
         ...(content !== undefined && { content }),
@@ -146,10 +154,27 @@ export async function PATCH(
         }),
         ...(newStatus !== undefined && { status: newStatus }),
       },
-      include: {
-        publishResults: true,
-      },
+      include: { publishResults: true },
     });
+
+    let updated: Awaited<typeof updateOp>;
+    if (shouldSnapshot) {
+      const [postResult] = await prisma.$transaction([
+        updateOp,
+        prisma.postVersion.create({
+          data: {
+            postId: id,
+            userId: session.user.id,
+            content: post.content,
+            mediaType: post.mediaType,
+            mediaUrls: post.mediaUrls,
+          },
+        }),
+      ]);
+      updated = postResult;
+    } else {
+      updated = await updateOp;
+    }
 
     logActivity({
       userId: session.user.id,
