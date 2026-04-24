@@ -505,3 +505,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Version history page (`/posts/[id]/versions`) — timeline of versions with preview and restore buttons
 - [x] History button in posts list linking to the version history page
 - [x] Unit tests for versions API (GET list, POST snapshot, restore — auth, ownership, conflict states)
+
+### Phase 37: Per-Platform Content Variants
+- [x] `PostVariant` model in Prisma (id, postId, platform, content, mediaType, mediaUrls, createdAt, updatedAt) + migration — stores platform-specific content override for a post
+- [x] GET `/api/posts/[id]/variants` endpoint — list all variants for a post (auth + ownership check)
+- [x] PUT `/api/posts/[id]/variants` endpoint — upsert variants for a post (replaces all, zod-validated)
+- [x] Extend publish worker to use variant content when available (falls back to post.content if no variant for platform)
+- [x] `PlatformVariants` component (`src/components/platform-variants.tsx`) — tab UI per selected platform with per-platform content/media overrides, integrated into post composer below main content
+- [x] Unit tests for variant API endpoints (GET and PUT — auth, ownership, validation, CRUD shape — 12 tests)

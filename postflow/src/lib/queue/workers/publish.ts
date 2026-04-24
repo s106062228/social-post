@@ -71,10 +71,16 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<void> {
   });
 
   const adapter = adapters[account.platform];
+
+  // Use platform-specific variant if one exists, otherwise fall back to post content
+  const variant = await prisma.postVariant.findUnique({
+    where: { postId_platform: { postId, platform: account.platform } },
+  });
+
   const postContent = {
-    content: post.content,
-    mediaType: post.mediaType,
-    mediaUrls: post.mediaUrls,
+    content: variant?.content ?? post.content,
+    mediaType: variant?.mediaType ?? post.mediaType,
+    mediaUrls: variant?.mediaUrls ?? post.mediaUrls,
     scheduledAt: post.scheduledAt,
   };
 

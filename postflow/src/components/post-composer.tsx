@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
 import { PostPreview } from "@/components/post-preview";
+import { PlatformVariants, type PlatformVariantData } from "@/components/platform-variants";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import {
   Dialog,
@@ -64,6 +65,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [platformVariants, setPlatformVariants] = useState<PlatformVariantData[]>([]);
 
   // AI suggestions state
   const [showAiDialog, setShowAiDialog] = useState(false);
@@ -151,6 +153,23 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       }
 
       const post = (await res.json()) as { id: string };
+
+      // Save platform-specific variants if any are enabled
+      const enabledVariants = platformVariants.filter((v) => v.enabled && v.content.trim());
+      if (enabledVariants.length > 0) {
+        await fetch(`/api/posts/${post.id}/variants`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            variants: enabledVariants.map((v) => ({
+              platform: v.platform,
+              content: v.content,
+              mediaType: "NONE",
+              mediaUrls: [],
+            })),
+          }),
+        });
+      }
 
       if (publish) {
         const pubRes = await fetch("/api/publish", {
@@ -454,6 +473,16 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           <PlatformCharCounter content={content} platforms={selectedPlatforms} />
         )}
       </div>
+
+      {/* Per-platform content variants (shown when 2+ platforms are selected) */}
+      {selectedPlatforms.length >= 2 && (
+        <PlatformVariants
+          platforms={selectedPlatforms}
+          baseContent={content}
+          variants={platformVariants}
+          onChange={setPlatformVariants}
+        />
+      )}
 
       {/* AI Suggest Dialog */}
       <Dialog open={showAiDialog} onOpenChange={setShowAiDialog}>

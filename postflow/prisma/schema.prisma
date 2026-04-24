@@ -107,6 +107,7 @@ model Post {
   publishResults PublishResult[]
   tags           PostTag[]
   versions       PostVersion[]
+  variants       PostVariant[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -284,4 +285,19 @@ model PostVersion {
 
   @@index([postId, createdAt(sort: Desc)])
   @@index([userId])
+}
+
+model PostVariant {
+  id        String    @id @default(cuid())
+  postId    String
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  platform  Platform
+  content   String
+  mediaType MediaType @default(NONE)
+  mediaUrls String[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([postId, platform])
+  @@index([postId])
 }
