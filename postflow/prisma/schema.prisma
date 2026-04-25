@@ -109,6 +109,7 @@ model Post {
   tags           PostTag[]
   versions       PostVersion[]
   variants       PostVariant[]
+  comments       PostComment[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -311,4 +312,19 @@ model CalendarToken {
   createdAt DateTime @default(now())
 
   @@index([token])
+}
+
+model PostComment {
+  id         String   @id @default(cuid())
+  postId     String
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId     String
+  authorName String
+  comment    String
+  resolved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([postId, createdAt(sort: Desc)])
+  @@index([userId])
 }

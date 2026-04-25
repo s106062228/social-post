@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { ArrowLeft, Clock, RotateCcw, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { PostComments } from "@/components/post-comments";
 
 interface PostVersion {
   id: string;
@@ -94,6 +95,8 @@ export default function PostVersionsPage() {
           </p>
         </div>
       </div>
+
+      <PostComments postId={postId} />
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
