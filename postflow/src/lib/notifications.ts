@@ -6,6 +6,9 @@ export const NOTIFICATION_TYPES = {
   POST_PUBLISHED: "post.published",
   POST_FAILED: "post.failed",
   POST_PARTIALLY_PUBLISHED: "post.partially_published",
+  POST_APPROVAL_REQUESTED: "post.approval_requested",
+  POST_APPROVED: "post.approved",
+  POST_REJECTED: "post.rejected",
 } as const;
 
 export type NotificationType =

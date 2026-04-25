@@ -11,6 +11,7 @@ import { RetryPostButton } from "./retry-post-button";
 import { DuplicatePostButton } from "./duplicate-post-button";
 import { SaveAsTemplateButton } from "./save-as-template-button";
 import { BulkRescheduleButton } from "./bulk-reschedule-button";
+import { RequestApprovalButton } from "./request-approval-button";
 
 type PublishResult = {
   platform: string;
@@ -29,9 +30,32 @@ export type PostListItem = {
   mediaType: string;
   mediaUrls: string[];
   scheduledAt: Date | string | null;
+  approvalStatus: string;
+  approverNote: string | null;
   publishResults: PublishResult[];
   tags: PostTagItem[];
 };
+
+function ApprovalBadge({ approvalStatus }: { approvalStatus: string }) {
+  if (approvalStatus === "NONE") return null;
+  const styles: Record<string, string> = {
+    PENDING: "bg-yellow-100 text-yellow-700",
+    APPROVED: "bg-emerald-100 text-emerald-700",
+    REJECTED: "bg-red-100 text-red-700",
+  };
+  const labels: Record<string, string> = {
+    PENDING: "pending review",
+    APPROVED: "approved",
+    REJECTED: "rejected",
+  };
+  return (
+    <span
+      className={`rounded-full px-2 py-0.5 text-xs font-medium ${styles[approvalStatus] ?? "bg-gray-100 text-gray-700"}`}
+    >
+      {labels[approvalStatus] ?? approvalStatus.toLowerCase()}
+    </span>
+  );
+}
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
@@ -198,6 +222,7 @@ export function PostsListClient({ posts }: PostsListClientProps) {
                 <p className="line-clamp-2 text-sm">{post.content}</p>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <StatusBadge status={post.status} />
+                  <ApprovalBadge approvalStatus={post.approvalStatus} />
                   {post.scheduledAt && (
                     <span className="text-xs text-muted-foreground">
                       {post.status === "SCHEDULED"
@@ -227,6 +252,11 @@ export function PostsListClient({ posts }: PostsListClientProps) {
                     <Link href={`/posts/${post.id}/edit`}>Edit</Link>
                   </Button>
                 )}
+                {post.status === "DRAFT" &&
+                  post.approvalStatus !== "PENDING" &&
+                  post.approvalStatus !== "APPROVED" && (
+                    <RequestApprovalButton postId={post.id} />
+                  )}
                 {(post.status === "FAILED" ||
                   post.status === "PARTIALLY_PUBLISHED") && (
                   <RetryPostButton postId={post.id} />

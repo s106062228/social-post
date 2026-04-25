@@ -17,6 +17,7 @@ import {
   Hash,
   ListOrdered,
   Webhook,
+  ClipboardCheck,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ const navItems = [
   { href: "/hashtags", label: "Hashtags", icon: Hash },
   { href: "/queue", label: "Queue", icon: ListOrdered },
   { href: "/webhooks", label: "Webhooks", icon: Webhook },
+  { href: "/approvals", label: "Approvals", icon: ClipboardCheck },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

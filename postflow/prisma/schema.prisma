@@ -38,6 +38,13 @@ enum PublishStatus {
   FAILED
 }
 
+enum ApprovalStatus {
+  NONE
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id                 String              @id @default(cuid())
   email              String              @unique
@@ -97,21 +104,23 @@ model SocialAccount {
 }
 
 model Post {
-  id             String          @id @default(cuid())
+  id             String         @id @default(cuid())
   userId         String
-  user           User            @relation(fields: [userId], references: [id])
+  user           User           @relation(fields: [userId], references: [id])
   content        String
   mediaType      MediaType
   mediaUrls      String[]
   status         PostStatus
   scheduledAt    DateTime?
+  approvalStatus ApprovalStatus @default(NONE)
+  approverNote   String?
   publishResults PublishResult[]
   tags           PostTag[]
   versions       PostVersion[]
   variants       PostVariant[]
   comments       PostComment[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   @@index([userId])
   @@index([userId, status])

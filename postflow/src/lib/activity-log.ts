@@ -15,7 +15,10 @@ export type ActivityAction =
   | "schedule.toggled"
   | "account.connected"
   | "account.disconnected"
-  | "post.version_restored";
+  | "post.version_restored"
+  | "post.approval_requested"
+  | "post.approved"
+  | "post.rejected";
 
 export interface LogActivityOptions {
   userId: string;
