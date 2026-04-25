@@ -26,6 +26,8 @@ export const QUEUE_NAMES = {
   TOKEN_REFRESH: "postflow:token-refresh",
   TOKEN_EXPIRY_CHECK: "postflow:token-expiry-check",
   RECURRING_SCHEDULE: "postflow:recurring-schedule",
+  SYNC_INSIGHTS: "postflow:sync-insights",
+  SYNC_INSIGHTS_SCAN: "postflow:sync-insights-scan",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];

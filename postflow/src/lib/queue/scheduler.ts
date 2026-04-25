@@ -7,6 +7,7 @@ import type { PublishJobData } from "./workers/publish";
 import type { TokenRefreshJobData } from "./workers/refresh";
 import type { TokenExpiryCheckJobData } from "./workers/token-expiry";
 import type { RecurringScheduleJobData } from "./workers/recurring-schedule";
+import type { SyncInsightsScanJobData } from "./workers/sync-insights";
 
 // ── Queue singletons ───────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -313,6 +314,46 @@ export function isValidCronExpr(cronExpr: string): boolean {
   } catch {
     return false;
   }
+}
+
+// ── Insights sync queue ────────────────────────────────────────────────────────
+
+let syncInsightsScanQueue: Queue<SyncInsightsScanJobData> | null = null;
+
+function getSyncInsightsScanQueue(): Queue<SyncInsightsScanJobData> {
+  if (!syncInsightsScanQueue) {
+    syncInsightsScanQueue = new Queue<SyncInsightsScanJobData>(
+      QUEUE_NAMES.SYNC_INSIGHTS_SCAN,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 3,
+          backoff: { type: "exponential", delay: 5000 },
+          removeOnComplete: { count: 30 },
+          removeOnFail: { count: 50 },
+        },
+      }
+    );
+  }
+  return syncInsightsScanQueue;
+}
+
+/**
+ * Registers the daily BullMQ repeatable job that scans for published posts and
+ * syncs their engagement insights. Runs at 03:00 UTC every day.
+ * Safe to call on every worker startup — BullMQ deduplicates by job key.
+ */
+export async function scheduleSyncInsightsScan(): Promise<void> {
+  const queue = getSyncInsightsScanQueue();
+
+  await queue.add(
+    "sync-insights-scan",
+    { triggeredAt: new Date().toISOString() },
+    {
+      repeat: { pattern: "0 3 * * *" },
+      jobId: "sync-insights-scan:daily",
+    }
+  );
 }
 
 // ── Queue event helpers ────────────────────────────────────────────────────────

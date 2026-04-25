@@ -191,6 +191,7 @@ model PublishResult {
   publishedUrl   String?
   publishedAt    DateTime?
   retryCount     Int           @default(0)
+  insights       PostInsights?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -336,4 +337,18 @@ model PostComment {
 
   @@index([postId, createdAt(sort: Desc)])
   @@index([userId])
+}
+
+model PostInsights {
+  id             String        @id @default(cuid())
+  publishResultId String       @unique
+  publishResult  PublishResult @relation(fields: [publishResultId], references: [id], onDelete: Cascade)
+  impressions    Int?
+  reach          Int?
+  likes          Int?
+  comments       Int?
+  shares         Int?
+  syncedAt       DateTime      @default(now())
+
+  @@index([publishResultId])
 }

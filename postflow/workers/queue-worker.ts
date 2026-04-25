@@ -22,9 +22,14 @@ import { createTokenRefreshWorker } from "../src/lib/queue/workers/refresh";
 import { createTokenExpiryCheckWorker } from "../src/lib/queue/workers/token-expiry";
 import { createRecurringScheduleWorker } from "../src/lib/queue/workers/recurring-schedule";
 import {
+  createSyncInsightsWorker,
+  createSyncInsightsScanWorker,
+} from "../src/lib/queue/workers/sync-insights";
+import {
   scheduleTokenExpiryCheck,
   scheduleExpiringTokenRefreshes,
   scheduleRecurringCheck,
+  scheduleSyncInsightsScan,
 } from "../src/lib/queue/scheduler";
 import { workerLogger } from "../src/lib/logger";
 
@@ -34,11 +39,15 @@ const publishWorker = createPublishWorker();
 const tokenRefreshWorker = createTokenRefreshWorker();
 const tokenExpiryCheckWorker = createTokenExpiryCheckWorker();
 const recurringScheduleWorker = createRecurringScheduleWorker();
+const syncInsightsWorker = createSyncInsightsWorker();
+const syncInsightsScanWorker = createSyncInsightsScanWorker();
 
 workerLogger.info("Publish worker started");
 workerLogger.info("Token refresh worker started");
 workerLogger.info("Token expiry check worker started");
 workerLogger.info("Recurring schedule worker started");
+workerLogger.info("Sync insights worker started");
+workerLogger.info("Sync insights scan worker started");
 
 // ── Register repeatable cron jobs ─────────────────────────────────────────────
 
@@ -57,6 +66,14 @@ async function registerCronJobs(): Promise<void> {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     workerLogger.error({ err: message }, "Failed to register recurring schedule cron");
+  }
+
+  try {
+    await scheduleSyncInsightsScan();
+    workerLogger.info("Registered daily insights sync cron (03:00 UTC)");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    workerLogger.error({ err: message }, "Failed to register insights sync cron");
   }
 }
 
@@ -92,6 +109,8 @@ async function shutdown(signal: string): Promise<void> {
     tokenRefreshWorker.close(),
     tokenExpiryCheckWorker.close(),
     recurringScheduleWorker.close(),
+    syncInsightsWorker.close(),
+    syncInsightsScanWorker.close(),
   ]);
 
   workerLogger.info("All workers stopped. Exiting.");
