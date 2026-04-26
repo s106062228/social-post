@@ -12,6 +12,7 @@ import { DuplicatePostButton } from "./duplicate-post-button";
 import { SaveAsTemplateButton } from "./save-as-template-button";
 import { BulkRescheduleButton } from "./bulk-reschedule-button";
 import { RequestApprovalButton } from "./request-approval-button";
+import { SharePostButton } from "./share-post-button";
 
 type PublishResult = {
   platform: string;
@@ -272,6 +273,7 @@ export function PostsListClient({ posts }: PostsListClientProps) {
                   postMediaType={post.mediaType}
                   postMediaUrls={post.mediaUrls}
                 />
+                <SharePostButton postId={post.id} />
                 <DeletePostButton postId={post.id} status={post.status} />
               </div>
             </div>

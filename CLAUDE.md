@@ -553,3 +553,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] BullMQ repeatable job (`sync-insights`) — daily, finds all PUBLISHED posts updated in last 30 days, dispatches sync-insights jobs per post
 - [x] Insights panel on the post versions page — shows per-platform engagement cards (impressions, reach, likes, comments, shares) with a "Sync Now" button
 - [x] Unit tests for insights API (GET and POST sync — auth, ownership, aggregation shape, adapter mock — 13 tests)
+
+### Phase 43: Public Post Preview Sharing
+- [x] `ShareLink` model in Prisma (id, postId, userId, token unique, expiresAt?, views, createdAt) + migration — token-gated public access to post preview
+- [x] POST `/api/posts/[id]/share` endpoint — create or return existing share link (auth required, idempotent)
+- [x] DELETE `/api/posts/[id]/share` endpoint — revoke share link (auth required)
+- [x] GET `/api/share/[token]` public endpoint — return sanitized post data (content, media, platform info, no user PII) for valid non-expired tokens; increment view count
+- [x] Public preview page (`/share/[token]`) — renders post preview using PostPreview component; shows view count and expiry; no login required
+- [x] Share button in posts list — client component with copy-to-clipboard share URL and revoke option, toast feedback
+- [x] Unit tests for share API endpoints (POST create, DELETE revoke, GET public — auth, token validation, expiry, view count — 16 tests)

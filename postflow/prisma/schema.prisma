@@ -64,6 +64,7 @@ model User {
   postQueueSlots     PostQueueSlot[]
   webhookConfigs     WebhookConfig[]
   calendarToken      CalendarToken?
+  shareLinks         ShareLink[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -119,6 +120,7 @@ model Post {
   versions       PostVersion[]
   variants       PostVariant[]
   comments       PostComment[]
+  shareLinks     ShareLink[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -351,4 +353,20 @@ model PostInsights {
   syncedAt       DateTime      @default(now())
 
   @@index([publishResultId])
+}
+
+model ShareLink {
+  id        String    @id @default(cuid())
+  postId    String
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique @default(cuid())
+  expiresAt DateTime?
+  views     Int       @default(0)
+  createdAt DateTime  @default(now())
+
+  @@unique([postId, userId])
+  @@index([token])
+  @@index([userId])
 }
