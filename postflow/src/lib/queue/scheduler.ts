@@ -8,6 +8,7 @@ import type { TokenRefreshJobData } from "./workers/refresh";
 import type { TokenExpiryCheckJobData } from "./workers/token-expiry";
 import type { RecurringScheduleJobData } from "./workers/recurring-schedule";
 import type { SyncInsightsScanJobData } from "./workers/sync-insights";
+import type { RssImportScanJobData } from "./workers/rss-import";
 
 // ── Queue singletons ───────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -353,6 +354,55 @@ export async function scheduleSyncInsightsScan(): Promise<void> {
       repeat: { pattern: "0 3 * * *" },
       jobId: "sync-insights-scan:daily",
     }
+  );
+}
+
+// ── RSS import queue ───────────────────────────────────────────────────────────
+
+let rssImportQueue: Queue<RssImportScanJobData> | null = null;
+
+function getRssImportQueue(): Queue<RssImportScanJobData> {
+  if (!rssImportQueue) {
+    rssImportQueue = new Queue<RssImportScanJobData>(QUEUE_NAMES.RSS_IMPORT, {
+      connection: createRedisConnection(),
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { count: 30 },
+        removeOnFail: { count: 50 },
+      },
+    });
+  }
+  return rssImportQueue;
+}
+
+/**
+ * Registers the BullMQ repeatable job that fetches all RSS feeds hourly.
+ * Safe to call on every worker startup — BullMQ deduplicates by job key.
+ * Schedule: every hour at minute 0.
+ */
+export async function scheduleRssImport(): Promise<void> {
+  const queue = getRssImportQueue();
+
+  await queue.add(
+    "rss-import-scan",
+    { triggeredAt: new Date().toISOString() },
+    {
+      repeat: { pattern: "0 * * * *" },
+      jobId: "rss-import-scan:hourly",
+    }
+  );
+}
+
+/**
+ * Enqueues an immediate RSS import job for all feeds (used by manual fetch API).
+ */
+export async function triggerRssImport(): Promise<void> {
+  const queue = getRssImportQueue();
+  await queue.add(
+    "rss-import-manual",
+    { triggeredAt: new Date().toISOString() },
+    { jobId: `rss-import-manual:${Date.now()}` }
   );
 }
 

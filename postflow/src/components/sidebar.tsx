@@ -19,6 +19,7 @@ import {
   Webhook,
   ClipboardCheck,
   Megaphone,
+  Rss,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,7 @@ const navItems = [
   { href: "/webhooks", label: "Webhooks", icon: Webhook },
   { href: "/approvals", label: "Approvals", icon: ClipboardCheck },
   { href: "/campaigns", label: "Campaigns", icon: Megaphone },
+  { href: "/rss-feeds", label: "RSS Feeds", icon: Rss },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

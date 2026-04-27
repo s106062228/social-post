@@ -25,11 +25,13 @@ import {
   createSyncInsightsWorker,
   createSyncInsightsScanWorker,
 } from "../src/lib/queue/workers/sync-insights";
+import { createRssImportWorker } from "../src/lib/queue/workers/rss-import";
 import {
   scheduleTokenExpiryCheck,
   scheduleExpiringTokenRefreshes,
   scheduleRecurringCheck,
   scheduleSyncInsightsScan,
+  scheduleRssImport,
 } from "../src/lib/queue/scheduler";
 import { workerLogger } from "../src/lib/logger";
 
@@ -41,6 +43,7 @@ const tokenExpiryCheckWorker = createTokenExpiryCheckWorker();
 const recurringScheduleWorker = createRecurringScheduleWorker();
 const syncInsightsWorker = createSyncInsightsWorker();
 const syncInsightsScanWorker = createSyncInsightsScanWorker();
+const rssImportWorker = createRssImportWorker();
 
 workerLogger.info("Publish worker started");
 workerLogger.info("Token refresh worker started");
@@ -48,6 +51,7 @@ workerLogger.info("Token expiry check worker started");
 workerLogger.info("Recurring schedule worker started");
 workerLogger.info("Sync insights worker started");
 workerLogger.info("Sync insights scan worker started");
+workerLogger.info("RSS import worker started");
 
 // ── Register repeatable cron jobs ─────────────────────────────────────────────
 
@@ -74,6 +78,14 @@ async function registerCronJobs(): Promise<void> {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     workerLogger.error({ err: message }, "Failed to register insights sync cron");
+  }
+
+  try {
+    await scheduleRssImport();
+    workerLogger.info("Registered hourly RSS import cron");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    workerLogger.error({ err: message }, "Failed to register RSS import cron");
   }
 }
 
@@ -111,6 +123,7 @@ async function shutdown(signal: string): Promise<void> {
     recurringScheduleWorker.close(),
     syncInsightsWorker.close(),
     syncInsightsScanWorker.close(),
+    rssImportWorker.close(),
   ]);
 
   workerLogger.info("All workers stopped. Exiting.");

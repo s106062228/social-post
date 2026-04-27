@@ -28,6 +28,7 @@ export const QUEUE_NAMES = {
   RECURRING_SCHEDULE: "postflow:recurring-schedule",
   SYNC_INSIGHTS: "postflow:sync-insights",
   SYNC_INSIGHTS_SCAN: "postflow:sync-insights-scan",
+  RSS_IMPORT: "postflow:rss-import",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];

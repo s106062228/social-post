@@ -66,6 +66,7 @@ model User {
   calendarToken      CalendarToken?
   shareLinks         ShareLink[]
   campaigns          Campaign[]
+  rssFeeds           RssFeed[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -123,6 +124,7 @@ model Post {
   comments       PostComment[]
   shareLinks     ShareLink[]
   campaigns      CampaignPost[]
+  rssItems       RssItem[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -402,4 +404,41 @@ model CampaignPost {
   @@id([campaignId, postId])
   @@index([campaignId])
   @@index([postId])
+}
+
+model RssFeed {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  url           String
+  autoCreate    Boolean   @default(true)
+  lastFetchedAt DateTime?
+  items         RssItem[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([userId, url])
+  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model RssItem {
+  id          String    @id @default(cuid())
+  feedId      String
+  feed        RssFeed   @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  guid        String
+  title       String?
+  content     String?
+  link        String?
+  imageUrl    String?
+  publishedAt DateTime?
+  postId      String?
+  post        Post?     @relation(fields: [postId], references: [id], onDelete: SetNull)
+  importedAt  DateTime  @default(now())
+
+  @@unique([feedId, guid])
+  @@index([feedId])
+  @@index([postId])
+  @@index([feedId, importedAt(sort: Desc)])
 }

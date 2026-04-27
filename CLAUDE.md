@@ -571,3 +571,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Campaign detail page (`/campaigns/[id]`) — list posts in campaign with remove button, "Add Post" selector to attach existing posts
 - [x] Add "Campaigns" to sidebar navigation
 - [x] Unit tests for campaigns API (GET list, POST create, PATCH, DELETE, add/remove post — auth, ownership, validation — 16 tests)
+
+### Phase 45: RSS Feed Integration & Content Import
+- [x] `RssFeed` model in Prisma (id, userId, name, url, autoCreate, lastFetchedAt, createdAt, updatedAt) + `RssItem` model (id, feedId, guid, title, content, link, imageUrl, publishedAt, postId?, importedAt) + migration
+- [x] RSS parsing service (`src/lib/rss.ts`) — server-side fetch of RSS 2.0 and Atom feeds; normalise items to {guid, title, content, link, imageUrl, publishedAt}
+- [x] CRUD API for RSS feeds (`GET /api/rss-feeds`, `POST /api/rss-feeds`, `DELETE /api/rss-feeds/[id]`) + manual fetch endpoint (`POST /api/rss-feeds/[id]/fetch`) — auth + rate limit + zod validation
+- [x] BullMQ RSS import worker (`src/lib/queue/workers/rss-import.ts`) — hourly cron, fetches all feeds, creates RssItem records, optionally creates DRAFT posts for new items when autoCreate=true
+- [x] RSS feeds management page in dashboard (`/rss-feeds`) — list feeds, add form (name + URL + autoCreate toggle), delete button, manual "Fetch Now" button, show count of imported items
+- [x] Add "RSS Feeds" to sidebar navigation
+- [x] Unit tests for RSS feeds API (GET, POST, DELETE, fetch — auth, rate limit, validation, CRUD shape — 25 tests)
