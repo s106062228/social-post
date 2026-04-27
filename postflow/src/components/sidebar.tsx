@@ -20,6 +20,7 @@ import {
   ClipboardCheck,
   Megaphone,
   Rss,
+  UsersRound,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,7 @@ const navItems = [
   { href: "/approvals", label: "Approvals", icon: ClipboardCheck },
   { href: "/campaigns", label: "Campaigns", icon: Megaphone },
   { href: "/rss-feeds", label: "RSS Feeds", icon: Rss },
+  { href: "/teams", label: "Teams", icon: UsersRound },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

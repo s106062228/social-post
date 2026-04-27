@@ -580,3 +580,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] RSS feeds management page in dashboard (`/rss-feeds`) — list feeds, add form (name + URL + autoCreate toggle), delete button, manual "Fetch Now" button, show count of imported items
 - [x] Add "RSS Feeds" to sidebar navigation
 - [x] Unit tests for RSS feeds API (GET, POST, DELETE, fetch — auth, rate limit, validation, CRUD shape — 25 tests)
+
+### Phase 46: Team Workspaces & Role-Based Access Control
+- [x] `Team` model + `TeamMember` model (roles: OWNER, ADMIN, EDITOR, VIEWER) + `TeamInvite` model in Prisma + migration
+- [x] Team CRUD API (`GET /api/teams`, `POST /api/teams`, `GET /api/teams/[id]`, `PATCH /api/teams/[id]`, `DELETE /api/teams/[id]`)
+- [x] Team members API (`GET /api/teams/[id]/members`, `PATCH /api/teams/[id]/members/[userId]` role update, `DELETE /api/teams/[id]/members/[userId]` remove/leave)
+- [x] Team invite API (`POST /api/teams/[id]/invite` creates invite link, `POST /api/teams/accept-invite` accepts via token)
+- [x] Teams management page in dashboard (`/teams`) — list teams, create team, show member count and role
+- [x] Team detail page (`/teams/[id]`) — member list with roles, invite form, leave/delete options
+- [x] Add "Teams" to sidebar navigation
+- [x] Unit tests for team management API (auth, ownership, role validation — 20 tests)

@@ -45,6 +45,13 @@ enum ApprovalStatus {
   REJECTED
 }
 
+enum TeamRole {
+  OWNER
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
 model User {
   id                 String              @id @default(cuid())
   email              String              @unique
@@ -67,6 +74,7 @@ model User {
   shareLinks         ShareLink[]
   campaigns          Campaign[]
   rssFeeds           RssFeed[]
+  teamMemberships    TeamMember[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -441,4 +449,45 @@ model RssItem {
   @@index([feedId])
   @@index([postId])
   @@index([feedId, importedAt(sort: Desc)])
+}
+
+model Team {
+  id        String       @id @default(cuid())
+  name      String
+  ownerId   String
+  members   TeamMember[]
+  invites   TeamInvite[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([ownerId])
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      TeamRole @default(VIEWER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+}
+
+model TeamInvite {
+  id        String   @id @default(cuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  email     String?
+  token     String   @unique @default(cuid())
+  role      TeamRole @default(EDITOR)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([teamId])
+  @@index([token])
 }
