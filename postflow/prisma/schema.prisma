@@ -65,6 +65,7 @@ model User {
   webhookConfigs     WebhookConfig[]
   calendarToken      CalendarToken?
   shareLinks         ShareLink[]
+  campaigns          Campaign[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -121,6 +122,7 @@ model Post {
   variants       PostVariant[]
   comments       PostComment[]
   shareLinks     ShareLink[]
+  campaigns      CampaignPost[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -369,4 +371,35 @@ model ShareLink {
   @@unique([postId, userId])
   @@index([token])
   @@index([userId])
+}
+
+model Campaign {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  goal        String?
+  startDate   DateTime?
+  endDate     DateTime?
+  isActive    Boolean        @default(true)
+  posts       CampaignPost[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([userId, isActive])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model CampaignPost {
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  postId     String
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  addedAt    DateTime @default(now())
+
+  @@id([campaignId, postId])
+  @@index([campaignId])
+  @@index([postId])
 }

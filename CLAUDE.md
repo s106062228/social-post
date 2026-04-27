@@ -562,3 +562,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Public preview page (`/share/[token]`) — renders post preview using PostPreview component; shows view count and expiry; no login required
 - [x] Share button in posts list — client component with copy-to-clipboard share URL and revoke option, toast feedback
 - [x] Unit tests for share API endpoints (POST create, DELETE revoke, GET public — auth, token validation, expiry, view count — 16 tests)
+
+### Phase 44: Post Series & Campaigns
+- [x] `Campaign` model in Prisma (id, userId, name, description?, goal?, startDate?, endDate?, isActive, createdAt, updatedAt) + `CampaignPost` join table (campaignId, postId, addedAt) + migration
+- [x] CRUD API for campaigns (`GET /api/campaigns`, `POST /api/campaigns`, `GET /api/campaigns/[id]`, `PATCH /api/campaigns/[id]`, `DELETE /api/campaigns/[id]`)
+- [x] Post membership API (`POST /api/campaigns/[id]/posts` to add a post, `DELETE /api/campaigns/[id]/posts/[postId]` to remove)
+- [x] Campaigns list page in dashboard (`/campaigns`) — card grid with campaign name, description, post count, date range, active toggle, delete
+- [x] Campaign detail page (`/campaigns/[id]`) — list posts in campaign with remove button, "Add Post" selector to attach existing posts
+- [x] Add "Campaigns" to sidebar navigation
+- [x] Unit tests for campaigns API (GET list, POST create, PATCH, DELETE, add/remove post — auth, ownership, validation — 16 tests)
