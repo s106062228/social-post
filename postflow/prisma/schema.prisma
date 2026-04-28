@@ -59,6 +59,9 @@ model User {
   password           String?
   timezone           String              @default("UTC")
   emailNotifications Boolean             @default(true)
+  totpSecret         String?
+  totpEnabled        Boolean             @default(false)
+  totpBackupCodes    String[]
   accounts           SocialAccount[]
   posts              Post[]
   templates          Template[]

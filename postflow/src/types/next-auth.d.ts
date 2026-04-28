@@ -4,6 +4,8 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
+      totpEnabled: boolean;
+      totpVerified: boolean;
     } & DefaultSession["user"];
   }
 }

@@ -597,3 +597,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] API keys management page in dashboard (`/api-keys`) — list keys with prefix + creation/usage dates, create dialog (shows full key once with copy button), revoke with confirmation
 - [x] Add "API Keys" to sidebar navigation
 - [x] Unit tests for API keys API (GET list, POST create, DELETE revoke — auth, rate limit, max-keys limit, ownership, validation — 18 tests)
+
+### Phase 48: Two-Factor Authentication (TOTP)
+- [x] Add `totpSecret` (nullable encrypted), `totpEnabled` (bool), `totpBackupCodes` (string[]) to User model + Prisma migration
+- [x] Install `otpauth` + `qrcode` packages; TOTP utility (`src/lib/totp.ts`) — generate secret, QR code data URL, verify code, backup code generation/hashing, HMAC challenge token
+- [x] Extend `src/auth.ts` — store `totpEnabled`/`totpVerified` in JWT; `authorized` callback redirects to `/2fa` when TOTP pending; JWT `update` trigger verifies HMAC challenge token before promoting `totpVerified=true`
+- [x] `GET /api/auth/2fa/setup` + `POST /api/auth/2fa/enable` + `POST /api/auth/2fa/disable` + `POST /api/auth/2fa/challenge` + `POST /api/auth/2fa/backup-codes` endpoints
+- [x] `/2fa` challenge page — TOTP or backup-code input, calls challenge endpoint then `session.update()` to promote JWT
+- [x] 2FA section in settings page — show status, enable (QR setup flow + backup codes display), disable with confirmation
+- [x] Unit tests for all 2FA API endpoints (auth, state validation, valid/invalid codes, backup code consumption — 23 tests)

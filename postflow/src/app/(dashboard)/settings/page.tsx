@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { SettingsForm } from "./settings-form";
+import { TwoFactorSettings } from "./two-factor-settings";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -14,6 +15,7 @@ export default async function SettingsPage() {
       email: true,
       timezone: true,
       emailNotifications: true,
+      totpEnabled: true,
     },
   });
 
@@ -26,8 +28,9 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      <div className="max-w-2xl">
+      <div className="max-w-2xl flex flex-col gap-8">
         <SettingsForm user={user} />
+        <TwoFactorSettings totpEnabled={user.totpEnabled} />
       </div>
     </div>
   );
