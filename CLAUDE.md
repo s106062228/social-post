@@ -590,3 +590,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Team detail page (`/teams/[id]`) — member list with roles, invite form, leave/delete options
 - [x] Add "Teams" to sidebar navigation
 - [x] Unit tests for team management API (auth, ownership, role validation — 20 tests)
+
+### Phase 47: API Key Management
+- [x] `ApiKey` model in Prisma (id, userId, name, keyHash, prefix, lastUsedAt, expiresAt?, createdAt) + migration — stores hashed personal API keys, never the raw value
+- [x] CRUD API for API keys (`GET /api/api-keys`, `POST /api/api-keys`, `DELETE /api/api-keys/[id]`) — create returns raw key once only; list/delete only expose prefix
+- [x] API keys management page in dashboard (`/api-keys`) — list keys with prefix + creation/usage dates, create dialog (shows full key once with copy button), revoke with confirmation
+- [x] Add "API Keys" to sidebar navigation
+- [x] Unit tests for API keys API (GET list, POST create, DELETE revoke — auth, rate limit, max-keys limit, ownership, validation — 18 tests)

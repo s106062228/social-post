@@ -75,6 +75,7 @@ model User {
   campaigns          Campaign[]
   rssFeeds           RssFeed[]
   teamMemberships    TeamMember[]
+  apiKeys            ApiKey[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -490,4 +491,20 @@ model TeamInvite {
 
   @@index([teamId])
   @@index([token])
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  keyHash    String    @unique
+  prefix     String
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@index([keyHash])
+  @@index([userId, createdAt(sort: Desc)])
 }
