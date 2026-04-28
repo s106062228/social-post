@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,13 +13,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle } from "lucide-react";
 
-export default function LoginPage() {
-  const router = useRouter();
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -30,19 +27,18 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
+      const res = await fetch("/api/auth/reset-password/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
       });
 
-      if (result?.error) {
-        setError("Invalid email or password");
+      if (!res.ok) {
+        setError("Something went wrong. Please try again.");
         return;
       }
 
-      router.push("/");
-      router.refresh();
+      setSubmitted(true);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -50,11 +46,35 @@ export default function LoginPage() {
     }
   }
 
+  if (submitted) {
+    return (
+      <Card>
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-2">
+            <CheckCircle className="h-10 w-10 text-green-500" />
+          </div>
+          <CardTitle className="text-xl">Check your email</CardTitle>
+          <CardDescription>
+            If an account exists for <strong>{email}</strong>, we sent a
+            password reset link. Check your inbox and follow the instructions.
+          </CardDescription>
+        </CardHeader>
+        <CardFooter className="flex justify-center">
+          <Link href="/login" className="text-sm text-primary hover:underline">
+            Back to sign in
+          </Link>
+        </CardFooter>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">PostFlow</CardTitle>
-        <CardDescription>Sign in to your account</CardDescription>
+        <CardTitle className="text-2xl">Forgot password</CardTitle>
+        <CardDescription>
+          Enter your email and we&apos;ll send you a reset link.
+        </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="flex flex-col gap-4">
@@ -75,35 +95,16 @@ export default function LoginPage() {
               autoComplete="email"
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Link
-                href="/forgot-password"
-                className="text-xs text-muted-foreground hover:text-primary hover:underline"
-              >
-                Forgot password?
-              </Link>
-            </div>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
-          </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
           <Button type="submit" className="w-full" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Sign in
+            Send reset link
           </Button>
           <p className="text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="font-medium text-primary hover:underline">
-              Register
+            Remember your password?{" "}
+            <Link href="/login" className="font-medium text-primary hover:underline">
+              Sign in
             </Link>
           </p>
         </CardFooter>

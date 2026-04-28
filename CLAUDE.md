@@ -605,4 +605,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `GET /api/auth/2fa/setup` + `POST /api/auth/2fa/enable` + `POST /api/auth/2fa/disable` + `POST /api/auth/2fa/challenge` + `POST /api/auth/2fa/backup-codes` endpoints
 - [x] `/2fa` challenge page — TOTP or backup-code input, calls challenge endpoint then `session.update()` to promote JWT
 - [x] 2FA section in settings page — show status, enable (QR setup flow + backup codes display), disable with confirmation
-- [x] Unit tests for all 2FA API endpoints (auth, state validation, valid/invalid codes, backup code consumption — 23 tests)
+- [x] Unit tests for all 2FA API endpoints (auth, state validation, valid/invalid codes, backup code consumption — 28 tests)
+
+### Phase 49: Password Reset Flow
+- [x] `PasswordResetToken` model in Prisma (id, userId, tokenHash unique, expiresAt, createdAt) + migration
+- [x] `POST /api/auth/reset-password/request` endpoint — find user by email, generate random token, hash + store, send reset email (fire-and-forget, always returns 200 to avoid email enumeration)
+- [x] `POST /api/auth/reset-password/confirm` endpoint — validate tokenHash + expiry, update user password hash, delete all reset tokens for that user
+- [x] `/forgot-password` page — email input form, calls request endpoint, shows confirmation message
+- [x] `/reset-password/[token]` page — new password + confirm input form, calls confirm endpoint, redirects to login on success
+- [x] "Forgot password?" link on login page
+- [x] Unit tests for both endpoints (valid flow, expired token, unknown token, invalid body — 14 tests)
