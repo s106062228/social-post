@@ -623,3 +623,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Reports page in dashboard (`/reports`) — list schedules, inline create form (frequency + recipient email), toggle active/pause, delete
 - [x] Add "Reports" to sidebar navigation
 - [x] Unit tests for report schedules API (GET, POST, DELETE, toggle — auth, rate limit, validation, CRUD shape — 20 tests)
+
+### Phase 51: Advanced Analytics Dashboard with Interactive Charts
+- [x] Install `recharts` package for data visualization
+- [x] Create `GET /api/analytics/dashboard` endpoint — accepts `?period=7d|30d|90d`, returns time-series daily post counts, platform publish distribution, hourly posting heatmap, top-level KPIs
+- [x] Replace static analytics page with interactive client-side dashboard — Recharts line chart (posts over time), pie chart (platform distribution), bar chart (hourly activity), period selector (7d/30d/90d)
+- [x] Unit tests for the analytics dashboard API endpoint (auth, rate limit, period validation, shape — 10 tests)
