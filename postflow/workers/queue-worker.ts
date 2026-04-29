@@ -26,12 +26,14 @@ import {
   createSyncInsightsScanWorker,
 } from "../src/lib/queue/workers/sync-insights";
 import { createRssImportWorker } from "../src/lib/queue/workers/rss-import";
+import { createReportWorker } from "../src/lib/queue/workers/report";
 import {
   scheduleTokenExpiryCheck,
   scheduleExpiringTokenRefreshes,
   scheduleRecurringCheck,
   scheduleSyncInsightsScan,
   scheduleRssImport,
+  scheduleReportScan,
 } from "../src/lib/queue/scheduler";
 import { workerLogger } from "../src/lib/logger";
 
@@ -44,6 +46,7 @@ const recurringScheduleWorker = createRecurringScheduleWorker();
 const syncInsightsWorker = createSyncInsightsWorker();
 const syncInsightsScanWorker = createSyncInsightsScanWorker();
 const rssImportWorker = createRssImportWorker();
+const reportWorker = createReportWorker();
 
 workerLogger.info("Publish worker started");
 workerLogger.info("Token refresh worker started");
@@ -52,6 +55,7 @@ workerLogger.info("Recurring schedule worker started");
 workerLogger.info("Sync insights worker started");
 workerLogger.info("Sync insights scan worker started");
 workerLogger.info("RSS import worker started");
+workerLogger.info("Report worker started");
 
 // ── Register repeatable cron jobs ─────────────────────────────────────────────
 
@@ -86,6 +90,14 @@ async function registerCronJobs(): Promise<void> {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     workerLogger.error({ err: message }, "Failed to register RSS import cron");
+  }
+
+  try {
+    await scheduleReportScan();
+    workerLogger.info("Registered daily report scan cron (08:00 UTC)");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    workerLogger.error({ err: message }, "Failed to register report scan cron");
   }
 }
 
@@ -124,6 +136,7 @@ async function shutdown(signal: string): Promise<void> {
     syncInsightsWorker.close(),
     syncInsightsScanWorker.close(),
     rssImportWorker.close(),
+    reportWorker.close(),
   ]);
 
   workerLogger.info("All workers stopped. Exiting.");

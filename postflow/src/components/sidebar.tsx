@@ -22,6 +22,7 @@ import {
   Rss,
   UsersRound,
   KeyRound,
+  Mail,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,7 @@ const navItems = [
   { href: "/rss-feeds", label: "RSS Feeds", icon: Rss },
   { href: "/teams", label: "Teams", icon: UsersRound },
   { href: "/api-keys", label: "API Keys", icon: KeyRound },
+  { href: "/reports", label: "Reports", icon: Mail },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

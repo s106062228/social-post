@@ -615,3 +615,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `/reset-password/[token]` page — new password + confirm input form, calls confirm endpoint, redirects to login on success
 - [x] "Forgot password?" link on login page
 - [x] Unit tests for both endpoints (valid flow, expired token, unknown token, invalid body — 14 tests)
+
+### Phase 50: Scheduled Analytics Reports
+- [x] `ReportSchedule` model in Prisma (id, userId, frequency: DAILY/WEEKLY/MONTHLY, recipientEmail, isActive, lastSentAt, nextSendAt, createdAt, updatedAt) + migration
+- [x] CRUD API for report schedules (`GET /api/report-schedules`, `POST /api/report-schedules`, `DELETE /api/report-schedules/[id]`, `PATCH /api/report-schedules/[id]/toggle`)
+- [x] BullMQ report worker (`src/lib/queue/workers/report.ts`) — daily cron, finds due schedules, computes analytics summary, sends styled HTML email report
+- [x] Reports page in dashboard (`/reports`) — list schedules, inline create form (frequency + recipient email), toggle active/pause, delete
+- [x] Add "Reports" to sidebar navigation
+- [x] Unit tests for report schedules API (GET, POST, DELETE, toggle — auth, rate limit, validation, CRUD shape — 20 tests)

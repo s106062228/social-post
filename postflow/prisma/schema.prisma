@@ -52,6 +52,12 @@ enum TeamRole {
   VIEWER
 }
 
+enum ReportFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
 model User {
   id                 String              @id @default(cuid())
   email              String              @unique
@@ -80,6 +86,7 @@ model User {
   teamMemberships    TeamMember[]
   apiKeys            ApiKey[]
   passwordResetTokens PasswordResetToken[]
+  reportSchedules    ReportSchedule[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -523,4 +530,21 @@ model PasswordResetToken {
 
   @@index([userId])
   @@index([tokenHash])
+}
+
+model ReportSchedule {
+  id             String          @id @default(cuid())
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  frequency      ReportFrequency
+  recipientEmail String
+  isActive       Boolean         @default(true)
+  lastSentAt     DateTime?
+  nextSendAt     DateTime
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([isActive, nextSendAt])
+  @@index([userId, createdAt(sort: Desc)])
 }

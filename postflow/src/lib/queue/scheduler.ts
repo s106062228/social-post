@@ -9,6 +9,7 @@ import type { TokenExpiryCheckJobData } from "./workers/token-expiry";
 import type { RecurringScheduleJobData } from "./workers/recurring-schedule";
 import type { SyncInsightsScanJobData } from "./workers/sync-insights";
 import type { RssImportScanJobData } from "./workers/rss-import";
+import type { ReportScanJobData } from "./workers/report";
 
 // ── Queue singletons ───────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -403,6 +404,44 @@ export async function triggerRssImport(): Promise<void> {
     "rss-import-manual",
     { triggeredAt: new Date().toISOString() },
     { jobId: `rss-import-manual:${Date.now()}` }
+  );
+}
+
+// ── Report schedule queue ──────────────────────────────────────────────────────
+
+let reportQueue: Queue<ReportScanJobData> | null = null;
+
+function getReportQueue(): Queue<ReportScanJobData> {
+  if (!reportQueue) {
+    reportQueue = new Queue<ReportScanJobData>(QUEUE_NAMES.REPORT, {
+      connection: createRedisConnection(),
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { count: 30 },
+        removeOnFail: { count: 50 },
+      },
+    });
+  }
+  return reportQueue;
+}
+
+/**
+ * Registers the daily BullMQ repeatable job that scans for due report schedules
+ * and sends analytics email reports. Safe to call on every worker startup —
+ * BullMQ deduplicates by job key.
+ * Schedule: daily at 08:00 UTC.
+ */
+export async function scheduleReportScan(): Promise<void> {
+  const queue = getReportQueue();
+
+  await queue.add(
+    "report-scan",
+    { triggeredAt: new Date().toISOString() },
+    {
+      repeat: { pattern: "0 8 * * *" },
+      jobId: "report-scan:daily",
+    }
   );
 }
 
