@@ -48,6 +48,14 @@ export const APP_SHORTCUTS: ShortcutDefinition[] = [
     description: "Go to Calendar",
     category: "Navigation",
   },
+  {
+    id: "focus-search",
+    key: "/",
+    modifiers: [],
+    label: "/",
+    description: "Focus search",
+    category: "Global",
+  },
 ];
 
 /**

@@ -24,12 +24,17 @@ import {
   PlusCircle,
   LayoutDashboard,
   Settings,
+  SearchIcon,
+  Tag,
+  Loader2,
 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { matchesShortcut, APP_SHORTCUTS } from "@/lib/shortcuts";
 import type { ShortcutDefinition } from "@/lib/shortcuts";
 import { cn } from "@/lib/utils";
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 interface Command {
   id: string;
@@ -40,12 +45,31 @@ interface Command {
   action: () => void;
 }
 
+interface ContentResult {
+  id: string;
+  label: string;
+  type: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+interface SearchApiResponse {
+  results: {
+    posts: Array<{ id: string; label: string; href: string }>;
+    templates: Array<{ id: string; label: string; href: string }>;
+    campaigns: Array<{ id: string; label: string; href: string }>;
+    tags: Array<{ id: string; label: string; href: string }>;
+    hashtagGroups: Array<{ id: string; label: string; href: string }>;
+  };
+}
+
 function buildCommands(router: ReturnType<typeof useRouter>): Command[] {
   const nav = (href: string) => () => router.push(href);
   return [
     // Actions
     { id: "new-post", label: "New Post", group: "Actions", keywords: ["create", "write", "draft"], icon: PlusCircle, action: nav("/posts/new") },
     // Navigation
+    { id: "go-search", label: "Search", group: "Navigation", keywords: ["find", "lookup"], icon: SearchIcon, action: nav("/search") },
     { id: "go-dashboard", label: "Dashboard", group: "Navigation", keywords: ["home"], icon: LayoutDashboard, action: nav("/") },
     { id: "go-posts", label: "Posts", group: "Navigation", keywords: ["list", "drafts"], icon: FileText, action: nav("/posts") },
     { id: "go-calendar", label: "Calendar", group: "Navigation", keywords: ["schedule"], icon: Calendar, action: nav("/calendar") },
@@ -69,12 +93,23 @@ function buildCommands(router: ReturnType<typeof useRouter>): Command[] {
   ];
 }
 
+const CONTENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  post: FileText,
+  template: LayoutTemplate,
+  campaign: Megaphone,
+  tag: Tag,
+  hashtagGroup: Hash,
+};
+
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+  const [contentResults, setContentResults] = useState<ContentResult[]>([]);
+  const [searching, setSearching] = useState(false);
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const paletteDef = APP_SHORTCUTS.find(
     (s): s is ShortcutDefinition => s.id === "command-palette"
@@ -82,7 +117,8 @@ export function CommandPalette() {
 
   const commands = buildCommands(router);
 
-  const filtered = query.trim()
+  // Filter static commands by query
+  const filteredCommands = query.trim()
     ? commands.filter((cmd) => {
         const q = query.toLowerCase();
         return (
@@ -92,6 +128,43 @@ export function CommandPalette() {
         );
       })
     : commands;
+
+  // Live content search — debounced 300 ms, fires when query ≥ 2 chars
+  const doContentSearch = useCallback(async (q: string) => {
+    if (q.length < 2) {
+      setContentResults([]);
+      return;
+    }
+    setSearching(true);
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+      if (!res.ok) {
+        setContentResults([]);
+        return;
+      }
+      const data = (await res.json()) as SearchApiResponse;
+      const results: ContentResult[] = [
+        ...data.results.posts.map((r) => ({ ...r, type: "post", icon: CONTENT_ICONS.post })),
+        ...data.results.templates.map((r) => ({ ...r, type: "template", icon: CONTENT_ICONS.template })),
+        ...data.results.campaigns.map((r) => ({ ...r, type: "campaign", icon: CONTENT_ICONS.campaign })),
+        ...data.results.tags.map((r) => ({ ...r, type: "tag", icon: CONTENT_ICONS.tag })),
+        ...data.results.hashtagGroups.map((r) => ({ ...r, type: "hashtagGroup", icon: CONTENT_ICONS.hashtagGroup })),
+      ].slice(0, 8);
+      setContentResults(results);
+    } catch {
+      setContentResults([]);
+    } finally {
+      setSearching(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      void doContentSearch(query);
+    }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [query, doContentSearch]);
 
   // Reset active index whenever the filtered list changes
   useEffect(() => {
@@ -110,19 +183,46 @@ export function CommandPalette() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [paletteDef]);
 
+  // Build flat list combining commands + content results
+  const contentAsCommands: Command[] = contentResults.map((r) => ({
+    id: `content-${r.type}-${r.id}`,
+    label: r.label,
+    group: "Content",
+    icon: r.icon,
+    action: () => router.push(r.href),
+  }));
+
+  // "See all results" command when there are content results and query ≥ 2
+  const seeAllCommand: Command | null =
+    query.length >= 2
+      ? {
+          id: "see-all-results",
+          label: `See all results for "${query}"`,
+          group: "Content",
+          icon: SearchIcon,
+          action: () => router.push(`/search?q=${encodeURIComponent(query)}`),
+        }
+      : null;
+
+  const allCommands = [
+    ...filteredCommands,
+    ...contentAsCommands,
+    ...(seeAllCommand ? [seeAllCommand] : []),
+  ];
+
   // Arrow key + Enter navigation while palette is open
   useEffect(() => {
     if (!open) return;
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        setActiveIndex((i) => Math.min(i + 1, filtered.length - 1));
+        setActiveIndex((i) => Math.min(i + 1, allCommands.length - 1));
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         setActiveIndex((i) => Math.max(i - 1, 0));
       } else if (e.key === "Enter") {
         e.preventDefault();
-        const cmd = filtered[activeIndex];
+        const cmd = allCommands[activeIndex];
         if (cmd) {
           cmd.action();
           setOpen(false);
@@ -131,33 +231,29 @@ export function CommandPalette() {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, filtered, activeIndex]);
+  }, [open, allCommands, activeIndex]);
 
   // Focus the input whenever the palette opens
   useEffect(() => {
     if (open) {
       setQuery("");
-      // Defer to let the dialog animate in
+      setContentResults([]);
       const id = setTimeout(() => inputRef.current?.focus(), 50);
       return () => clearTimeout(id);
     }
   }, [open]);
 
-  const runCommand = useCallback(
-    (cmd: Command) => {
-      cmd.action();
-      setOpen(false);
-    },
-    []
-  );
+  const runCommand = useCallback((cmd: Command) => {
+    cmd.action();
+    setOpen(false);
+  }, []);
 
-  // Group filtered results
-  const groups = filtered.reduce<Record<string, Command[]>>((acc, cmd) => {
+  // Group all commands
+  const groups = allCommands.reduce<Record<string, Command[]>>((acc, cmd) => {
     (acc[cmd.group] ??= []).push(cmd);
     return acc;
   }, {});
 
-  // Flat list for activeIndex tracking
   const flatList = Object.values(groups).flat();
 
   return (
@@ -169,9 +265,10 @@ export function CommandPalette() {
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search commands…"
+            placeholder="Search commands or content…"
             className="h-12 border-0 shadow-none focus-visible:ring-0 text-base px-0"
           />
+          {searching && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />}
         </div>
 
         {/* Results */}

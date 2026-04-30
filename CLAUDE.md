@@ -652,3 +652,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Global shortcut listener in dashboard layout — registers CMD+K for palette, `n` for new post, `?` for shortcut help overlay
 - [x] Shortcut help overlay (`src/components/shortcut-help.tsx`) — modal listing all available keyboard shortcuts, triggered by `?` key
 - [x] Unit tests for keyboard shortcut hook (registration, deregistration, modifier keys — 10 tests)
+
+### Phase 55: Global Search
+- [x] `GET /api/search` endpoint — auth + rate limit + `?q=` param (min 2 chars); searches posts (content), templates (name/content), campaigns (name/description), tags (name), hashtag groups (name); returns up to 5 results per category with type + id + label fields
+- [x] Extend command palette to live-search content — debounce 300 ms, call `/api/search` when query ≥ 2 chars, show results as a "Content" group below navigation commands with loading state
+- [x] Search results page in dashboard (`/search`) — tabbed results view (All / Posts / Templates / Campaigns / Tags) with links to respective pages
+- [x] Add "Search" to sidebar navigation; add keyboard shortcut `/` to focus search from anywhere in dashboard
+- [x] Unit tests for the search API (auth, rate limit, short query, empty results, mixed results — 10 tests)

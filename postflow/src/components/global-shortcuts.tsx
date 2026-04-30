@@ -14,6 +14,7 @@ export function GlobalShortcuts() {
   const newPostDef = APP_SHORTCUTS.find((s) => s.id === "new-post")!;
   const goPostsDef = APP_SHORTCUTS.find((s) => s.id === "go-posts")!;
   const goCalendarDef = APP_SHORTCUTS.find((s) => s.id === "go-calendar")!;
+  const focusSearchDef = APP_SHORTCUTS.find((s) => s.id === "focus-search")!;
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -29,12 +30,15 @@ export function GlobalShortcuts() {
       } else if (matchesShortcut(e, goCalendarDef)) {
         e.preventDefault();
         router.push("/calendar");
+      } else if (matchesShortcut(e, focusSearchDef)) {
+        e.preventDefault();
+        router.push("/search");
       }
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [router, newPostDef, goPostsDef, goCalendarDef]);
+  }, [router, newPostDef, goPostsDef, goCalendarDef, focusSearchDef]);
 
   return null;
 }

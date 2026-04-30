@@ -24,6 +24,7 @@ import {
   KeyRound,
   Mail,
   FileUp,
+  SearchIcon,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/search", label: "Search", icon: SearchIcon },
   { href: "/posts", label: "Posts", icon: FileText },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/accounts", label: "Accounts", icon: Users },
