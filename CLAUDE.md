@@ -645,3 +645,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Import page in dashboard (`/import`) — drag-and-drop CSV file upload with column format guide, shows import summary (success count, failed rows with reason), import history timeline
 - [x] Add "Import" to sidebar navigation
 - [x] Unit tests for the import API (auth, rate limit, max-rows, file validation, full success, partial success, all-invalid — 16 tests)
+
+### Phase 54: Global Command Palette & Keyboard Shortcuts
+- [x] `CommandPalette` component (`src/components/command-palette.tsx`) — CMD+K / Ctrl+K opens a modal search/action palette using shadcn/ui `Command` component; supports navigation to any page, quick actions (new post, new template, new campaign)
+- [x] Keyboard shortcut registry (`src/lib/shortcuts.ts`) — defines app-wide shortcut map, `useKeyboardShortcut` hook for components to register shortcuts
+- [x] Global shortcut listener in dashboard layout — registers CMD+K for palette, `n` for new post, `?` for shortcut help overlay
+- [x] Shortcut help overlay (`src/components/shortcut-help.tsx`) — modal listing all available keyboard shortcuts, triggered by `?` key
+- [x] Unit tests for keyboard shortcut hook (registration, deregistration, modifier keys — 10 tests)
