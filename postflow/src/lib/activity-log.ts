@@ -18,7 +18,8 @@ export type ActivityAction =
   | "post.version_restored"
   | "post.approval_requested"
   | "post.approved"
-  | "post.rejected";
+  | "post.rejected"
+  | "post.imported";
 
 export interface LogActivityOptions {
   userId: string;

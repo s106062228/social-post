@@ -638,3 +638,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Add `theme` field (`String @default("system")`) to User model in Prisma schema + migration
 - [x] Extend `GET/PATCH /api/settings` to expose and accept `theme` field; extend `SettingsForm` to show a three-way theme selector (Light / Dark / System) that calls `setTheme()` and saves to DB
 - [x] Unit tests for theme field in settings API (GET returns theme, PATCH accepts valid theme, rejects invalid theme — 6 tests)
+
+### Phase 53: Post Import from CSV & Bulk Scheduling
+- [x] `ImportBatch` model in Prisma (id, userId, filename, totalRows, successRows, failedRows, errors Json, status: ImportStatus, createdAt) + migration
+- [x] `POST /api/posts/import` endpoint — accepts multipart CSV upload (content, scheduledAt, platforms, mediaType, mediaUrls columns), creates posts in bulk (max 100 rows), returns per-row validation results; `GET /api/posts/import` returns list of past batches
+- [x] Import page in dashboard (`/import`) — drag-and-drop CSV file upload with column format guide, shows import summary (success count, failed rows with reason), import history timeline
+- [x] Add "Import" to sidebar navigation
+- [x] Unit tests for the import API (auth, rate limit, max-rows, file validation, full success, partial success, all-invalid — 16 tests)

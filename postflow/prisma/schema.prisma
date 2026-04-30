@@ -58,6 +58,12 @@ enum ReportFrequency {
   MONTHLY
 }
 
+enum ImportStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
 model User {
   id                 String              @id @default(cuid())
   email              String              @unique
@@ -88,6 +94,7 @@ model User {
   apiKeys            ApiKey[]
   passwordResetTokens PasswordResetToken[]
   reportSchedules    ReportSchedule[]
+  importBatches      ImportBatch[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -547,5 +554,21 @@ model ReportSchedule {
 
   @@index([userId])
   @@index([isActive, nextSendAt])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model ImportBatch {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  filename    String
+  totalRows   Int
+  successRows Int          @default(0)
+  failedRows  Int          @default(0)
+  errors      Json         @default("[]")
+  status      ImportStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+
+  @@index([userId])
   @@index([userId, createdAt(sort: Desc)])
 }

@@ -23,6 +23,7 @@ import {
   UsersRound,
   KeyRound,
   Mail,
+  FileUp,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -47,6 +48,7 @@ const navItems = [
   { href: "/teams", label: "Teams", icon: UsersRound },
   { href: "/api-keys", label: "API Keys", icon: KeyRound },
   { href: "/reports", label: "Reports", icon: Mail },
+  { href: "/import", label: "Import", icon: FileUp },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
