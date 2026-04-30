@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Monitor, Moon, Sun, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,6 +13,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import { useTheme } from "@/components/theme-provider";
+import type { Theme } from "@/lib/theme";
 
 const TIMEZONES = [
   "UTC",
@@ -34,12 +37,19 @@ const TIMEZONES = [
   "Pacific/Auckland",
 ];
 
+const THEME_OPTIONS: { value: Theme; label: string; Icon: LucideIcon }[] = [
+  { value: "light", label: "Light", Icon: Sun },
+  { value: "dark", label: "Dark", Icon: Moon },
+  { value: "system", label: "System", Icon: Monitor },
+];
+
 interface UserSettings {
   id: string;
   name: string | null;
   email: string;
   timezone: string;
   emailNotifications: boolean;
+  theme: string;
 }
 
 export function SettingsForm({ user }: { user: UserSettings }) {
@@ -50,11 +60,27 @@ export function SettingsForm({ user }: { user: UserSettings }) {
   );
   const [saving, setSaving] = useState(false);
 
+  const { theme, setTheme } = useTheme();
+
+  // Sync server-stored theme into the client on first render
+  useEffect(() => {
+    const stored = user.theme as Theme;
+    if (stored === "light" || stored === "dark" || stored === "system") {
+      setTheme(stored);
+    }
+    // Only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     try {
-      const body: Record<string, unknown> = { timezone, emailNotifications };
+      const body: Record<string, unknown> = {
+        timezone,
+        emailNotifications,
+        theme,
+      };
       const trimmed = name.trim();
       if (trimmed) body.name = trimmed;
 
@@ -69,11 +95,16 @@ export function SettingsForm({ user }: { user: UserSettings }) {
         throw new Error(data.error ?? "Failed to save settings");
       }
 
-      toast({ title: "Settings saved", description: "Your preferences have been updated.", variant: "success" });
+      toast({
+        title: "Settings saved",
+        description: "Your preferences have been updated.",
+        variant: "success",
+      });
     } catch (err) {
       toast({
         title: "Error saving settings",
-        description: err instanceof Error ? err.message : "Something went wrong",
+        description:
+          err instanceof Error ? err.message : "Something went wrong",
         variant: "destructive",
       });
     } finally {
@@ -111,6 +142,33 @@ export function SettingsForm({ user }: { user: UserSettings }) {
             <p className="text-xs text-muted-foreground">
               Email cannot be changed here.
             </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Appearance */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Appearance</CardTitle>
+          <CardDescription>Choose your preferred colour theme.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-3">
+            {THEME_OPTIONS.map(({ value, label, Icon }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setTheme(value)}
+                className={`flex flex-1 flex-col items-center gap-2 rounded-lg border-2 p-4 text-sm font-medium transition-colors ${
+                  theme === value
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                }`}
+              >
+                <Icon className="h-5 w-5" />
+                {label}
+              </button>
+            ))}
           </div>
         </CardContent>
       </Card>

@@ -15,6 +15,7 @@ export default async function SettingsPage() {
       email: true,
       timezone: true,
       emailNotifications: true,
+      theme: true,
       totpEnabled: true,
     },
   });

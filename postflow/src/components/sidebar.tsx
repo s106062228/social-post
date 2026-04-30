@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -53,7 +54,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-full w-60 flex-col border-r bg-white">
+    <aside className="flex h-full w-60 flex-col border-r bg-card">
       {/* Logo */}
       <div className="flex h-16 items-center border-b px-6">
         <span className="text-xl font-bold tracking-tight text-primary">
@@ -84,8 +85,9 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Sign out */}
-      <div className="border-t p-4">
+      {/* Theme toggle + sign out */}
+      <div className="border-t p-4 flex flex-col gap-1">
+        <ThemeToggle />
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
           className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"

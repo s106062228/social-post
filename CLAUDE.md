@@ -629,3 +629,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Create `GET /api/analytics/dashboard` endpoint — accepts `?period=7d|30d|90d`, returns time-series daily post counts, platform publish distribution, hourly posting heatmap, top-level KPIs
 - [x] Replace static analytics page with interactive client-side dashboard — Recharts line chart (posts over time), pie chart (platform distribution), bar chart (hourly activity), period selector (7d/30d/90d)
 - [x] Unit tests for the analytics dashboard API endpoint (auth, rate limit, period validation, shape — 10 tests)
+
+### Phase 52: Dark Mode & Theme Support
+- [x] Install `next-themes` package; add `ThemeProvider` to root layout with `attribute="class"` and `enableSystem`
+- [x] Update `globals.css` — switch dark mode trigger from `@media (prefers-color-scheme: dark)` to `.dark` class; add `@custom-variant dark` for Tailwind v4 `dark:` utilities
+- [x] `ThemeToggle` component (`src/components/theme-toggle.tsx`) — icon button cycling light/dark/system, placed in sidebar footer
+- [x] Fix hardcoded `bg-white` in sidebar and dashboard header to use semantic `bg-card`/`bg-background` tokens
+- [x] Add `theme` field (`String @default("system")`) to User model in Prisma schema + migration
+- [x] Extend `GET/PATCH /api/settings` to expose and accept `theme` field; extend `SettingsForm` to show a three-way theme selector (Light / Dark / System) that calls `setTheme()` and saves to DB
+- [x] Unit tests for theme field in settings API (GET returns theme, PATCH accepts valid theme, rejects invalid theme — 6 tests)

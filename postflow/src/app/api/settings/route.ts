@@ -11,14 +11,18 @@ const USER_SELECT = {
   email: true,
   timezone: true,
   emailNotifications: true,
+  theme: true,
   createdAt: true,
 } as const;
+
+const VALID_THEMES = ["light", "dark", "system"] as const;
 
 const updateSettingsSchema = z
   .object({
     name: z.string().min(1).max(100).optional(),
     timezone: z.string().min(1).max(100).optional(),
     emailNotifications: z.boolean().optional(),
+    theme: z.enum(VALID_THEMES).optional(),
   })
   .refine((d: Record<string, unknown>) => Object.keys(d).length > 0, {
     message: "No fields to update",
