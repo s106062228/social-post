@@ -692,3 +692,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `RecyclePostButton` client component (`src/app/(dashboard)/posts/recycle-post-button.tsx`) — recycle icon button for PUBLISHED posts, calls recycle endpoint, toasts, refreshes
 - [x] "Evergreen" filter tab in posts list page alongside existing status tabs
 - [x] Unit tests for evergreen toggle and recycle endpoints (16 tests)
+
+### Phase 60: Saved Filter Presets
+- [x] `FilterPreset` model in Prisma (id, userId, name, filters Json, createdAt) + migration — persists named filter combinations for the posts page
+- [x] CRUD API for filter presets (`GET /api/filter-presets`, `POST /api/filter-presets`, `DELETE /api/filter-presets/[id]`) — auth + rate limit + zod validation
+- [x] "Save Filter" button in posts page — opens name dialog, saves current filter state (status, platform, tag, search, starred, evergreen, from, to) as a preset
+- [x] Filter preset dropdown in posts page — lists saved presets; applying one pushes all filter values into the URL
+- [x] Unit tests for filter presets API (auth, rate limit, validation, CRUD shape — 14 tests)

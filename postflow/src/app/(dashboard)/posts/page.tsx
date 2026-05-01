@@ -14,6 +14,8 @@ import { Download, Leaf, Plus, Star } from "lucide-react";
 import { SearchInput } from "./search-input";
 import { PostsListClient } from "./posts-list-client";
 import { DateRangeFilter } from "./date-range-filter";
+import { SaveFilterButton } from "./save-filter-button";
+import { FilterPresetSelector } from "./filter-preset-selector";
 
 const PLATFORMS: Platform[] = [Platform.FACEBOOK, Platform.INSTAGRAM, Platform.THREADS];
 
@@ -121,6 +123,19 @@ export default async function PostsPage({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <FilterPresetSelector />
+          <SaveFilterButton
+            filters={{
+              status: statusFilter,
+              platform: platformFilter,
+              tag: tagFilter,
+              search: search || undefined,
+              starred: starredFilter,
+              evergreen: evergreenFilter,
+              from: fromFilter,
+              to: toFilter,
+            }}
+          />
           <Button variant="outline" asChild>
             <Link
               href={`/api/posts/export${

@@ -96,6 +96,7 @@ model User {
   passwordResetTokens PasswordResetToken[]
   reportSchedules    ReportSchedule[]
   importBatches      ImportBatch[]
+  filterPresets      FilterPreset[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -585,6 +586,18 @@ model ImportBatch {
   errors      Json         @default("[]")
   status      ImportStatus @default(PENDING)
   createdAt   DateTime     @default(now())
+
+  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model FilterPreset {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  filters   Json
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([userId, createdAt(sort: Desc)])
