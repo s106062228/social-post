@@ -18,6 +18,7 @@ function signPayload(secret: string, body: string): string {
 }
 
 async function deliverWebhook(
+  configId: string,
   url: string,
   secret: string,
   payload: WebhookPayload
@@ -27,6 +28,10 @@ async function deliverWebhook(
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10_000);
+  const startMs = Date.now();
+
+  let statusCode: number | undefined;
+  let success = false;
 
   try {
     const res = await fetch(url, {
@@ -40,6 +45,9 @@ async function deliverWebhook(
       signal: controller.signal,
     });
 
+    statusCode = res.status;
+    success = res.ok;
+
     if (!res.ok) {
       logger.warn(
         { url, status: res.status, event: payload.event },
@@ -50,6 +58,22 @@ async function deliverWebhook(
     logger.error({ err, url, event: payload.event }, "Webhook delivery failed");
   } finally {
     clearTimeout(timeout);
+    const durationMs = Date.now() - startMs;
+
+    // Fire-and-forget delivery log — never throw
+    prisma.webhookDelivery
+      .create({
+        data: {
+          configId,
+          event: payload.event,
+          statusCode: statusCode ?? null,
+          success,
+          durationMs,
+        },
+      })
+      .catch((err: unknown) => {
+        logger.error({ err, configId, event: payload.event }, "Failed to log webhook delivery");
+      });
   }
 }
 
@@ -58,12 +82,12 @@ export async function dispatchWebhooks(
   event: WebhookEvent,
   data: Record<string, unknown>
 ): Promise<void> {
-  let configs: { url: string; secret: string }[];
+  let configs: { id: string; url: string; secret: string }[];
 
   try {
     configs = await prisma.webhookConfig.findMany({
       where: { userId, isActive: true, events: { has: event } },
-      select: { url: true, secret: true },
+      select: { id: true, url: true, secret: true },
     });
   } catch (err) {
     logger.error({ err, userId, event }, "Failed to fetch webhook configs");
@@ -80,6 +104,6 @@ export async function dispatchWebhooks(
 
   // Fire-and-forget — do not await individual deliveries to avoid blocking
   void Promise.allSettled(
-    configs.map((cfg) => deliverWebhook(cfg.url, cfg.secret, payload))
+    configs.map((cfg) => deliverWebhook(cfg.id, cfg.url, cfg.secret, payload))
   );
 }

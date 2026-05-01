@@ -306,18 +306,32 @@ model PostQueueSlot {
 }
 
 model WebhookConfig {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  url       String
-  events    String[]
-  secret    String
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String            @id @default(cuid())
+  userId     String
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url        String
+  events     String[]
+  secret     String
+  isActive   Boolean           @default(true)
+  deliveries WebhookDelivery[]
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
 
   @@index([userId])
   @@index([userId, isActive])
+}
+
+model WebhookDelivery {
+  id          String        @id @default(cuid())
+  configId    String
+  config      WebhookConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  event       String
+  statusCode  Int?
+  success     Boolean
+  durationMs  Int
+  attemptedAt DateTime      @default(now())
+
+  @@index([configId, attemptedAt(sort: Desc)])
 }
 
 model PostVersion {

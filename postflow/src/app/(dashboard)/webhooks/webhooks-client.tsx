@@ -1,7 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, ToggleLeft, ToggleRight, Plus, Copy, Check } from "lucide-react";
+import {
+  Trash2,
+  ToggleLeft,
+  ToggleRight,
+  Plus,
+  Copy,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Activity,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +26,15 @@ interface WebhookConfig {
   events: string[];
   isActive: boolean;
   createdAt: Date | string;
+}
+
+interface Delivery {
+  id: string;
+  event: string;
+  statusCode: number | null;
+  success: boolean;
+  durationMs: number;
+  attemptedAt: string;
 }
 
 interface Props {
@@ -42,6 +61,9 @@ export function WebhooksClient({ initialConfigs }: Props) {
   );
   const [adding, setAdding] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [deliveries, setDeliveries] = useState<Record<string, Delivery[]>>({});
+  const [loadingDeliveries, setLoadingDeliveries] = useState<string | null>(null);
 
   function toggleEventSelection(event: WebhookEvent) {
     setSelectedEvents((prev: Set<WebhookEvent>) => {
@@ -81,7 +103,6 @@ export function WebhooksClient({ initialConfigs }: Props) {
 
       const created = (await res.json()) as WebhookConfig & { secret?: string };
 
-      // Show secret once — it won't be shown again
       if (created.secret) {
         await navigator.clipboard.writeText(created.secret).catch(() => null);
         toast({
@@ -128,6 +149,7 @@ export function WebhooksClient({ initialConfigs }: Props) {
       return;
     }
     setConfigs((prev: WebhookConfig[]) => prev.filter((c: WebhookConfig) => c.id !== id));
+    if (expandedId === id) setExpandedId(null);
     toast({ title: "Webhook deleted" });
   }
 
@@ -135,6 +157,34 @@ export function WebhooksClient({ initialConfigs }: Props) {
     await navigator.clipboard.writeText(webhookUrl).catch(() => null);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  async function toggleDeliveries(id: string) {
+    if (expandedId === id) {
+      setExpandedId(null);
+      return;
+    }
+
+    setExpandedId(id);
+
+    if (deliveries[id]) return; // already loaded
+
+    setLoadingDeliveries(id);
+    try {
+      const res = await fetch(`/api/webhook-configs/${id}/deliveries`);
+      if (res.ok) {
+        const data = (await res.json()) as { deliveries: Delivery[] };
+        setDeliveries((prev) => ({ ...prev, [id]: data.deliveries }));
+      } else {
+        toast({ title: "Failed to load delivery log", variant: "destructive" });
+        setExpandedId(null);
+      }
+    } catch {
+      toast({ title: "Network error", variant: "destructive" });
+      setExpandedId(null);
+    } finally {
+      setLoadingDeliveries(null);
+    }
   }
 
   return (
@@ -187,66 +237,122 @@ export function WebhooksClient({ initialConfigs }: Props) {
       {configs.length > 0 && (
         <div className="divide-y">
           {configs.map((config: WebhookConfig) => (
-            <div
-              key={config.id}
-              className="flex items-start gap-4 py-4 first:pt-0 last:pb-0"
-            >
-              <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      "inline-block h-2 w-2 rounded-full shrink-0",
-                      config.isActive ? "bg-green-500" : "bg-muted-foreground"
+            <div key={config.id} className="py-4 first:pt-0 last:pb-0">
+              <div className="flex items-start gap-4">
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "inline-block h-2 w-2 rounded-full shrink-0",
+                        config.isActive ? "bg-green-500" : "bg-muted-foreground"
+                      )}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleCopyUrl(config.id, config.url)}
+                      className="text-sm font-mono truncate hover:underline text-left"
+                      title="Click to copy URL"
+                    >
+                      {config.url}
+                    </button>
+                    {copiedId === config.id ? (
+                      <Check className="h-3 w-3 text-green-500 shrink-0" />
+                    ) : (
+                      <Copy className="h-3 w-3 text-muted-foreground shrink-0" />
                     )}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleCopyUrl(config.id, config.url)}
-                    className="text-sm font-mono truncate hover:underline text-left"
-                    title="Click to copy URL"
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {config.events.map((ev: string) => (
+                      <Badge key={ev} variant="secondary" className="text-xs">
+                        {EVENT_LABELS[ev as WebhookEvent] ?? ev}
+                      </Badge>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Added {new Date(config.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => toggleDeliveries(config.id)}
+                    title="View delivery log"
+                    className={cn(expandedId === config.id && "text-primary")}
                   >
-                    {config.url}
-                  </button>
-                  {copiedId === config.id ? (
-                    <Check className="h-3 w-3 text-green-500 shrink-0" />
+                    {expandedId === config.id ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <Activity className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleToggle(config.id)}
+                    title={config.isActive ? "Disable" : "Enable"}
+                  >
+                    {config.isActive ? (
+                      <ToggleRight className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <ToggleLeft className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(config.id)}
+                    title="Delete webhook"
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Delivery log panel */}
+              {expandedId === config.id && (
+                <div className="mt-3 rounded-md border bg-muted/30 p-3">
+                  <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                    <ChevronDown className="h-3 w-3" />
+                    Delivery log (last 50)
+                  </p>
+                  {loadingDeliveries === config.id ? (
+                    <p className="text-xs text-muted-foreground">Loading…</p>
+                  ) : !deliveries[config.id] || deliveries[config.id].length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No deliveries recorded yet.</p>
                   ) : (
-                    <Copy className="h-3 w-3 text-muted-foreground shrink-0" />
+                    <div className="space-y-1 max-h-64 overflow-y-auto">
+                      {deliveries[config.id].map((d: Delivery) => (
+                        <div
+                          key={d.id}
+                          className="flex items-center gap-2 text-xs py-1 border-b border-border/50 last:border-0"
+                        >
+                          <span
+                            className={cn(
+                              "inline-block h-2 w-2 rounded-full shrink-0",
+                              d.success ? "bg-green-500" : "bg-destructive"
+                            )}
+                            title={d.success ? "Success" : "Failed"}
+                          />
+                          <span className="font-mono text-muted-foreground w-8 shrink-0 text-right">
+                            {d.statusCode ?? "—"}
+                          </span>
+                          <Badge variant="secondary" className="text-[10px] px-1 py-0">
+                            {EVENT_LABELS[d.event as WebhookEvent] ?? d.event}
+                          </Badge>
+                          <span className="text-muted-foreground shrink-0">
+                            {d.durationMs}ms
+                          </span>
+                          <span className="text-muted-foreground ml-auto shrink-0">
+                            {new Date(d.attemptedAt).toLocaleString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-1">
-                  {config.events.map((ev: string) => (
-                    <Badge key={ev} variant="secondary" className="text-xs">
-                      {EVENT_LABELS[ev as WebhookEvent] ?? ev}
-                    </Badge>
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Added {new Date(config.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-              <div className="flex items-center gap-1 shrink-0">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleToggle(config.id)}
-                  title={config.isActive ? "Disable" : "Enable"}
-                >
-                  {config.isActive ? (
-                    <ToggleRight className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <ToggleLeft className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDelete(config.id)}
-                  title="Delete webhook"
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+              )}
             </div>
           ))}
         </div>

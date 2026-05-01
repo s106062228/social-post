@@ -667,3 +667,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `OnboardingChecklist` component (`src/components/onboarding-checklist.tsx`) — collapsible card listing steps with checkmarks and a dismiss button
 - [x] Integrate onboarding checklist into dashboard home page — visible when not dismissed and not all steps complete
 - [x] Unit tests for onboarding API (auth, steps shape, dismissed state, all-complete — 10 tests)
+
+### Phase 57: Webhook Event Delivery Log
+- [x] `WebhookDelivery` model in Prisma (id, configId, event, statusCode?, success, durationMs, attemptedAt) + migration — persists every outgoing webhook dispatch attempt
+- [x] Update `webhook-dispatch.ts` to record a `WebhookDelivery` row after each attempt (status code, success flag, elapsed ms)
+- [x] `GET /api/webhook-configs/[id]/deliveries` endpoint — auth + ownership check, returns last 50 delivery records for that config
+- [x] Delivery log panel in webhooks page — expandable per-webhook section showing recent deliveries with status badge, HTTP code, event name, and timestamp
+- [x] Unit tests for the deliveries endpoint (auth, not-found, success shape — 8 tests)
