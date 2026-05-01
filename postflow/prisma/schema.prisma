@@ -145,6 +145,7 @@ model Post {
   status         PostStatus
   scheduledAt    DateTime?
   starred        Boolean        @default(false)
+  isEvergreen    Boolean        @default(false)
   approvalStatus ApprovalStatus @default(NONE)
   approverNote   String?
   publishResults PublishResult[]

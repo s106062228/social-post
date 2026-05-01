@@ -682,3 +682,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `StarPostButton` client component — star/unstar icon toggle with optimistic UI, integrated into posts list row
 - [x] "Starred" filter tab in posts list page
 - [x] Unit tests for the star endpoint (auth, ownership, not-found, toggle on, toggle off — 8 tests)
+
+### Phase 59: Post Recycling & Evergreen Content Queue
+- [x] Add `isEvergreen` (bool, default false) to Post model + Prisma migration
+- [x] `PATCH /api/posts/[id]/evergreen` endpoint — toggle isEvergreen status, return `{isEvergreen: boolean}`
+- [x] `POST /api/posts/[id]/recycle` endpoint — creates a new DRAFT post copying content/media from a PUBLISHED post; accepts optional `scheduledAt` body field; logs activity; returns new post
+- [x] Extend `GET /api/posts` to support `?evergreen=true` filter
+- [x] `EvergreenButton` client component (`src/app/(dashboard)/posts/evergreen-button.tsx`) — toggle icon with optimistic UI, integrated into posts list row
+- [x] `RecyclePostButton` client component (`src/app/(dashboard)/posts/recycle-post-button.tsx`) — recycle icon button for PUBLISHED posts, calls recycle endpoint, toasts, refreshes
+- [x] "Evergreen" filter tab in posts list page alongside existing status tabs
+- [x] Unit tests for evergreen toggle and recycle endpoints (16 tests)

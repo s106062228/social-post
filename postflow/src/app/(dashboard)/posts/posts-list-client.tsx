@@ -14,6 +14,8 @@ import { BulkRescheduleButton } from "./bulk-reschedule-button";
 import { RequestApprovalButton } from "./request-approval-button";
 import { SharePostButton } from "./share-post-button";
 import { StarPostButton } from "./star-post-button";
+import { EvergreenButton } from "./evergreen-button";
+import { RecyclePostButton } from "./recycle-post-button";
 
 type PublishResult = {
   platform: string;
@@ -33,6 +35,7 @@ export type PostListItem = {
   mediaUrls: string[];
   scheduledAt: Date | string | null;
   starred: boolean;
+  isEvergreen: boolean;
   approvalStatus: string;
   approverNote: string | null;
   publishResults: PublishResult[];
@@ -251,6 +254,10 @@ export function PostsListClient({ posts }: PostsListClientProps) {
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 <StarPostButton postId={post.id} initialStarred={post.starred} />
+                <EvergreenButton postId={post.id} initialEvergreen={post.isEvergreen} />
+                {post.status === "PUBLISHED" && (
+                  <RecyclePostButton postId={post.id} />
+                )}
                 {(post.status === "DRAFT" || post.status === "SCHEDULED") && (
                   <Button variant="ghost" size="sm" asChild>
                     <Link href={`/posts/${post.id}/edit`}>Edit</Link>
