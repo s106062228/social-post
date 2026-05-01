@@ -659,3 +659,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Search results page in dashboard (`/search`) — tabbed results view (All / Posts / Templates / Campaigns / Tags) with links to respective pages
 - [x] Add "Search" to sidebar navigation; add keyboard shortcut `/` to focus search from anywhere in dashboard
 - [x] Unit tests for the search API (auth, rate limit, short query, empty results, mixed results — 10 tests)
+
+### Phase 56: User Onboarding & Progress Checklist
+- [x] Add `onboardingDismissed` (bool, default false) to User model + Prisma migration
+- [x] `GET /api/onboarding/status` endpoint — dynamic checklist computed from DB: account connected, first post created, post published, queue slot configured; returns `{steps, allComplete, dismissed}`
+- [x] `POST /api/onboarding/dismiss` endpoint — sets onboardingDismissed=true for current user
+- [x] `OnboardingChecklist` component (`src/components/onboarding-checklist.tsx`) — collapsible card listing steps with checkmarks and a dismiss button
+- [x] Integrate onboarding checklist into dashboard home page — visible when not dismissed and not all steps complete
+- [x] Unit tests for onboarding API (auth, steps shape, dismissed state, all-complete — 10 tests)

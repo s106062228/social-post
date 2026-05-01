@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { FileText, Calendar, Users, Plus } from "lucide-react";
+import { OnboardingChecklist } from "@/components/onboarding-checklist";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -39,6 +40,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-8 p-8">
+      {/* Onboarding checklist — shown until dismissed or all steps complete */}
+      <OnboardingChecklist />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

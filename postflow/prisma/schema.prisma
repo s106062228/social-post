@@ -72,6 +72,7 @@ model User {
   timezone           String              @default("UTC")
   emailNotifications Boolean             @default(true)
   theme              String              @default("system")
+  onboardingDismissed Boolean            @default(false)
   totpSecret         String?
   totpEnabled        Boolean             @default(false)
   totpBackupCodes    String[]
