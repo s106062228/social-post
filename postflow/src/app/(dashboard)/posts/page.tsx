@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Download, Plus } from "lucide-react";
+import { Download, Plus, Star } from "lucide-react";
 import { SearchInput } from "./search-input";
 import { PostsListClient } from "./posts-list-client";
 import { DateRangeFilter } from "./date-range-filter";
@@ -20,12 +20,12 @@ const PLATFORMS: Platform[] = [Platform.FACEBOOK, Platform.INSTAGRAM, Platform.T
 export default async function PostsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; page?: string; search?: string; tag?: string; from?: string; to?: string; platform?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; search?: string; tag?: string; from?: string; to?: string; platform?: string; starred?: string }>;
 }) {
   const session = await auth();
   const userId = session!.user!.id;
 
-  const { status: statusFilter, page: pageStr, search: searchQuery, tag: tagFilter, from: fromFilter, to: toFilter, platform: platformFilter } = await searchParams;
+  const { status: statusFilter, page: pageStr, search: searchQuery, tag: tagFilter, from: fromFilter, to: toFilter, platform: platformFilter, starred: starredFilter } = await searchParams;
   const page = Math.max(1, parseInt(pageStr ?? "1", 10));
   const limit = 20;
   const skip = (page - 1) * limit;
@@ -33,6 +33,7 @@ export default async function PostsPage({
   const statusEnum = statusFilter as PostStatus | undefined;
   const platformEnum = PLATFORMS.includes(platformFilter as Platform) ? (platformFilter as Platform) : undefined;
   const search = searchQuery?.trim() ?? "";
+  const onlyStarred = starredFilter === "true";
 
   const from = fromFilter && !isNaN(Date.parse(fromFilter)) ? new Date(fromFilter) : undefined;
   const to = toFilter && !isNaN(Date.parse(toFilter)) ? new Date(toFilter) : undefined;
@@ -48,6 +49,7 @@ export default async function PostsPage({
       ? { scheduledAt: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) } }
       : {}),
     ...(platformEnum ? { publishResults: { some: { platform: platformEnum } } } : {}),
+    ...(onlyStarred ? { starred: true } : {}),
   };
 
   const [posts, total, userTags] = await Promise.all([
@@ -85,7 +87,7 @@ export default async function PostsPage({
     { value: "FAILED", label: "Failed" },
   ];
 
-  function buildHref(opts: { status?: string; page?: number; search?: string; tag?: string; platform?: string }) {
+  function buildHref(opts: { status?: string; page?: number; search?: string; tag?: string; platform?: string; starred?: string }) {
     const params = new URLSearchParams();
     const s = opts.status ?? statusFilter ?? "";
     if (s) params.set("status", s);
@@ -95,6 +97,8 @@ export default async function PostsPage({
     if (t) params.set("tag", t);
     const pl = opts.platform !== undefined ? opts.platform : (platformFilter ?? "");
     if (pl) params.set("platform", pl);
+    const st = opts.starred !== undefined ? opts.starred : (starredFilter ?? "");
+    if (st) params.set("starred", st);
     if (fromFilter) params.set("from", fromFilter);
     if (toFilter) params.set("to", toFilter);
     const p = opts.page ?? page;
@@ -145,8 +149,8 @@ export default async function PostsPage({
       {/* Status filter tabs */}
       <div className="flex flex-wrap items-center gap-2">
         {statuses.map(({ value, label }) => {
-          const isActive = (statusFilter ?? "") === value;
-          const href = buildHref({ status: value, page: 1 });
+          const isActive = (statusFilter ?? "") === value && !onlyStarred;
+          const href = buildHref({ status: value, starred: "", page: 1 });
           return (
             <Link
               key={value}
@@ -161,6 +165,17 @@ export default async function PostsPage({
             </Link>
           );
         })}
+        <Link
+          href={buildHref({ starred: onlyStarred ? "" : "true", status: "", page: 1 })}
+          className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+            onlyStarred
+              ? "bg-yellow-400 text-white"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          }`}
+        >
+          <Star className="h-3.5 w-3.5" />
+          Starred
+        </Link>
       </div>
 
       {/* Keyword search + tag filter row */}
@@ -242,9 +257,10 @@ export default async function PostsPage({
       <Card>
         <CardHeader>
           <CardTitle>{total} post{total !== 1 ? "s" : ""}</CardTitle>
-          {(statusFilter || search || tagFilter || platformEnum || fromFilter || toFilter) && (
+          {(statusFilter || search || tagFilter || platformEnum || fromFilter || toFilter || onlyStarred) && (
             <CardDescription>
               {[
+                onlyStarred && "Starred only",
                 statusFilter && `Status: ${statusFilter.toLowerCase()}`,
                 search && `Search: "${search}"`,
                 tagFilter && `Tag: ${userTags.find((t) => t.id === tagFilter)?.name ?? tagFilter}`,

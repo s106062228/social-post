@@ -674,3 +674,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `GET /api/webhook-configs/[id]/deliveries` endpoint — auth + ownership check, returns last 50 delivery records for that config
 - [x] Delivery log panel in webhooks page — expandable per-webhook section showing recent deliveries with status badge, HTTP code, event name, and timestamp
 - [x] Unit tests for the deliveries endpoint (auth, not-found, success shape — 8 tests)
+
+### Phase 58: Post Pinning & Starring
+- [x] Add `starred` (bool, default false) to Post model + Prisma migration
+- [x] `PATCH /api/posts/[id]/star` endpoint — toggle starred status, return `{starred: boolean}`
+- [x] Extend `GET /api/posts` to support `?starred=true` filter
+- [x] `StarPostButton` client component — star/unstar icon toggle with optimistic UI, integrated into posts list row
+- [x] "Starred" filter tab in posts list page
+- [x] Unit tests for the star endpoint (auth, ownership, not-found, toggle on, toggle off — 8 tests)

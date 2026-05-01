@@ -25,6 +25,7 @@ const listPostsSchema = z.object({
   from: z.string().datetime().optional(),
   to: z.string().datetime().optional(),
   platform: z.nativeEnum(Platform).optional(),
+  starred: z.enum(["true", "false"]).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { status, search, tag, from, to, platform, page, limit } = parsed.data;
+    const { status, search, tag, from, to, platform, starred, page, limit } = parsed.data;
     const skip = (page - 1) * limit;
 
     const where = {
@@ -74,6 +75,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ...(platform
         ? { publishResults: { some: { platform } } }
         : {}),
+      ...(starred === "true" ? { starred: true } : {}),
     };
 
     const [posts, total] = await Promise.all([

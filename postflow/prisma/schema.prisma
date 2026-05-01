@@ -144,6 +144,7 @@ model Post {
   mediaUrls      String[]
   status         PostStatus
   scheduledAt    DateTime?
+  starred        Boolean        @default(false)
   approvalStatus ApprovalStatus @default(NONE)
   approverNote   String?
   publishResults PublishResult[]

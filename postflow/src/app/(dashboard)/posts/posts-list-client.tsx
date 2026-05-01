@@ -13,6 +13,7 @@ import { SaveAsTemplateButton } from "./save-as-template-button";
 import { BulkRescheduleButton } from "./bulk-reschedule-button";
 import { RequestApprovalButton } from "./request-approval-button";
 import { SharePostButton } from "./share-post-button";
+import { StarPostButton } from "./star-post-button";
 
 type PublishResult = {
   platform: string;
@@ -31,6 +32,7 @@ export type PostListItem = {
   mediaType: string;
   mediaUrls: string[];
   scheduledAt: Date | string | null;
+  starred: boolean;
   approvalStatus: string;
   approverNote: string | null;
   publishResults: PublishResult[];
@@ -248,6 +250,7 @@ export function PostsListClient({ posts }: PostsListClientProps) {
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
+                <StarPostButton postId={post.id} initialStarred={post.starred} />
                 {(post.status === "DRAFT" || post.status === "SCHEDULED") && (
                   <Button variant="ghost" size="sm" asChild>
                     <Link href={`/posts/${post.id}/edit`}>Edit</Link>
