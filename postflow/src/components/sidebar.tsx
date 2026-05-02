@@ -25,6 +25,7 @@ import {
   Mail,
   FileUp,
   SearchIcon,
+  Trophy,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,7 @@ const navItems = [
   { href: "/templates", label: "Templates", icon: LayoutTemplate },
   { href: "/schedules", label: "Schedules", icon: Repeat },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
+  { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/activity", label: "Activity", icon: Activity },
   { href: "/media", label: "Media", icon: ImageIcon },
   { href: "/hashtags", label: "Hashtags", icon: Hash },

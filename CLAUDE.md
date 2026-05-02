@@ -709,3 +709,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Reminder selector UI in post composer — `Bell` icon + native `<select>` (None / 30 min / 1 hr / 3 hr / 1 day); shown only when a scheduled time is set; submitted with post creation body
 - [x] Register reminder worker in `workers/queue-worker.ts`; include in graceful shutdown
 - [x] Unit tests for reminder endpoint (auth, rate limit, validation, DRAFT no-op, SCHEDULED schedule, clear+cancel — 13 tests)
+
+### Phase 62: Post Performance Leaderboard & Content Scoring
+- [x] Content score utility (`src/lib/content-score.ts`) — weighted engagement score from PostInsights (formula: reach×1 + likes×3 + comments×5 + shares×4 + impressions×0.5); export `computeScore(insights)` and `scoreLabel(score)`
+- [x] `GET /api/analytics/leaderboard` endpoint — auth + rate limit + `?limit=20&period=7d|30d|90d|all`; returns top posts ranked by aggregate ContentScore with post content preview, platform breakdown, and total metrics
+- [x] Leaderboard page in dashboard (`/leaderboard`) — ranked list of top posts with score bar, platform icons, engagement breakdown chips, period selector
+- [x] Score badge in posts list row — small coloured pill showing the post's aggregate score when insights data exists
+- [x] Add "Leaderboard" to sidebar navigation
+- [x] Unit tests for content score utility and leaderboard API (score calculation, auth, rate limit, period filter, shape — 12 tests)

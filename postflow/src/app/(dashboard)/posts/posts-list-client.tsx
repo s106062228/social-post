@@ -16,11 +16,21 @@ import { SharePostButton } from "./share-post-button";
 import { StarPostButton } from "./star-post-button";
 import { EvergreenButton } from "./evergreen-button";
 import { RecyclePostButton } from "./recycle-post-button";
+import { computeScore, scoreLabel } from "@/lib/content-score";
+
+type PublishResultInsights = {
+  impressions: number | null;
+  reach: number | null;
+  likes: number | null;
+  comments: number | null;
+  shares: number | null;
+} | null;
 
 type PublishResult = {
   platform: string;
   status: string;
   publishedUrl: string | null;
+  insights: PublishResultInsights;
 };
 
 type PostTagItem = {
@@ -59,6 +69,32 @@ function ApprovalBadge({ approvalStatus }: { approvalStatus: string }) {
       className={`rounded-full px-2 py-0.5 text-xs font-medium ${styles[approvalStatus] ?? "bg-gray-100 text-gray-700"}`}
     >
       {labels[approvalStatus] ?? approvalStatus.toLowerCase()}
+    </span>
+  );
+}
+
+const SCORE_BADGE_STYLES: Record<string, string> = {
+  none: "hidden",
+  low: "bg-yellow-100 text-yellow-700",
+  medium: "bg-blue-100 text-blue-700",
+  high: "bg-green-100 text-green-700",
+  viral: "bg-purple-100 text-purple-700",
+};
+
+function ScoreBadge({ publishResults }: { publishResults: PublishResult[] }) {
+  const total = publishResults.reduce((sum, r) => {
+    if (!r.insights) return sum;
+    return sum + computeScore(r.insights);
+  }, 0);
+
+  if (total === 0) return null;
+  const label = scoreLabel(total);
+  const style = SCORE_BADGE_STYLES[label];
+  if (!style || style === "hidden") return null;
+
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${style}`}>
+      {Math.round(total).toLocaleString()} pts
     </span>
   );
 }
@@ -229,6 +265,7 @@ export function PostsListClient({ posts }: PostsListClientProps) {
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <StatusBadge status={post.status} />
                   <ApprovalBadge approvalStatus={post.approvalStatus} />
+                  <ScoreBadge publishResults={post.publishResults} />
                   {post.scheduledAt && (
                     <span className="text-xs text-muted-foreground">
                       {post.status === "SCHEDULED"

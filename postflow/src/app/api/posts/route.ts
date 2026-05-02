@@ -99,6 +99,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
               publishedUrl: true,
               publishedAt: true,
               error: true,
+              insights: {
+                select: {
+                  impressions: true,
+                  reach: true,
+                  likes: true,
+                  comments: true,
+                  shares: true,
+                },
+              },
             },
           },
           tags: {
