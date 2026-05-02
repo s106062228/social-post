@@ -723,3 +723,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `BestTimesCard` component (`src/components/best-times-card.tsx`) — heatmap-style grid (7 days × 24 h) with colour intensity from engagement score; platform tab selector; "No data yet" empty state
 - [x] Integrate `BestTimesCard` into the analytics dashboard page below the existing charts
 - [x] Unit tests for best-times endpoint (auth, rate limit, platform filter, empty state, aggregation shape — 10 tests)
+
+### Phase 64: Post Sentiment Analysis
+- [x] Sentiment analysis utility (`src/lib/sentiment.ts`) — calls Claude AI (`claude-haiku-4-5`) to classify post content as POSITIVE/NEUTRAL/NEGATIVE with confidence score; uses prompt caching on system block
+- [x] Add `sentiment` (nullable String) + `sentimentScore` (nullable Float) to Post model + Prisma migration (`20260505000000_add_post_sentiment`)
+- [x] `POST /api/posts/[id]/analyze-sentiment` endpoint — auth + rate limit + ownership check; calls AI service, persists result; returns `{sentiment, sentimentScore}`; returns 503 when AI not enabled
+- [x] Extend `GET /api/posts` to support `?sentiment=POSITIVE|NEUTRAL|NEGATIVE` filter
+- [x] `SentimentBadge` component in posts list row — coloured chip (green/grey/red) showing detected sentiment
+- [x] `AnalyzeSentimentButton` component in posts list row — calls analyze endpoint, toasts result, refreshes
+- [x] Sentiment filter tabs in posts page (Positive / Neutral / Negative) alongside existing status/starred/evergreen tabs
+- [x] Unit tests for analyze-sentiment endpoint (auth, rate limit, AI disabled, ownership, POSITIVE/NEUTRAL/NEGATIVE, error — 10 tests)

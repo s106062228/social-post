@@ -150,6 +150,8 @@ model Post {
   isEvergreen    Boolean        @default(false)
   approvalStatus ApprovalStatus @default(NONE)
   approverNote   String?
+  sentiment      String?
+  sentimentScore Float?
   publishResults PublishResult[]
   tags           PostTag[]
   versions       PostVersion[]

@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Download, Leaf, Plus, Star } from "lucide-react";
+import { Download, Leaf, Plus, SmilePlus, Star } from "lucide-react";
 import { SearchInput } from "./search-input";
 import { PostsListClient } from "./posts-list-client";
 import { DateRangeFilter } from "./date-range-filter";
@@ -22,12 +22,12 @@ const PLATFORMS: Platform[] = [Platform.FACEBOOK, Platform.INSTAGRAM, Platform.T
 export default async function PostsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; page?: string; search?: string; tag?: string; from?: string; to?: string; platform?: string; starred?: string; evergreen?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; search?: string; tag?: string; from?: string; to?: string; platform?: string; starred?: string; evergreen?: string; sentiment?: string }>;
 }) {
   const session = await auth();
   const userId = session!.user!.id;
 
-  const { status: statusFilter, page: pageStr, search: searchQuery, tag: tagFilter, from: fromFilter, to: toFilter, platform: platformFilter, starred: starredFilter, evergreen: evergreenFilter } = await searchParams;
+  const { status: statusFilter, page: pageStr, search: searchQuery, tag: tagFilter, from: fromFilter, to: toFilter, platform: platformFilter, starred: starredFilter, evergreen: evergreenFilter, sentiment: sentimentFilter } = await searchParams;
   const page = Math.max(1, parseInt(pageStr ?? "1", 10));
   const limit = 20;
   const skip = (page - 1) * limit;
@@ -37,6 +37,11 @@ export default async function PostsPage({
   const search = searchQuery?.trim() ?? "";
   const onlyStarred = starredFilter === "true";
   const onlyEvergreen = evergreenFilter === "true";
+  const SENTIMENTS = ["POSITIVE", "NEUTRAL", "NEGATIVE"] as const;
+  type SentimentValue = typeof SENTIMENTS[number];
+  const sentimentEnum = SENTIMENTS.includes(sentimentFilter as SentimentValue)
+    ? (sentimentFilter as SentimentValue)
+    : undefined;
 
   const from = fromFilter && !isNaN(Date.parse(fromFilter)) ? new Date(fromFilter) : undefined;
   const to = toFilter && !isNaN(Date.parse(toFilter)) ? new Date(toFilter) : undefined;
@@ -54,6 +59,7 @@ export default async function PostsPage({
     ...(platformEnum ? { publishResults: { some: { platform: platformEnum } } } : {}),
     ...(onlyStarred ? { starred: true } : {}),
     ...(onlyEvergreen ? { isEvergreen: true } : {}),
+    ...(sentimentEnum ? { sentiment: sentimentEnum } : {}),
   };
 
   const [posts, total, userTags] = await Promise.all([
@@ -64,7 +70,7 @@ export default async function PostsPage({
       take: limit,
       include: {
         publishResults: {
-          select: { platform: true, status: true, publishedUrl: true },
+          select: { platform: true, status: true, publishedUrl: true, insights: { select: { impressions: true, reach: true, likes: true, comments: true, shares: true } } },
         },
         tags: {
           select: {
@@ -91,7 +97,7 @@ export default async function PostsPage({
     { value: "FAILED", label: "Failed" },
   ];
 
-  function buildHref(opts: { status?: string; page?: number; search?: string; tag?: string; platform?: string; starred?: string; evergreen?: string }) {
+  function buildHref(opts: { status?: string; page?: number; search?: string; tag?: string; platform?: string; starred?: string; evergreen?: string; sentiment?: string }) {
     const params = new URLSearchParams();
     const s = opts.status ?? statusFilter ?? "";
     if (s) params.set("status", s);
@@ -105,6 +111,8 @@ export default async function PostsPage({
     if (st) params.set("starred", st);
     const ev = opts.evergreen !== undefined ? opts.evergreen : (evergreenFilter ?? "");
     if (ev) params.set("evergreen", ev);
+    const se = opts.sentiment !== undefined ? opts.sentiment : (sentimentFilter ?? "");
+    if (se) params.set("sentiment", se);
     if (fromFilter) params.set("from", fromFilter);
     if (toFilter) params.set("to", toFilter);
     const p = opts.page ?? page;
@@ -206,6 +214,24 @@ export default async function PostsPage({
           <Leaf className="h-3.5 w-3.5" />
           Evergreen
         </Link>
+        {(["POSITIVE", "NEUTRAL", "NEGATIVE"] as const).map((s) => {
+          const isActive = sentimentEnum === s;
+          const colors: Record<string, string> = {
+            POSITIVE: isActive ? "bg-green-500 text-white" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+            NEUTRAL: isActive ? "bg-gray-500 text-white" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+            NEGATIVE: isActive ? "bg-red-500 text-white" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+          };
+          return (
+            <Link
+              key={s}
+              href={buildHref({ sentiment: isActive ? "" : s, status: "", starred: "", evergreen: "", page: 1 })}
+              className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${colors[s]}`}
+            >
+              <SmilePlus className="h-3.5 w-3.5" />
+              {s.charAt(0) + s.slice(1).toLowerCase()}
+            </Link>
+          );
+        })}
       </div>
 
       {/* Keyword search + tag filter row */}
@@ -287,11 +313,12 @@ export default async function PostsPage({
       <Card>
         <CardHeader>
           <CardTitle>{total} post{total !== 1 ? "s" : ""}</CardTitle>
-          {(statusFilter || search || tagFilter || platformEnum || fromFilter || toFilter || onlyStarred || onlyEvergreen) && (
+          {(statusFilter || search || tagFilter || platformEnum || fromFilter || toFilter || onlyStarred || onlyEvergreen || sentimentEnum) && (
             <CardDescription>
               {[
                 onlyStarred && "Starred only",
                 onlyEvergreen && "Evergreen only",
+                sentimentEnum && `Sentiment: ${sentimentEnum.charAt(0) + sentimentEnum.slice(1).toLowerCase()}`,
                 statusFilter && `Status: ${statusFilter.toLowerCase()}`,
                 search && `Search: "${search}"`,
                 tagFilter && `Tag: ${userTags.find((t) => t.id === tagFilter)?.name ?? tagFilter}`,

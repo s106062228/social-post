@@ -16,6 +16,7 @@ import { SharePostButton } from "./share-post-button";
 import { StarPostButton } from "./star-post-button";
 import { EvergreenButton } from "./evergreen-button";
 import { RecyclePostButton } from "./recycle-post-button";
+import { AnalyzeSentimentButton } from "./analyze-sentiment-button";
 import { computeScore, scoreLabel } from "@/lib/content-score";
 
 type PublishResultInsights = {
@@ -48,6 +49,8 @@ export type PostListItem = {
   isEvergreen: boolean;
   approvalStatus: string;
   approverNote: string | null;
+  sentiment: string | null;
+  sentimentScore: number | null;
   publishResults: PublishResult[];
   tags: PostTagItem[];
 };
@@ -95,6 +98,22 @@ function ScoreBadge({ publishResults }: { publishResults: PublishResult[] }) {
   return (
     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${style}`}>
       {Math.round(total).toLocaleString()} pts
+    </span>
+  );
+}
+
+const SENTIMENT_BADGE_STYLES: Record<string, string> = {
+  POSITIVE: "bg-green-100 text-green-700",
+  NEUTRAL: "bg-gray-100 text-gray-700",
+  NEGATIVE: "bg-red-100 text-red-700",
+};
+
+function SentimentBadge({ sentiment }: { sentiment: string | null }) {
+  if (!sentiment) return null;
+  const style = SENTIMENT_BADGE_STYLES[sentiment] ?? "bg-gray-100 text-gray-700";
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${style}`}>
+      {sentiment.charAt(0) + sentiment.slice(1).toLowerCase()}
     </span>
   );
 }
@@ -266,6 +285,7 @@ export function PostsListClient({ posts }: PostsListClientProps) {
                   <StatusBadge status={post.status} />
                   <ApprovalBadge approvalStatus={post.approvalStatus} />
                   <ScoreBadge publishResults={post.publishResults} />
+                  <SentimentBadge sentiment={post.sentiment} />
                   {post.scheduledAt && (
                     <span className="text-xs text-muted-foreground">
                       {post.status === "SCHEDULED"
@@ -292,6 +312,7 @@ export function PostsListClient({ posts }: PostsListClientProps) {
               <div className="flex shrink-0 items-center gap-2">
                 <StarPostButton postId={post.id} initialStarred={post.starred} />
                 <EvergreenButton postId={post.id} initialEvergreen={post.isEvergreen} />
+                <AnalyzeSentimentButton postId={post.id} />
                 {post.status === "PUBLISHED" && (
                   <RecyclePostButton postId={post.id} />
                 )}
