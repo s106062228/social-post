@@ -97,6 +97,7 @@ model User {
   reportSchedules    ReportSchedule[]
   importBatches      ImportBatch[]
   filterPresets      FilterPreset[]
+  abTests            PostABTest[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -160,6 +161,8 @@ model Post {
   shareLinks     ShareLink[]
   campaigns      CampaignPost[]
   rssItems       RssItem[]
+  abTestsAsA     PostABTest[]   @relation("ABTestVariantA")
+  abTestsAsB     PostABTest[]   @relation("ABTestVariantB")
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -601,6 +604,24 @@ model FilterPreset {
   name      String
   filters   Json
   createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model PostABTest {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  postAId   String
+  postA     Post     @relation("ABTestVariantA", fields: [postAId], references: [id], onDelete: Cascade)
+  postBId   String
+  postB     Post     @relation("ABTestVariantB", fields: [postBId], references: [id], onDelete: Cascade)
+  winner    String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([userId, createdAt(sort: Desc)])

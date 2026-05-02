@@ -733,3 +733,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `AnalyzeSentimentButton` component in posts list row — calls analyze endpoint, toasts result, refreshes
 - [x] Sentiment filter tabs in posts page (Positive / Neutral / Negative) alongside existing status/starred/evergreen tabs
 - [x] Unit tests for analyze-sentiment endpoint (auth, rate limit, AI disabled, ownership, POSITIVE/NEUTRAL/NEGATIVE, error — 10 tests)
+
+### Phase 65: Post A/B Testing
+- [x] `PostABTest` model in Prisma (id, userId, name, postAId, postBId, winner?, notes?, createdAt, updatedAt) + migration — links two posts as A/B variants for performance comparison
+- [x] CRUD API for A/B tests (`GET /api/ab-tests`, `POST /api/ab-tests`, `GET /api/ab-tests/[id]`, `DELETE /api/ab-tests/[id]`, `PATCH /api/ab-tests/[id]/conclude`) — auth + rate limit + zod validation; conclude sets winner (A/B/INCONCLUSIVE) and optional notes
+- [x] A/B tests list page in dashboard (`/ab-tests`) — card grid of tests with variant post previews, winner badge, create form (name + select two posts)
+- [x] A/B test detail page (`/ab-tests/[id]`) — side-by-side variant comparison with engagement metrics for each post (impressions, reach, likes, comments, shares), conclude test action
+- [x] Add "A/B Tests" to sidebar navigation
+- [x] Unit tests for A/B tests API (GET list, POST create, GET detail, DELETE, conclude — auth, rate limit, ownership, validation — 16 tests)
