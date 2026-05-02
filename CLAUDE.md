@@ -699,3 +699,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] "Save Filter" button in posts page — opens name dialog, saves current filter state (status, platform, tag, search, starred, evergreen, from, to) as a preset
 - [x] Filter preset dropdown in posts page — lists saved presets; applying one pushes all filter values into the URL
 - [x] Unit tests for filter presets API (auth, rate limit, validation, CRUD shape — 14 tests)
+
+### Phase 61: Post Scheduling Reminders
+- [x] Add `reminderMinutes` (nullable Int) to Post model + Prisma migration — stores how many minutes before scheduledAt to fire the reminder
+- [x] BullMQ reminder worker (`src/lib/queue/workers/reminder.ts`) — processes delayed reminder jobs; skips if post is no longer SCHEDULED; sends in-app notification via `createNotification`
+- [x] `scheduleReminder` / `cancelReminder` functions in scheduler.ts — enqueue/remove a delayed BullMQ job keyed `reminder:{postId}`
+- [x] `PATCH /api/posts/[id]/reminder` endpoint — auth + rate limit + zod validation; persists `reminderMinutes`; schedules/cancels BullMQ job when post is already SCHEDULED
+- [x] Integrate reminder scheduling into `POST /api/posts` (accepts optional `reminderMinutes`; schedules job when new post is SCHEDULED) and `PATCH /api/posts/[id]` (reschedules when `scheduledAt` changes)
+- [x] Reminder selector UI in post composer — `Bell` icon + native `<select>` (None / 30 min / 1 hr / 3 hr / 1 day); shown only when a scheduled time is set; submitted with post creation body
+- [x] Register reminder worker in `workers/queue-worker.ts`; include in graceful shutdown
+- [x] Unit tests for reminder endpoint (auth, rate limit, validation, DRAFT no-op, SCHEDULED schedule, clear+cancel — 13 tests)

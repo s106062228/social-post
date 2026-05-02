@@ -27,6 +27,7 @@ import {
 } from "../src/lib/queue/workers/sync-insights";
 import { createRssImportWorker } from "../src/lib/queue/workers/rss-import";
 import { createReportWorker } from "../src/lib/queue/workers/report";
+import { createReminderWorker } from "../src/lib/queue/workers/reminder";
 import {
   scheduleTokenExpiryCheck,
   scheduleExpiringTokenRefreshes,
@@ -47,6 +48,7 @@ const syncInsightsWorker = createSyncInsightsWorker();
 const syncInsightsScanWorker = createSyncInsightsScanWorker();
 const rssImportWorker = createRssImportWorker();
 const reportWorker = createReportWorker();
+const reminderWorker = createReminderWorker();
 
 workerLogger.info("Publish worker started");
 workerLogger.info("Token refresh worker started");
@@ -56,6 +58,7 @@ workerLogger.info("Sync insights worker started");
 workerLogger.info("Sync insights scan worker started");
 workerLogger.info("RSS import worker started");
 workerLogger.info("Report worker started");
+workerLogger.info("Reminder worker started");
 
 // ── Register repeatable cron jobs ─────────────────────────────────────────────
 
@@ -137,6 +140,7 @@ async function shutdown(signal: string): Promise<void> {
     syncInsightsScanWorker.close(),
     rssImportWorker.close(),
     reportWorker.close(),
+    reminderWorker.close(),
   ]);
 
   workerLogger.info("All workers stopped. Exiting.");

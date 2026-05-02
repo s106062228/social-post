@@ -143,9 +143,10 @@ model Post {
   content        String
   mediaType      MediaType
   mediaUrls      String[]
-  status         PostStatus
-  scheduledAt    DateTime?
-  starred        Boolean        @default(false)
+  status          PostStatus
+  scheduledAt     DateTime?
+  reminderMinutes Int?
+  starred         Boolean        @default(false)
   isEvergreen    Boolean        @default(false)
   approvalStatus ApprovalStatus @default(NONE)
   approverNote   String?

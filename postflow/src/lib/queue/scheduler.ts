@@ -10,6 +10,7 @@ import type { RecurringScheduleJobData } from "./workers/recurring-schedule";
 import type { SyncInsightsScanJobData } from "./workers/sync-insights";
 import type { RssImportScanJobData } from "./workers/rss-import";
 import type { ReportScanJobData } from "./workers/report";
+import type { ReminderJobData } from "./workers/reminder";
 
 // ── Queue singletons ───────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -461,3 +462,63 @@ export function createPublishQueueEvents(): QueueEvents {
 // Facebook supports native scheduled_publish_time, but we still route all
 // platforms through BullMQ for consistent retry, observability, and status
 // tracking. The Facebook adapter will pass scheduledAt to the Graph API.
+
+// ── Reminder queue ─────────────────────────────────────────────────────────────
+
+let reminderQueue: Queue<ReminderJobData> | null = null;
+
+function getReminderQueue(): Queue<ReminderJobData> {
+  if (!reminderQueue) {
+    reminderQueue = new Queue<ReminderJobData>(QUEUE_NAMES.REMINDER, {
+      connection: createRedisConnection(),
+      defaultJobOptions: {
+        attempts: 2,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { count: 200 },
+        removeOnFail: { count: 100 },
+      },
+    });
+  }
+  return reminderQueue;
+}
+
+/**
+ * Schedules (or replaces) a reminder notification for a post.
+ * Fires at `scheduledAt - reminderMinutes` minutes.
+ * If the fire time is in the past, the job runs immediately.
+ */
+export async function scheduleReminder(
+  postId: string,
+  userId: string,
+  scheduledAt: Date,
+  reminderMinutes: number
+): Promise<void> {
+  const fireAt = new Date(scheduledAt.getTime() - reminderMinutes * 60 * 1000);
+  const delayMs = Math.max(0, fireAt.getTime() - Date.now());
+
+  const queue = getReminderQueue();
+  const jobId = `reminder:${postId}`;
+
+  await queue.add(
+    jobId,
+    { postId, userId, scheduledAt: scheduledAt.toISOString() },
+    { jobId, delay: delayMs }
+  );
+}
+
+/**
+ * Cancels a pending reminder job for a post (no-op if not found or already fired).
+ */
+export async function cancelReminder(postId: string): Promise<boolean> {
+  const queue = getReminderQueue();
+  const jobId = `reminder:${postId}`;
+  const job = await queue.getJob(jobId);
+  if (!job) return false;
+
+  const state = await job.getState();
+  if (state === "delayed" || state === "waiting") {
+    await job.remove();
+    return true;
+  }
+  return false;
+}

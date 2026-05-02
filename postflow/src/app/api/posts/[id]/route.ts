@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { handleRouteError } from "@/lib/errors";
 import { logActivity } from "@/lib/activity-log";
+import { scheduleReminder, cancelReminder } from "@/lib/queue/scheduler";
 
 // ── Zod Schemas ───────────────────────────────────────────────────────────────
 
@@ -174,6 +175,20 @@ export async function PATCH(
       updated = postResult;
     } else {
       updated = await updateOp;
+    }
+
+    // Reschedule reminder when scheduledAt changes on a post with reminderMinutes set
+    if (scheduledAt !== undefined && updated.reminderMinutes) {
+      if (updated.scheduledAt) {
+        scheduleReminder(
+          id,
+          session.user.id,
+          updated.scheduledAt,
+          updated.reminderMinutes
+        ).catch(() => { /* fire-and-forget */ });
+      } else {
+        cancelReminder(id).catch(() => { /* fire-and-forget */ });
+      }
     }
 
     logActivity({

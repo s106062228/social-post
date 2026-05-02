@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -62,6 +62,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [queuing, setQueuing] = useState(false);
+  const [reminderMinutes, setReminderMinutes] = useState<number | null>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
@@ -140,6 +141,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       };
       if (scheduledAt) {
         body.scheduledAt = new Date(scheduledAt).toISOString();
+        if (reminderMinutes !== null) {
+          body.reminderMinutes = reminderMinutes;
+        }
       }
 
       const res = await fetch("/api/posts", {
@@ -593,9 +597,36 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           id="scheduledAt"
           type="datetime-local"
           value={scheduledAt}
-          onChange={(e) => setScheduledAt(e.target.value)}
+          onChange={(e) => {
+            setScheduledAt(e.target.value);
+            if (!e.target.value) setReminderMinutes(null);
+          }}
         />
       </div>
+
+      {/* Reminder — only shown when a scheduled time is set */}
+      {scheduledAt && (
+        <div className="flex items-center gap-2">
+          <Bell className="h-4 w-4 text-muted-foreground shrink-0" />
+          <Label htmlFor="reminderMinutes" className="shrink-0">
+            Remind me
+          </Label>
+          <select
+            id="reminderMinutes"
+            className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            value={reminderMinutes ?? ""}
+            onChange={(e) =>
+              setReminderMinutes(e.target.value ? Number(e.target.value) : null)
+            }
+          >
+            <option value="">No reminder</option>
+            <option value="30">30 minutes before</option>
+            <option value="60">1 hour before</option>
+            <option value="180">3 hours before</option>
+            <option value="1440">1 day before</option>
+          </select>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex flex-wrap gap-3">

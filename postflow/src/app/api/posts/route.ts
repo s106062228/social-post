@@ -7,6 +7,7 @@ import { handleRouteError } from "@/lib/errors";
 import { apiLimiter, rateLimitHeaders } from "@/lib/rate-limit";
 import { sanitizePostContent } from "@/lib/sanitize";
 import { logActivity } from "@/lib/activity-log";
+import { scheduleReminder } from "@/lib/queue/scheduler";
 
 // ── Zod Schemas ───────────────────────────────────────────────────────────────
 
@@ -16,6 +17,7 @@ const createPostSchema = z.object({
   mediaUrls: z.array(z.string().url()).default([]),
   scheduledAt: z.string().datetime().nullable().optional(),
   tagIds: z.array(z.string()).default([]),
+  reminderMinutes: z.number().int().min(1).max(10080).nullable().optional(),
 });
 
 const listPostsSchema = z.object({
@@ -155,7 +157,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { mediaType, mediaUrls, scheduledAt, tagIds } = parsed.data;
+    const { mediaType, mediaUrls, scheduledAt, tagIds, reminderMinutes } = parsed.data;
     const content = sanitizePostContent(parsed.data.content);
 
     if (content.length === 0) {
@@ -178,14 +180,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       validTagIds = ownedTags.map((t) => t.id);
     }
 
+    const scheduledDate = scheduledAt ? new Date(scheduledAt) : null;
+
     const post = await prisma.post.create({
       data: {
         userId: session.user.id,
         content,
         mediaType,
         mediaUrls,
-        scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+        scheduledAt: scheduledDate,
         status,
+        reminderMinutes: reminderMinutes ?? null,
         tags: validTagIds.length > 0
           ? { create: validTagIds.map((tagId) => ({ tagId })) }
           : undefined,
@@ -195,6 +200,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         tags: { select: { tag: { select: { id: true, name: true, color: true } } } },
       },
     });
+
+    // Schedule reminder if post is SCHEDULED and reminderMinutes is set
+    if (status === PostStatus.SCHEDULED && scheduledDate && reminderMinutes) {
+      scheduleReminder(post.id, session.user.id, scheduledDate, reminderMinutes).catch(
+        () => { /* fire-and-forget */ }
+      );
+    }
 
     logActivity({
       userId: session.user.id,
