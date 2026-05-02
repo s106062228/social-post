@@ -717,3 +717,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Score badge in posts list row — small coloured pill showing the post's aggregate score when insights data exists
 - [x] Add "Leaderboard" to sidebar navigation
 - [x] Unit tests for content score utility and leaderboard API (score calculation, auth, rate limit, period filter, shape — 12 tests)
+
+### Phase 63: Best Time to Post Recommendations
+- [x] `GET /api/analytics/best-times` endpoint — auth + rate limit + `?platform=`; analyses historical PostInsights joined to PublishResult publishedAt timestamps; groups by hour-of-day and day-of-week; returns ranked slots (hour, dayOfWeek, avgEngagement, sampleSize) per platform
+- [x] `BestTimesCard` component (`src/components/best-times-card.tsx`) — heatmap-style grid (7 days × 24 h) with colour intensity from engagement score; platform tab selector; "No data yet" empty state
+- [x] Integrate `BestTimesCard` into the analytics dashboard page below the existing charts
+- [x] Unit tests for best-times endpoint (auth, rate limit, platform filter, empty state, aggregation shape — 10 tests)

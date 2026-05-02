@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BarChart2, CheckCircle2, XCircle, Clock, TrendingUp } from "lucide-react";
+import { BestTimesCard } from "@/components/best-times-card";
 
 type Period = "7d" | "30d" | "90d";
 
@@ -420,6 +421,9 @@ export function AnalyticsDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Best Times to Post heatmap */}
+      <BestTimesCard />
     </div>
   );
 }
