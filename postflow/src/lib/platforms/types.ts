@@ -66,4 +66,10 @@ export interface PlatformAdapter {
    * Fetch engagement insights for a published post.
    */
   getInsights(platformPostId: string, token: string): Promise<Insights>;
+
+  /**
+   * Post a comment on a published post/media.
+   * Optional — only FB and IG support this; Threads does not.
+   */
+  addComment?(platformPostId: string, comment: string, token: string): Promise<void>;
 }

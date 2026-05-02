@@ -259,6 +259,15 @@ export class InstagramAdapter implements PlatformAdapter {
     }
   }
 
+  async addComment(platformPostId: string, comment: string, token: string): Promise<void> {
+    await igPost(
+      `${platformPostId}/comments`,
+      token,
+      z.object({ id: z.string() }),
+      { message_text: comment }
+    );
+  }
+
   async getInsights(platformPostId: string, token: string): Promise<Insights> {
     const metrics = [
       "impressions",

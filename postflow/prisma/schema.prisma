@@ -153,6 +153,7 @@ model Post {
   approverNote   String?
   sentiment      String?
   sentimentScore Float?
+  firstComment   String?
   publishResults PublishResult[]
   tags           PostTag[]
   versions       PostVersion[]

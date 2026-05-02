@@ -225,6 +225,15 @@ export class FacebookAdapter implements PlatformAdapter {
     }
   }
 
+  async addComment(platformPostId: string, comment: string, token: string): Promise<void> {
+    await fbPost(
+      `${platformPostId}/comments`,
+      token,
+      z.object({ id: z.string() }),
+      { message: comment }
+    );
+  }
+
   async getInsights(platformPostId: string, token: string): Promise<Insights> {
     // Fetch likes, comments, shares summaries
     const params = new URLSearchParams({

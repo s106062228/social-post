@@ -18,6 +18,7 @@ const updatePostSchema = z
     status: z
       .enum([PostStatus.DRAFT, PostStatus.SCHEDULED])
       .optional(),
+    firstComment: z.string().max(2200).nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field must be provided",
@@ -128,7 +129,7 @@ export async function PATCH(
       );
     }
 
-    const { content, mediaType, mediaUrls, scheduledAt, status } = parsed.data;
+    const { content, mediaType, mediaUrls, scheduledAt, status, firstComment } = parsed.data;
 
     // Derive status from scheduledAt if status not explicitly provided
     let newStatus: PostStatus | undefined = status;
@@ -154,6 +155,7 @@ export async function PATCH(
           scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
         }),
         ...(newStatus !== undefined && { status: newStatus }),
+        ...(firstComment !== undefined && { firstComment: firstComment ?? null }),
       },
       include: { publishResults: true },
     });

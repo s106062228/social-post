@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -63,6 +63,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [publishing, setPublishing] = useState(false);
   const [queuing, setQueuing] = useState(false);
   const [reminderMinutes, setReminderMinutes] = useState<number | null>(null);
+  const [firstComment, setFirstComment] = useState("");
   const [templates, setTemplates] = useState<Template[]>([]);
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
@@ -144,6 +145,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         if (reminderMinutes !== null) {
           body.reminderMinutes = reminderMinutes;
         }
+      }
+      if (firstComment.trim()) {
+        body.firstComment = firstComment.trim();
       }
 
       const res = await fetch("/api/posts", {
@@ -479,6 +483,32 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         )}
         <LinkPreviewCard content={content} />
       </div>
+
+      {/* First comment — shown when Facebook or Instagram accounts are selected */}
+      {selectedPlatforms.some((p) => p === "FACEBOOK" || p === "INSTAGRAM") && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-1.5">
+            <MessageCirclePlus className="h-4 w-4 text-muted-foreground" />
+            <Label htmlFor="firstComment">
+              First comment{" "}
+              <span className="text-muted-foreground font-normal">(optional)</span>
+            </Label>
+          </div>
+          <Textarea
+            id="firstComment"
+            placeholder="Add a comment posted immediately after publishing — great for hashtags."
+            value={firstComment}
+            onChange={(e) => setFirstComment(e.target.value)}
+            className="min-h-[80px] resize-none"
+            maxLength={2200}
+          />
+          {firstComment.length > 0 && (
+            <p className="text-xs text-muted-foreground text-right">
+              {firstComment.length}/2200
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Per-platform content variants (shown when 2+ platforms are selected) */}
       {selectedPlatforms.length >= 2 && (

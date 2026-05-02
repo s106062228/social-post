@@ -101,6 +101,18 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<void> {
     },
   });
 
+  // Post first comment if set and adapter supports it
+  if (post.firstComment && adapter.addComment) {
+    try {
+      await adapter.addComment(result.platformPostId, post.firstComment, token);
+    } catch (err) {
+      publishLogger.warn(
+        { err, postId, platform: account.platform },
+        "First comment failed — post was published successfully"
+      );
+    }
+  }
+
   // Check if all results for this post are done to update overall post status
   await reconcilePostStatus(postId);
 }

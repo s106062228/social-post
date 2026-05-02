@@ -741,3 +741,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] A/B test detail page (`/ab-tests/[id]`) — side-by-side variant comparison with engagement metrics for each post (impressions, reach, likes, comments, shares), conclude test action
 - [x] Add "A/B Tests" to sidebar navigation
 - [x] Unit tests for A/B tests API (GET list, POST create, GET detail, DELETE, conclude — auth, rate limit, ownership, validation — 16 tests)
+
+### Phase 66: First Comment Scheduling
+- [x] Add `firstComment` (nullable String) to Post model + Prisma migration (`20260507000000_add_post_first_comment`)
+- [x] Add optional `addComment(platformPostId, comment, token)` to `PlatformAdapter` interface; implement for Facebook (`/{postId}/comments`) and Instagram (`/{mediaId}/comments`); Threads adapter has no `addComment` (unsupported)
+- [x] Extend publish worker — after a successful `PUBLISHED` result, call `adapter.addComment` if `post.firstComment` is set and `adapter.addComment` is defined; failures are logged as warnings but do not fail the publish job
+- [x] Extend `POST /api/posts` and `PATCH /api/posts/[id]` to accept optional `firstComment` field (max 2200 chars, nullable)
+- [x] First comment textarea in post composer — shown below main content when Facebook or Instagram accounts are selected; character counter (max 2200); label "First Comment (optional)"
+- [x] Unit tests for first comment (worker integration, adapter mocks, API validation — 13 tests)
