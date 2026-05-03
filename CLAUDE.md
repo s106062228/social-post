@@ -765,3 +765,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `WordCloudCard` component (`src/components/word-cloud-card.tsx`) — tag-cloud visualization with font-size proportional to frequency, period selector, "No posts yet" empty state
 - [x] Integrate `WordCloudCard` into the analytics dashboard page below the best-times heatmap
 - [x] Unit tests for word frequency utility and word-cloud endpoint (stop word filtering, frequency count, auth, rate limit, period filter, shape — 12 tests)
+
+### Phase 69: Posting Consistency Score & Content Gap Analysis
+- [x] Consistency score utility (`src/lib/consistency.ts`) — computes a 0-100 score from posting history, current streak (consecutive weeks with ≥1 post), average posts per week, and content gaps (periods ≥7 days with no posts)
+- [x] `GET /api/analytics/consistency` endpoint — auth + rate limit + `?period=30d|90d|180d`; returns `{score, streak, avgPostsPerWeek, gaps, periodDays, totalPosts}`
+- [x] `ConsistencyCard` component (`src/components/consistency-card.tsx`) — shows consistency score as a colour-coded progress bar, streak badge, avg posts/week, and a list of content gap warnings; period selector
+- [x] Integrate `ConsistencyCard` into the analytics dashboard page below the word cloud
+- [x] Unit tests for consistency utility (score edges, streak calculation, gap detection — 10 tests) and API endpoint (auth, rate limit, period validation, shape — 8 tests)

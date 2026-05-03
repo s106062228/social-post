@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { BarChart2, CheckCircle2, XCircle, Clock, TrendingUp } from "lucide-react";
 import { BestTimesCard } from "@/components/best-times-card";
 import { WordCloudCard } from "@/components/word-cloud-card";
+import { ConsistencyCard } from "@/components/consistency-card";
 
 type Period = "7d" | "30d" | "90d";
 
@@ -428,6 +429,9 @@ export function AnalyticsDashboard() {
 
       {/* Word Cloud */}
       <WordCloudCard />
+
+      {/* Posting Consistency */}
+      <ConsistencyCard />
     </div>
   );
 }
