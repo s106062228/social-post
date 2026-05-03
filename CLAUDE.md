@@ -778,3 +778,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `GET /api/posts/[id]/readability` endpoint — auth + rate limit + ownership check; returns `{fleschKincaid, gradeLevel, wordCount, sentenceCount, avgWordsPerSentence, readingTimeSeconds, label}`
 - [x] `ReadabilityIndicator` component (`src/components/readability-indicator.tsx`) — compact real-time readability badge (Easy/Medium/Hard/Very Hard) with tooltip showing word count, reading time, and FK score; integrated below the content textarea in post composer
 - [x] Unit tests for readability utility (FK score calculation, grade level, word/sentence counts, edge cases — 10 tests) and API endpoint (auth, rate limit, ownership, response shape — 8 tests)
+
+### Phase 71: Content Duplicate Detection & Similarity Analysis
+- [x] Content similarity utility (`src/lib/similarity.ts`) — tokenizes text into word n-grams, computes Jaccard similarity coefficient between two strings; exports `computeSimilarity(a, b): number` (0–1 range) and `tokenize(text): Set<string>`
+- [x] `POST /api/posts/check-duplicates` endpoint — auth + rate limit; accepts `{content, excludeId?}` body; computes similarity against the user's last 100 posts (excluding optional excludeId); returns top 5 similar posts with scores ≥ 0.4 threshold, sorted by score desc
+- [x] `DuplicateWarning` component (`src/components/duplicate-warning.tsx`) — collapsible alert card showing similar posts with similarity % badge and link to original post; integrated into post composer with 600 ms debounce on content changes; hidden when no matches or content < 20 chars
+- [x] Unit tests for similarity utility and duplicate check API (tokenization, Jaccard calculation, threshold filtering, auth, rate limit, ownership, empty result, matches — 12 tests)
