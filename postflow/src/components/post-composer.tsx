@@ -13,6 +13,7 @@ import { PlatformCharCounter } from "@/components/platform-char-counter";
 import { PostPreview } from "@/components/post-preview";
 import { PlatformVariants, type PlatformVariantData } from "@/components/platform-variants";
 import { LinkPreviewCard } from "@/components/link-preview-card";
+import { ReadabilityIndicator } from "@/components/readability-indicator";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import {
   Dialog,
@@ -481,6 +482,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         {selectedPlatforms.length > 0 && (
           <PlatformCharCounter content={content} platforms={selectedPlatforms} />
         )}
+        <ReadabilityIndicator content={content} />
         <LinkPreviewCard content={content} />
       </div>
 

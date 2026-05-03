@@ -772,3 +772,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `ConsistencyCard` component (`src/components/consistency-card.tsx`) — shows consistency score as a colour-coded progress bar, streak badge, avg posts/week, and a list of content gap warnings; period selector
 - [x] Integrate `ConsistencyCard` into the analytics dashboard page below the word cloud
 - [x] Unit tests for consistency utility (score edges, streak calculation, gap detection — 10 tests) and API endpoint (auth, rate limit, period validation, shape — 8 tests)
+
+### Phase 70: Post Readability & Content Quality Score
+- [x] Readability score utility (`src/lib/readability.ts`) — Flesch-Kincaid reading ease and grade level, word count, sentence count, average sentence length, estimated reading time; exports `analyzeReadability(content)` and `readabilityLabel(score)`
+- [x] `GET /api/posts/[id]/readability` endpoint — auth + rate limit + ownership check; returns `{fleschKincaid, gradeLevel, wordCount, sentenceCount, avgWordsPerSentence, readingTimeSeconds, label}`
+- [x] `ReadabilityIndicator` component (`src/components/readability-indicator.tsx`) — compact real-time readability badge (Easy/Medium/Hard/Very Hard) with tooltip showing word count, reading time, and FK score; integrated below the content textarea in post composer
+- [x] Unit tests for readability utility (FK score calculation, grade level, word/sentence counts, edge cases — 10 tests) and API endpoint (auth, rate limit, ownership, response shape — 8 tests)
