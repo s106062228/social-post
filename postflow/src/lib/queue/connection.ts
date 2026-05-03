@@ -31,6 +31,7 @@ export const QUEUE_NAMES = {
   RSS_IMPORT: "postflow:rss-import",
   REPORT: "postflow:report",
   REMINDER: "postflow:reminder",
+  PERFORMANCE_ALERT_SCAN: "postflow:performance-alert-scan",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];

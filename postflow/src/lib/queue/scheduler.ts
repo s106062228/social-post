@@ -11,6 +11,7 @@ import type { SyncInsightsScanJobData } from "./workers/sync-insights";
 import type { RssImportScanJobData } from "./workers/rss-import";
 import type { ReportScanJobData } from "./workers/report";
 import type { ReminderJobData } from "./workers/reminder";
+import type { PerformanceAlertScanJobData } from "./workers/performance-alert";
 
 // ── Queue singletons ───────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -442,6 +443,46 @@ export async function scheduleReportScan(): Promise<void> {
     {
       repeat: { pattern: "0 8 * * *" },
       jobId: "report-scan:daily",
+    }
+  );
+}
+
+// ── Performance alert scan queue ───────────────────────────────────────────────
+
+let performanceAlertScanQueue: Queue<PerformanceAlertScanJobData> | null = null;
+
+function getPerformanceAlertScanQueue(): Queue<PerformanceAlertScanJobData> {
+  if (!performanceAlertScanQueue) {
+    performanceAlertScanQueue = new Queue<PerformanceAlertScanJobData>(
+      QUEUE_NAMES.PERFORMANCE_ALERT_SCAN,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 3,
+          backoff: { type: "exponential", delay: 5000 },
+          removeOnComplete: { count: 30 },
+          removeOnFail: { count: 50 },
+        },
+      }
+    );
+  }
+  return performanceAlertScanQueue;
+}
+
+/**
+ * Registers the daily BullMQ repeatable job that evaluates performance alerts
+ * for all users. Runs at 04:00 UTC every day.
+ * Safe to call on every worker startup — BullMQ deduplicates by job key.
+ */
+export async function schedulePerformanceAlertScan(): Promise<void> {
+  const queue = getPerformanceAlertScanQueue();
+
+  await queue.add(
+    "performance-alert-scan",
+    { triggeredAt: new Date().toISOString() },
+    {
+      repeat: { pattern: "0 4 * * *" },
+      jobId: "performance-alert-scan:daily",
     }
   );
 }

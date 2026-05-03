@@ -749,3 +749,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Extend `POST /api/posts` and `PATCH /api/posts/[id]` to accept optional `firstComment` field (max 2200 chars, nullable)
 - [x] First comment textarea in post composer — shown below main content when Facebook or Instagram accounts are selected; character counter (max 2200); label "First Comment (optional)"
 - [x] Unit tests for first comment (worker integration, adapter mocks, API validation — 13 tests)
+
+### Phase 67: Automated Performance Alerts
+- [x] `PerformanceAlert` model in Prisma (id, userId, name, metric: AlertMetric, operator: AlertOperator, threshold Float, platform?, period String default "7d", isActive, lastTriggeredAt?, createdAt, updatedAt) + `AlertMetric` enum (IMPRESSIONS, REACH, LIKES, COMMENTS, SHARES, SCORE) + `AlertOperator` enum (ABOVE, BELOW) + migration (`20260508000000_add_performance_alert`)
+- [x] CRUD API for performance alerts (`GET /api/performance-alerts`, `POST /api/performance-alerts`, `DELETE /api/performance-alerts/[id]`, `PATCH /api/performance-alerts/[id]/toggle`) — auth + rate limit + zod validation; max 20 alerts per user
+- [x] BullMQ performance alert worker (`src/lib/queue/workers/performance-alert.ts`) — daily cron at 04:00 UTC; for each active alert aggregates PostInsights over the period, compares avg metric to threshold, fires in-app notification + updates lastTriggeredAt when condition met
+- [x] Add `PERFORMANCE_ALERT_SCAN` to queue connection names; add `schedulePerformanceAlertScan()` to scheduler.ts; register worker + cron in `workers/queue-worker.ts`
+- [x] Performance alerts page in dashboard (`/performance-alerts`) — table of alerts with metric/operator/threshold/platform/period/status, inline create form, toggle active/inactive, delete
+- [x] Add "Alerts" to sidebar navigation
+- [x] Unit tests for performance alerts API (GET list, POST create, DELETE, toggle — auth, rate limit, max-alerts limit, ownership, validation — 14 tests)

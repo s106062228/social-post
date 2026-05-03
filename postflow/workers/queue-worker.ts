@@ -28,6 +28,7 @@ import {
 import { createRssImportWorker } from "../src/lib/queue/workers/rss-import";
 import { createReportWorker } from "../src/lib/queue/workers/report";
 import { createReminderWorker } from "../src/lib/queue/workers/reminder";
+import { createPerformanceAlertWorker } from "../src/lib/queue/workers/performance-alert";
 import {
   scheduleTokenExpiryCheck,
   scheduleExpiringTokenRefreshes,
@@ -35,6 +36,7 @@ import {
   scheduleSyncInsightsScan,
   scheduleRssImport,
   scheduleReportScan,
+  schedulePerformanceAlertScan,
 } from "../src/lib/queue/scheduler";
 import { workerLogger } from "../src/lib/logger";
 
@@ -49,6 +51,7 @@ const syncInsightsScanWorker = createSyncInsightsScanWorker();
 const rssImportWorker = createRssImportWorker();
 const reportWorker = createReportWorker();
 const reminderWorker = createReminderWorker();
+const performanceAlertWorker = createPerformanceAlertWorker();
 
 workerLogger.info("Publish worker started");
 workerLogger.info("Token refresh worker started");
@@ -59,6 +62,7 @@ workerLogger.info("Sync insights scan worker started");
 workerLogger.info("RSS import worker started");
 workerLogger.info("Report worker started");
 workerLogger.info("Reminder worker started");
+workerLogger.info("Performance alert worker started");
 
 // ── Register repeatable cron jobs ─────────────────────────────────────────────
 
@@ -102,6 +106,14 @@ async function registerCronJobs(): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     workerLogger.error({ err: message }, "Failed to register report scan cron");
   }
+
+  try {
+    await schedulePerformanceAlertScan();
+    workerLogger.info("Registered daily performance alert scan cron (04:00 UTC)");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    workerLogger.error({ err: message }, "Failed to register performance alert scan cron");
+  }
 }
 
 // ── Initial token refresh scan ────────────────────────────────────────────────
@@ -141,6 +153,7 @@ async function shutdown(signal: string): Promise<void> {
     rssImportWorker.close(),
     reportWorker.close(),
     reminderWorker.close(),
+    performanceAlertWorker.close(),
   ]);
 
   workerLogger.info("All workers stopped. Exiting.");

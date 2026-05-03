@@ -64,6 +64,20 @@ enum ImportStatus {
   FAILED
 }
 
+enum AlertMetric {
+  IMPRESSIONS
+  REACH
+  LIKES
+  COMMENTS
+  SHARES
+  SCORE
+}
+
+enum AlertOperator {
+  ABOVE
+  BELOW
+}
+
 model User {
   id                 String              @id @default(cuid())
   email              String              @unique
@@ -98,6 +112,7 @@ model User {
   importBatches      ImportBatch[]
   filterPresets      FilterPreset[]
   abTests            PostABTest[]
+  performanceAlerts  PerformanceAlert[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -625,5 +640,25 @@ model PostABTest {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model PerformanceAlert {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  metric          AlertMetric
+  operator        AlertOperator
+  threshold       Float
+  platform        Platform?
+  period          String        @default("7d")
+  isActive        Boolean       @default(true)
+  lastTriggeredAt DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([isActive])
   @@index([userId, createdAt(sort: Desc)])
 }
