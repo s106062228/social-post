@@ -758,3 +758,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Performance alerts page in dashboard (`/performance-alerts`) — table of alerts with metric/operator/threshold/platform/period/status, inline create form, toggle active/inactive, delete
 - [x] Add "Alerts" to sidebar navigation
 - [x] Unit tests for performance alerts API (GET list, POST create, DELETE, toggle — auth, rate limit, max-alerts limit, ownership, validation — 14 tests)
+
+### Phase 68: Word Cloud & Content Pattern Analysis
+- [x] Word frequency analysis utility (`src/lib/word-frequency.ts`) — counts word occurrences in post content, filters English stop words, returns sorted `{text, count}` pairs
+- [x] `GET /api/analytics/word-cloud` endpoint — auth + rate limit + `?period=7d|30d|90d`; aggregates word frequency across user's PUBLISHED posts in the period; returns top 50 words
+- [x] `WordCloudCard` component (`src/components/word-cloud-card.tsx`) — tag-cloud visualization with font-size proportional to frequency, period selector, "No posts yet" empty state
+- [x] Integrate `WordCloudCard` into the analytics dashboard page below the best-times heatmap
+- [x] Unit tests for word frequency utility and word-cloud endpoint (stop word filtering, frequency count, auth, rate limit, period filter, shape — 12 tests)

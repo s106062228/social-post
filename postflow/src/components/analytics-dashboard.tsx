@@ -26,6 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { BarChart2, CheckCircle2, XCircle, Clock, TrendingUp } from "lucide-react";
 import { BestTimesCard } from "@/components/best-times-card";
+import { WordCloudCard } from "@/components/word-cloud-card";
 
 type Period = "7d" | "30d" | "90d";
 
@@ -424,6 +425,9 @@ export function AnalyticsDashboard() {
 
       {/* Best Times to Post heatmap */}
       <BestTimesCard />
+
+      {/* Word Cloud */}
+      <WordCloudCard />
     </div>
   );
 }
