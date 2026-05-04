@@ -52,6 +52,60 @@ export async function generateContentVariants(
   return [];
 }
 
+const REPURPOSE_SYSTEM = `You are a social media content expert. Rewrite the provided post for different social media platforms, adapting style and length to each platform's constraints and audience expectations.
+Always respond with valid JSON in this exact format: {"variants": [{"platform": "PLATFORM_NAME", "content": "adapted content"}]}
+Platform guidelines:
+- FACEBOOK (max 63,206 chars): Conversational, storytelling-friendly, supports rich text and emojis, longer is fine
+- INSTAGRAM (max 2,200 chars): Visual-focused, engaging caption, hashtag-friendly, punchy hook
+- THREADS (max 500 chars): Short, punchy, Twitter-like brevity, no hashtags needed
+Only include the platforms requested. Keep the core message but adapt the style.`;
+
+export async function repurposeContent(
+  content: string,
+  targetPlatforms: string[]
+): Promise<{ platform: string; content: string }[]> {
+  const client = getClient();
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 2048,
+    system: [
+      {
+        type: "text",
+        text: REPURPOSE_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: `Original content:\n${content}\n\nRepurpose for these platforms: ${targetPlatforms.join(", ")}`,
+      },
+    ],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as { variants?: unknown };
+    const variants = parsed.variants;
+    if (
+      Array.isArray(variants) &&
+      variants.every(
+        (v) =>
+          typeof v === "object" &&
+          v !== null &&
+          typeof (v as Record<string, unknown>).platform === "string" &&
+          typeof (v as Record<string, unknown>).content === "string"
+      )
+    ) {
+      return variants as { platform: string; content: string }[];
+    }
+  } catch {
+    // fall through
+  }
+  return [];
+}
+
 export async function suggestHashtags(
   content: string,
   platforms: string[]

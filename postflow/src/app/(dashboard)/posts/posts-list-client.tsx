@@ -17,6 +17,7 @@ import { StarPostButton } from "./star-post-button";
 import { EvergreenButton } from "./evergreen-button";
 import { RecyclePostButton } from "./recycle-post-button";
 import { AnalyzeSentimentButton } from "./analyze-sentiment-button";
+import { RepurposeDialog } from "@/components/repurpose-dialog";
 import { computeScore, scoreLabel } from "@/lib/content-score";
 
 type PublishResultInsights = {
@@ -313,6 +314,7 @@ export function PostsListClient({ posts }: PostsListClientProps) {
                 <StarPostButton postId={post.id} initialStarred={post.starred} />
                 <EvergreenButton postId={post.id} initialEvergreen={post.isEvergreen} />
                 <AnalyzeSentimentButton postId={post.id} />
+                <RepurposeDialog postId={post.id} />
                 {post.status === "PUBLISHED" && (
                   <RecyclePostButton postId={post.id} />
                 )}

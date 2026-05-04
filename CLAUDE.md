@@ -784,3 +784,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `POST /api/posts/check-duplicates` endpoint — auth + rate limit; accepts `{content, excludeId?}` body; computes similarity against the user's last 100 posts (excluding optional excludeId); returns top 5 similar posts with scores ≥ 0.4 threshold, sorted by score desc
 - [x] `DuplicateWarning` component (`src/components/duplicate-warning.tsx`) — collapsible alert card showing similar posts with similarity % badge and link to original post; integrated into post composer with 600 ms debounce on content changes; hidden when no matches or content < 20 chars
 - [x] Unit tests for similarity utility and duplicate check API (tokenization, Jaccard calculation, threshold filtering, auth, rate limit, ownership, empty result, matches — 12 tests)
+
+### Phase 72: AI-Powered Content Repurposing
+- [x] Add `repurposeContent(content, targetPlatforms)` to `src/lib/ai.ts` — calls Claude AI (`claude-haiku-4-5`) to rewrite content adapted to each target platform's style and character limits; uses prompt caching on system block; returns `{platform, content}[]`
+- [x] `POST /api/posts/[id]/repurpose` endpoint — auth + rate limit + AI check + ownership; accepts optional `targetPlatforms` array (defaults to all three platforms); calls `repurposeContent`; returns `{variants: {platform, content}[]}`
+- [x] `RepurposeDialog` component (`src/components/repurpose-dialog.tsx`) — modal with per-platform repurposed content preview showing character count vs limit, per-variant copy-to-clipboard and "Apply as Variant" button calling PUT `/api/posts/[id]/variants`, regenerate option
+- [x] Repurpose button (wand icon) integrated into `PostsListClient` via `RepurposeDialog` — available on every post row
+- [x] Unit tests for repurpose endpoint (auth, rate limit, AI disabled, not-found, ownership, all-platforms default, specific platforms, invalid platform, unexpected error — 9 tests)
