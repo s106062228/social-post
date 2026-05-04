@@ -31,6 +31,7 @@ import {
   Link2,
   Lightbulb,
   Target,
+  BookMarked,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -63,6 +64,7 @@ const navItems = [
   { href: "/utm-presets", label: "UTM Tags", icon: Link2 },
   { href: "/ideas", label: "Ideas", icon: Lightbulb },
   { href: "/posting-goals", label: "Goals", icon: Target },
+  { href: "/snippets", label: "Snippets", icon: BookMarked },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

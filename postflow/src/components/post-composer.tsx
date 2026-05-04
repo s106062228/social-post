@@ -44,6 +44,13 @@ interface HashtagGroup {
   hashtags: string[];
 }
 
+interface ContentSnippet {
+  id: string;
+  name: string;
+  content: string;
+  category: string | null;
+}
+
 interface PostComposerProps {
   defaultScheduledAt?: string;
   accounts: Account[];
@@ -69,6 +76,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [firstComment, setFirstComment] = useState("");
   const [templates, setTemplates] = useState<Template[]>([]);
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([]);
+  const [snippets, setSnippets] = useState<ContentSnippet[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [platformVariants, setPlatformVariants] = useState<PlatformVariantData[]>([]);
@@ -97,6 +105,13 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       .then((r) => r.json())
       .then((data: { groups?: HashtagGroup[] }) => {
         if (data.groups) setHashtagGroups(data.groups);
+      })
+      .catch(() => undefined);
+
+    fetch("/api/snippets")
+      .then((r) => r.json())
+      .then((data: { snippets?: ContentSnippet[] }) => {
+        if (data.snippets) setSnippets(data.snippets);
       })
       .catch(() => undefined);
   }, []);
@@ -470,6 +485,36 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
             {hashtagGroups.map((g) => (
               <option key={g.id} value={g.id}>
                 {g.name} ({g.hashtags.length})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Snippet insertion */}
+      {snippets.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="snippet-select">Insert snippet</Label>
+          <select
+            id="snippet-select"
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            defaultValue=""
+            onChange={(e) => {
+              const snippet = snippets.find((s) => s.id === e.target.value);
+              if (snippet) {
+                setContent((prev) =>
+                  prev.trim()
+                    ? `${prev.trimEnd()}\n\n${snippet.content}`
+                    : snippet.content
+                );
+                e.target.value = "";
+              }
+            }}
+          >
+            <option value="" disabled>Select a snippet…</option>
+            {snippets.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.category ? `[${s.category}] ` : ""}{s.name}
               </option>
             ))}
           </select>

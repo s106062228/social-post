@@ -116,6 +116,7 @@ model User {
   utmPresets         UtmPreset[]
   contentIdeas       ContentIdea[]
   postingGoals       PostingGoal[]
+  contentSnippets    ContentSnippet[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -730,5 +731,20 @@ model PostingGoal {
 
   @@index([userId])
   @@index([userId, isActive])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model ContentSnippet {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  content   String
+  category  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, category])
   @@index([userId, createdAt(sort: Desc)])
 }

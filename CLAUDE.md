@@ -823,3 +823,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Posting goals page in dashboard (`/posting-goals`) — list goals with circular progress indicators, inline create form (name + period + targetCount + optional platform), toggle active/pause, delete
 - [x] Add "Goals" to sidebar navigation
 - [x] Unit tests for posting goals API (GET list, POST create, DELETE, toggle, GET progress — auth, rate limit, max-goals, validation, CRUD shape — 24 tests)
+
+### Phase 77: Content Snippet Library
+- [x] `ContentSnippet` model in Prisma (id, userId, name, content, category?, createdAt, updatedAt) + migration
+- [x] CRUD API for snippets (`GET /api/snippets`, `POST /api/snippets`, `PATCH /api/snippets/[id]`, `DELETE /api/snippets/[id]`) — auth + rate limit + zod validation; max 50 snippets per user
+- [x] Snippets management page in dashboard (`/snippets`) — list, inline create form (name + category + content), edit-in-place, delete
+- [x] "Insert Snippet" selector in post composer — dropdown listing snippets (optionally filtered by category), appends snippet content to post textarea
+- [x] Add "Snippets" to sidebar navigation
+- [x] Unit tests for snippets API (GET, POST, PATCH, DELETE — auth, rate limit, max-snippets, ownership, validation — 14 tests)
