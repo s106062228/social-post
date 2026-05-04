@@ -114,6 +114,7 @@ model User {
   abTests            PostABTest[]
   performanceAlerts  PerformanceAlert[]
   utmPresets         UtmPreset[]
+  contentIdeas       ContentIdea[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -679,5 +680,31 @@ model UtmPreset {
 
   @@index([userId])
   @@index([userId, isDefault])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+enum IdeaStatus {
+  IDEA
+  RESEARCHING
+  DRAFTING
+  REVIEW
+  DONE
+}
+
+model ContentIdea {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  status      IdeaStatus @default(IDEA)
+  platform    Platform?
+  notes       String?
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([userId, status])
   @@index([userId, createdAt(sort: Desc)])
 }

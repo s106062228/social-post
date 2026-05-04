@@ -807,3 +807,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] UTM presets management page in dashboard (`/utm-presets`) — list presets, inline create form (name + source + medium + optional campaign/content/term), set-default toggle, delete
 - [x] Add "UTM Tags" to sidebar navigation
 - [x] Unit tests for UTM utility and presets API (URL extraction, tagging, auth, rate limit, max-presets, CRUD shape — 12 tests)
+
+### Phase 75: Content Idea Board (Kanban)
+- [x] `ContentIdea` model in Prisma (id, userId, title, description?, status: IdeaStatus, platform?, notes?, dueDate?, createdAt, updatedAt) + `IdeaStatus` enum (IDEA, RESEARCHING, DRAFTING, REVIEW, DONE) + migration
+- [x] CRUD API for ideas (`GET /api/ideas`, `POST /api/ideas`, `PATCH /api/ideas/[id]`, `DELETE /api/ideas/[id]`) — auth + rate limit + zod validation
+- [x] "Convert to Post" action (`POST /api/ideas/[id]/to-post`) — creates a DRAFT Post from the idea title/description, returns the new post id
+- [x] Kanban board page in dashboard (`/ideas`) — five-column board (Idea / Researching / Drafting / Review / Done), inline idea creation, move-to-column action, delete, "Convert to Post" button per card
+- [x] Add "Ideas" to sidebar navigation
+- [x] Unit tests for ideas API (GET list, POST create, PATCH update, DELETE, to-post — auth, rate limit, validation, CRUD shape — 15 tests)
