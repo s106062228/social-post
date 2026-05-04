@@ -113,6 +113,7 @@ model User {
   filterPresets      FilterPreset[]
   abTests            PostABTest[]
   performanceAlerts  PerformanceAlert[]
+  utmPresets         UtmPreset[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -660,5 +661,23 @@ model PerformanceAlert {
 
   @@index([userId])
   @@index([isActive])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model UtmPreset {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  source    String
+  medium    String
+  campaign  String?
+  content   String?
+  term      String?
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, isDefault])
   @@index([userId, createdAt(sort: Desc)])
 }

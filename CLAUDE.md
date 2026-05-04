@@ -798,3 +798,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `SchedulingAdvisorCard` component (`src/components/scheduling-advisor-card.tsx`) — client component showing AI recommendations as priority-badged cards with a refresh button and loading/empty state
 - [x] Integrate `SchedulingAdvisorCard` into the analytics dashboard page below the consistency card
 - [x] Unit tests for `POST /api/ai/schedule-advice` (auth, rate limit, AI disabled, success shape, empty history, error fallback — 8 tests)
+
+### Phase 74: UTM Parameter Manager & Auto-Tagging
+- [x] `UtmPreset` model in Prisma (id, userId, name, source, medium, campaign?, content?, term?, isDefault, createdAt) + migration — saved UTM parameter templates per user
+- [x] CRUD API for UTM presets (`GET /api/utm-presets`, `POST /api/utm-presets`, `DELETE /api/utm-presets/[id]`, `PATCH /api/utm-presets/[id]/set-default`) — auth + rate limit + zod validation; max 20 presets per user
+- [x] UTM tag utility (`src/lib/utm.ts`) — `appendUtmParams(url, preset)` builds tagged URL; `extractUrls(content)` finds all URLs in post content; `tagContentUrls(content, preset)` replaces all URLs with UTM-tagged versions
+- [x] UTM tagging in post composer — "Tag URLs" button applies default UTM preset to all URLs in current content; shows count of URLs tagged; resets when content changes
+- [x] UTM presets management page in dashboard (`/utm-presets`) — list presets, inline create form (name + source + medium + optional campaign/content/term), set-default toggle, delete
+- [x] Add "UTM Tags" to sidebar navigation
+- [x] Unit tests for UTM utility and presets API (URL extraction, tagging, auth, rate limit, max-presets, CRUD shape — 12 tests)

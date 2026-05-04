@@ -28,6 +28,7 @@ import {
   Trophy,
   FlaskConical,
   BellRing,
+  Link2,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -57,6 +58,7 @@ const navItems = [
   { href: "/reports", label: "Reports", icon: Mail },
   { href: "/import", label: "Import", icon: FileUp },
   { href: "/performance-alerts", label: "Alerts", icon: BellRing },
+  { href: "/utm-presets", label: "UTM Tags", icon: Link2 },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

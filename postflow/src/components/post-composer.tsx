@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -16,6 +16,7 @@ import { LinkPreviewCard } from "@/components/link-preview-card";
 import { ReadabilityIndicator } from "@/components/readability-indicator";
 import { DuplicateWarning } from "@/components/duplicate-warning";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
+import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
 import {
   Dialog,
   DialogContent,
@@ -79,6 +80,10 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [aiVariants, setAiVariants] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [hashtagsLoading, setHashtagsLoading] = useState(false);
+
+  // UTM tagging state
+  const [utmLoading, setUtmLoading] = useState(false);
+  const [utmTaggedCount, setUtmTaggedCount] = useState<number | null>(null);
 
   useEffect(() => {
     fetch("/api/templates?limit=50")
@@ -347,6 +352,38 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
     }
   }
 
+  async function tagUrlsWithUtm() {
+    const urls = extractUrls(content);
+    if (urls.length === 0) {
+      toast({ title: "No URLs found in content.", variant: "destructive" });
+      return;
+    }
+    setUtmLoading(true);
+    try {
+      const res = await fetch("/api/utm-presets");
+      if (!res.ok) throw new Error("Failed to load UTM presets");
+      const data = (await res.json()) as { presets: (UtmParams & { id: string; isDefault: boolean })[] };
+      const defaultPreset = data.presets.find((p) => p.isDefault) ?? data.presets[0];
+      if (!defaultPreset) {
+        toast({
+          title: "No UTM preset found",
+          description: "Create a UTM preset on the UTM Tags page first.",
+          variant: "destructive",
+        });
+        return;
+      }
+      const tagged = tagContentUrls(content, defaultPreset);
+      const taggedUrls = extractUrls(tagged);
+      setContent(tagged);
+      setUtmTaggedCount(taggedUrls.length);
+      toast({ title: `${taggedUrls.length} URL${taggedUrls.length !== 1 ? "s" : ""} tagged with UTM params.`, variant: "success" });
+    } catch {
+      toast({ title: "Failed to tag URLs", variant: "destructive" });
+    } finally {
+      setUtmLoading(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       {/* Account selection */}
@@ -471,13 +508,27 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
               )}
               Suggest Hashtags
             </button>
+            <button
+              type="button"
+              onClick={tagUrlsWithUtm}
+              disabled={utmLoading || !content.trim()}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:pointer-events-none disabled:opacity-50"
+              title="Tag all URLs in content with the default UTM preset"
+            >
+              {utmLoading ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Link2 className="h-3 w-3" />
+              )}
+              Tag URLs{utmTaggedCount !== null ? ` (${utmTaggedCount})` : ""}
+            </button>
           </div>
         </div>
         <Textarea
           id="content"
           placeholder="What do you want to share?"
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => { setContent(e.target.value); setUtmTaggedCount(null); }}
           className="min-h-[160px] resize-none"
         />
         {selectedPlatforms.length > 0 && (
