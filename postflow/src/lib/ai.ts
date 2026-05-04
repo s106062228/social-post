@@ -106,6 +106,64 @@ export async function repurposeContent(
   return [];
 }
 
+export interface ScheduleRecommendation {
+  insight: string;
+  action: string;
+  priority: "high" | "medium" | "low";
+}
+
+const SCHEDULE_ADVISOR_SYSTEM = `You are a social media scheduling expert. Analyze posting history and engagement data to provide actionable scheduling recommendations.
+Always respond with valid JSON in this exact format: {"recommendations": [{"insight": "observation", "action": "specific action to take", "priority": "high|medium|low"}]}
+Provide 3–5 distinct, actionable recommendations. Priorities: high = immediate impact, medium = helpful improvement, low = nice to have.
+Base recommendations on the provided data. If data is sparse, suggest data collection strategies.`;
+
+export async function generateScheduleAdvice(
+  historySummary: string,
+  insightsSummary: string
+): Promise<ScheduleRecommendation[]> {
+  const client = getClient();
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 1024,
+    system: [
+      {
+        type: "text",
+        text: SCHEDULE_ADVISOR_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: `Posting History:\n${historySummary}\n\nEngagement Insights:\n${insightsSummary}\n\nProvide scheduling recommendations.`,
+      },
+    ],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as { recommendations?: unknown };
+    const recs = parsed.recommendations;
+    if (
+      Array.isArray(recs) &&
+      recs.every(
+        (r) =>
+          typeof r === "object" &&
+          r !== null &&
+          typeof (r as Record<string, unknown>).insight === "string" &&
+          typeof (r as Record<string, unknown>).action === "string" &&
+          ["high", "medium", "low"].includes((r as Record<string, unknown>).priority as string)
+      )
+    ) {
+      return recs as ScheduleRecommendation[];
+    }
+  } catch {
+    // fall through
+  }
+  return [];
+}
+
 export async function suggestHashtags(
   content: string,
   platforms: string[]

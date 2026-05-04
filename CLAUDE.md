@@ -791,3 +791,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `RepurposeDialog` component (`src/components/repurpose-dialog.tsx`) — modal with per-platform repurposed content preview showing character count vs limit, per-variant copy-to-clipboard and "Apply as Variant" button calling PUT `/api/posts/[id]/variants`, regenerate option
 - [x] Repurpose button (wand icon) integrated into `PostsListClient` via `RepurposeDialog` — available on every post row
 - [x] Unit tests for repurpose endpoint (auth, rate limit, AI disabled, not-found, ownership, all-platforms default, specific platforms, invalid platform, unexpected error — 9 tests)
+
+### Phase 73: AI-Powered Scheduling Advisor
+- [x] Add `generateScheduleAdvice(history, insights)` to `src/lib/ai.ts` — accepts posting history summary + engagement insights; calls Claude AI (`claude-haiku-4-5`) with prompt caching on system block; returns `{recommendations: {insight: string, action: string, priority: "high"|"medium"|"low"}[]}`
+- [x] `POST /api/ai/schedule-advice` endpoint — auth + rate limit + zod validation; queries user's recent PostInsights and posting activity; calls `generateScheduleAdvice`; returns `{recommendations}` or 503 when AI not configured
+- [x] `SchedulingAdvisorCard` component (`src/components/scheduling-advisor-card.tsx`) — client component showing AI recommendations as priority-badged cards with a refresh button and loading/empty state
+- [x] Integrate `SchedulingAdvisorCard` into the analytics dashboard page below the consistency card
+- [x] Unit tests for `POST /api/ai/schedule-advice` (auth, rate limit, AI disabled, success shape, empty history, error fallback — 8 tests)

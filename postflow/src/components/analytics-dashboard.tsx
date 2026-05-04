@@ -28,6 +28,7 @@ import { BarChart2, CheckCircle2, XCircle, Clock, TrendingUp } from "lucide-reac
 import { BestTimesCard } from "@/components/best-times-card";
 import { WordCloudCard } from "@/components/word-cloud-card";
 import { ConsistencyCard } from "@/components/consistency-card";
+import { SchedulingAdvisorCard } from "@/components/scheduling-advisor-card";
 
 type Period = "7d" | "30d" | "90d";
 
@@ -432,6 +433,9 @@ export function AnalyticsDashboard() {
 
       {/* Posting Consistency */}
       <ConsistencyCard />
+
+      {/* AI Scheduling Advisor */}
+      <SchedulingAdvisorCard />
     </div>
   );
 }
