@@ -815,3 +815,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Kanban board page in dashboard (`/ideas`) — five-column board (Idea / Researching / Drafting / Review / Done), inline idea creation, move-to-column action, delete, "Convert to Post" button per card
 - [x] Add "Ideas" to sidebar navigation
 - [x] Unit tests for ideas API (GET list, POST create, PATCH update, DELETE, to-post — auth, rate limit, validation, CRUD shape — 15 tests)
+
+### Phase 76: Posting Goals & Progress Tracking
+- [x] `PostingGoal` model in Prisma (id, userId, name, targetCount, period: GoalPeriod enum DAILY/WEEKLY/MONTHLY, platform?, isActive, createdAt, updatedAt) + migration (`20260511000000_add_posting_goal`)
+- [x] CRUD API for posting goals (`GET /api/posting-goals`, `POST /api/posting-goals`, `DELETE /api/posting-goals/[id]`, `PATCH /api/posting-goals/[id]/toggle`) — auth + rate limit + zod validation; max 20 goals per user
+- [x] Progress endpoint (`GET /api/posting-goals/progress`) — for each active goal computes publishedCount in the current period window vs targetCount; returns `{goalId, name, period, platform, targetCount, publishedCount, percentage, onTrack}`
+- [x] Posting goals page in dashboard (`/posting-goals`) — list goals with circular progress indicators, inline create form (name + period + targetCount + optional platform), toggle active/pause, delete
+- [x] Add "Goals" to sidebar navigation
+- [x] Unit tests for posting goals API (GET list, POST create, DELETE, toggle, GET progress — auth, rate limit, max-goals, validation, CRUD shape — 24 tests)

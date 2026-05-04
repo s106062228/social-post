@@ -115,6 +115,7 @@ model User {
   performanceAlerts  PerformanceAlert[]
   utmPresets         UtmPreset[]
   contentIdeas       ContentIdea[]
+  postingGoals       PostingGoal[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -706,5 +707,28 @@ model ContentIdea {
 
   @@index([userId])
   @@index([userId, status])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+enum GoalPeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+model PostingGoal {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  targetCount Int
+  period      GoalPeriod
+  platform    Platform?
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([userId, isActive])
   @@index([userId, createdAt(sort: Desc)])
 }
