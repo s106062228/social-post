@@ -831,3 +831,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] "Insert Snippet" selector in post composer — dropdown listing snippets (optionally filtered by category), appends snippet content to post textarea
 - [x] Add "Snippets" to sidebar navigation
 - [x] Unit tests for snippets API (GET, POST, PATCH, DELETE — auth, rate limit, max-snippets, ownership, validation — 14 tests)
+
+### Phase 78: Post Draft Auto-Save & Recovery
+- [x] `DraftAutosave` model in Prisma (id, userId unique, content, scheduledAt?, firstComment?, selectedAccountIds[], tagIds[], platformVariants Json?, updatedAt) + migration — one row per user, upserted on every save
+- [x] `GET /api/posts/autosave` + `PUT /api/posts/autosave` + `DELETE /api/posts/autosave` endpoints — retrieve / store / clear the in-progress draft; auth + rate limit + zod validation
+- [x] `AutosaveIndicator` component (`src/components/autosave-indicator.tsx`) — compact status badge ("Saving…" / "Saved X ago" / "Error") shown above the content textarea
+- [x] Auto-save integration in post composer — debounced useEffect (5 s after last keystroke), PUT to `/api/posts/autosave` when content is non-empty; clear autosave on successful post creation
+- [x] Draft recovery modal in post composer — on mount, GET `/api/posts/autosave`; if a non-empty draft exists, show a dialog offering "Restore draft" or "Discard" before composing
+- [x] Unit tests for autosave API (GET empty, GET with draft, PUT create/update, DELETE — auth, rate limit, validation, shape — 12 tests)

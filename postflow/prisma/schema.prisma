@@ -117,6 +117,7 @@ model User {
   contentIdeas       ContentIdea[]
   postingGoals       PostingGoal[]
   contentSnippets    ContentSnippet[]
+  draftAutosave      DraftAutosave?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -747,4 +748,17 @@ model ContentSnippet {
   @@index([userId])
   @@index([userId, category])
   @@index([userId, createdAt(sort: Desc)])
+}
+
+model DraftAutosave {
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content            String
+  scheduledAt        DateTime?
+  firstComment       String?
+  selectedAccountIds String[]
+  tagIds             String[]
+  platformVariants   Json?
+  updatedAt          DateTime  @updatedAt
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +15,7 @@ import { PlatformVariants, type PlatformVariantData } from "@/components/platfor
 import { LinkPreviewCard } from "@/components/link-preview-card";
 import { ReadabilityIndicator } from "@/components/readability-indicator";
 import { DuplicateWarning } from "@/components/duplicate-warning";
+import { AutosaveIndicator } from "@/components/autosave-indicator";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
 import {
@@ -25,6 +26,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import type { Platform } from "@prisma/client";
+
+type AutosaveState = "idle" | "saving" | "saved" | "error";
 
 interface Account {
   id: string;
@@ -81,6 +84,21 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [showPreview, setShowPreview] = useState(false);
   const [platformVariants, setPlatformVariants] = useState<PlatformVariantData[]>([]);
 
+  // Autosave state
+  const [autosaveState, setAutosaveState] = useState<AutosaveState>("idle");
+  const [autosavedAt, setAutosavedAt] = useState<Date | null>(null);
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Draft recovery state
+  const [showDraftRecovery, setShowDraftRecovery] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<{
+    content: string;
+    scheduledAt: string | null;
+    firstComment: string | null;
+    selectedAccountIds: string[];
+    tagIds: string[];
+  } | null>(null);
+
   // AI suggestions state
   const [showAiDialog, setShowAiDialog] = useState(false);
   const [aiTopic, setAiTopic] = useState("");
@@ -114,7 +132,74 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         if (data.snippets) setSnippets(data.snippets);
       })
       .catch(() => undefined);
+
+    // Check for an existing autosaved draft on mount
+    fetch("/api/posts/autosave")
+      .then((r) => r.json())
+      .then((data: { draft?: { content: string; scheduledAt: string | null; firstComment: string | null; selectedAccountIds: string[]; tagIds: string[] } | null }) => {
+        if (data.draft?.content?.trim()) {
+          setPendingDraft(data.draft);
+          setShowDraftRecovery(true);
+        }
+      })
+      .catch(() => undefined);
   }, []);
+
+  // Debounced autosave — fires 5 s after last content change
+  const performAutosave = useCallback(
+    (
+      currentContent: string,
+      currentScheduledAt: string,
+      currentFirstComment: string,
+      currentAccountIds: string[],
+      currentTagIds: string[],
+      currentVariants: PlatformVariantData[],
+    ) => {
+      if (!currentContent.trim()) return;
+      setAutosaveState("saving");
+      fetch("/api/posts/autosave", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: currentContent,
+          scheduledAt: currentScheduledAt ? new Date(currentScheduledAt).toISOString() : null,
+          firstComment: currentFirstComment.trim() || null,
+          selectedAccountIds: currentAccountIds,
+          tagIds: currentTagIds,
+          platformVariants: currentVariants.length > 0 ? currentVariants : null,
+        }),
+      })
+        .then((r) => {
+          if (r.ok) {
+            setAutosaveState("saved");
+            setAutosavedAt(new Date());
+          } else {
+            setAutosaveState("error");
+          }
+        })
+        .catch(() => setAutosaveState("error"));
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!content.trim()) return;
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = setTimeout(() => {
+      performAutosave(
+        content,
+        scheduledAt,
+        firstComment,
+        Array.from(selectedAccountIds),
+        selectedTagIds,
+        platformVariants,
+      );
+    }, 5000);
+    return () => {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content, scheduledAt, firstComment, selectedTagIds, platformVariants]);
 
   const selectedPlatforms = accounts
     .filter((a) => selectedAccountIds.has(a.id))
@@ -222,6 +307,10 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         toast({ title: "Draft saved", variant: "success" });
       }
 
+      // Clear the autosave once the post is saved
+      void fetch("/api/posts/autosave", { method: "DELETE" });
+      setAutosaveState("idle");
+
       router.push("/posts");
       router.refresh();
     } catch (err) {
@@ -282,6 +371,8 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           : "Post scheduled",
         variant: "success",
       });
+      void fetch("/api/posts/autosave", { method: "DELETE" });
+      setAutosaveState("idle");
       router.push("/posts");
       router.refresh();
     } catch (err) {
@@ -579,7 +670,10 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         {selectedPlatforms.length > 0 && (
           <PlatformCharCounter content={content} platforms={selectedPlatforms} />
         )}
-        <ReadabilityIndicator content={content} />
+        <div className="flex items-center justify-between">
+          <ReadabilityIndicator content={content} />
+          <AutosaveIndicator state={autosaveState} savedAt={autosavedAt} />
+        </div>
         <DuplicateWarning content={content} />
         <LinkPreviewCard content={content} />
       </div>
@@ -619,6 +713,59 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           onChange={setPlatformVariants}
         />
       )}
+
+      {/* Draft Recovery Dialog */}
+      <Dialog open={showDraftRecovery} onOpenChange={setShowDraftRecovery}>
+        <DialogContent className="sm:max-w-[460px]">
+          <DialogHeader>
+            <DialogTitle>Restore unsaved draft?</DialogTitle>
+            <DialogDescription>
+              You have an autosaved draft from a previous session. Would you like to restore it?
+            </DialogDescription>
+          </DialogHeader>
+          {pendingDraft && (
+            <div className="rounded-md border border-input bg-muted/50 p-3 text-sm text-foreground line-clamp-4 whitespace-pre-wrap">
+              {pendingDraft.content}
+            </div>
+          )}
+          <div className="flex gap-3 justify-end pt-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                void fetch("/api/posts/autosave", { method: "DELETE" });
+                setPendingDraft(null);
+                setShowDraftRecovery(false);
+              }}
+            >
+              Discard
+            </Button>
+            <Button
+              onClick={() => {
+                if (pendingDraft) {
+                  setContent(pendingDraft.content);
+                  if (pendingDraft.scheduledAt) {
+                    const dt = new Date(pendingDraft.scheduledAt);
+                    const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000)
+                      .toISOString()
+                      .slice(0, 16);
+                    setScheduledAt(local);
+                  }
+                  if (pendingDraft.firstComment) setFirstComment(pendingDraft.firstComment);
+                  if (pendingDraft.tagIds.length > 0) setSelectedTagIds(pendingDraft.tagIds);
+                  if (pendingDraft.selectedAccountIds.length > 0) {
+                    setSelectedAccountIds(new Set(pendingDraft.selectedAccountIds));
+                  }
+                }
+                setPendingDraft(null);
+                setShowDraftRecovery(false);
+                toast({ title: "Draft restored", variant: "success" });
+              }}
+            >
+              Restore draft
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* AI Suggest Dialog */}
       <Dialog open={showAiDialog} onOpenChange={setShowAiDialog}>
