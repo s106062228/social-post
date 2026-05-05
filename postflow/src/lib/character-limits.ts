@@ -4,6 +4,7 @@ export const PLATFORM_CHAR_LIMITS: Record<Platform, number> = {
   FACEBOOK: 63206,
   INSTAGRAM: 2200,
   THREADS: 500,
+  LINKEDIN: 3000,
 };
 
 export interface CharacterInfo {

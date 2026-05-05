@@ -839,3 +839,14 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Auto-save integration in post composer — debounced useEffect (5 s after last keystroke), PUT to `/api/posts/autosave` when content is non-empty; clear autosave on successful post creation
 - [x] Draft recovery modal in post composer — on mount, GET `/api/posts/autosave`; if a non-empty draft exists, show a dialog offering "Restore draft" or "Discard" before composing
 - [x] Unit tests for autosave API (GET empty, GET with draft, PUT create/update, DELETE — auth, rate limit, validation, shape — 12 tests)
+
+### Phase 79: LinkedIn Platform Integration
+- [x] Add `LINKEDIN` to `Platform` enum in Prisma schema + migration (`20260514000000_add_linkedin_platform`)
+- [x] LinkedIn OAuth utility (`src/lib/auth/linkedin-oauth.ts`) — `buildLinkedInOAuthUrl`, `exchangeLinkedInCode`, `getLinkedInProfile`; uses `openid profile w_member_social` scopes
+- [x] LinkedIn connect route (`GET /api/oauth/linkedin/connect`) — CSRF state + redirect to LinkedIn OAuth dialog
+- [x] LinkedIn callback route (`GET /api/oauth/linkedin/callback`) — exchange code, fetch profile, store encrypted token in SocialAccount
+- [x] LinkedIn platform adapter (`src/lib/platforms/linkedin.ts`) — implements PlatformAdapter; supports text posts (NONE) and single-image posts (IMAGE) via LinkedIn REST API v202406
+- [x] Update `character-limits.ts` — add `LINKEDIN: 3000` to `PLATFORM_CHAR_LIMITS`
+- [x] Update `.env.example` with `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`, `LINKEDIN_OAUTH_CALLBACK_URL`
+- [x] Update accounts page — add LinkedIn connection card with status indicators and connect button
+- [x] Unit tests for LinkedIn adapter (text post, image post, getStatus, deletePost, getInsights, error handling — 14 tests)

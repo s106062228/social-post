@@ -30,7 +30,12 @@ export default async function AccountsPage({
   const hasFacebook = accounts.some((a) => a.platform === Platform.FACEBOOK);
   const hasInstagram = accounts.some((a) => a.platform === Platform.INSTAGRAM);
   const hasThreads = accounts.some((a) => a.platform === Platform.THREADS);
+  const hasLinkedIn = accounts.some((a) => a.platform === Platform.LINKEDIN);
   const hasAnyMeta = hasFacebook || hasInstagram || hasThreads;
+
+  const linkedInEnabled = !!(
+    process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET
+  );
 
   return (
     <div className="flex flex-col gap-8 p-8">
@@ -76,6 +81,34 @@ export default async function AccountsPage({
           </div>
         </CardContent>
       </Card>
+
+      {/* LinkedIn connection card */}
+      {linkedInEnabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>LinkedIn</CardTitle>
+                <CardDescription>
+                  Connect your LinkedIn personal profile to publish professional
+                  posts.
+                </CardDescription>
+              </div>
+              <a
+                href="/api/oauth/linkedin/connect"
+                className="inline-flex items-center justify-center rounded-md bg-[#0077B5] px-4 py-2 text-sm font-medium text-white hover:bg-[#005885] focus:outline-none focus:ring-2 focus:ring-[#0077B5] focus:ring-offset-2 disabled:opacity-50"
+              >
+                {hasLinkedIn ? "Reconnect LinkedIn" : "Connect LinkedIn"}
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <PlatformStatus name="LinkedIn" connected={hasLinkedIn} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Accounts list */}
       {accounts.length > 0 && (
@@ -147,10 +180,13 @@ function PlatformStatus({
 
 function errorMessage(code: string): string {
   const messages: Record<string, string> = {
-    config_error: "OAuth configuration error. Please check your Meta App settings.",
+    config_error: "OAuth configuration error. Please check your app settings.",
     state_mismatch: "Security check failed. Please try again.",
     token_exchange: "Failed to exchange tokens. Please try again.",
     account_store: "Failed to store account. Please try again.",
+    invalid_state: "Security check failed. Please try again.",
+    missing_params: "Missing OAuth parameters. Please try again.",
+    oauth_failed: "OAuth connection failed. Please try again.",
   };
   return messages[code] ?? "An unexpected error occurred. Please try again.";
 }
