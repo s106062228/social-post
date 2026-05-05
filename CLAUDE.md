@@ -850,3 +850,14 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update `.env.example` with `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`, `LINKEDIN_OAUTH_CALLBACK_URL`
 - [x] Update accounts page — add LinkedIn connection card with status indicators and connect button
 - [x] Unit tests for LinkedIn adapter (text post, image post, getStatus, deletePost, getInsights, error handling — 14 tests)
+
+### Phase 80: Pinterest Platform Integration
+- [x] Add `PINTEREST` to `Platform` enum in Prisma schema + migration (`20260515000000_add_pinterest_platform`)
+- [x] Pinterest OAuth utility (`src/lib/auth/pinterest-oauth.ts`) — `buildPinterestOAuthUrl`, `exchangePinterestCode`, `getPinterestUserAndBoards`; uses `boards:read pins:read pins:write user_accounts:read` scopes
+- [x] Pinterest connect route (`GET /api/oauth/pinterest/connect`) — CSRF state + redirect to Pinterest OAuth dialog
+- [x] Pinterest callback route (`GET /api/oauth/pinterest/callback`) — exchange code, fetch user's first board, store encrypted token + board ID in SocialAccount
+- [x] Pinterest platform adapter (`src/lib/platforms/pinterest.ts`) — implements PlatformAdapter; supports image posts (IMAGE) via Pinterest API v5; NONE/VIDEO/CAROUSEL throw unsupported errors
+- [x] Update `character-limits.ts` — add `PINTEREST: 500` to `PLATFORM_CHAR_LIMITS`
+- [x] Update `.env.example` with `PINTEREST_CLIENT_ID`, `PINTEREST_CLIENT_SECRET`, `PINTEREST_OAUTH_CALLBACK_URL`
+- [x] Update accounts page — add Pinterest connection card with status indicators and connect button
+- [x] Unit tests for Pinterest adapter (image post, no-media error, NONE/VIDEO unsupported, getStatus, deletePost, getInsights empty/data — 12 tests)

@@ -31,10 +31,14 @@ export default async function AccountsPage({
   const hasInstagram = accounts.some((a) => a.platform === Platform.INSTAGRAM);
   const hasThreads = accounts.some((a) => a.platform === Platform.THREADS);
   const hasLinkedIn = accounts.some((a) => a.platform === Platform.LINKEDIN);
+  const hasPinterest = accounts.some((a) => a.platform === Platform.PINTEREST);
   const hasAnyMeta = hasFacebook || hasInstagram || hasThreads;
 
   const linkedInEnabled = !!(
     process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET
+  );
+  const pinterestEnabled = !!(
+    process.env.PINTEREST_CLIENT_ID && process.env.PINTEREST_CLIENT_SECRET
   );
 
   return (
@@ -105,6 +109,34 @@ export default async function AccountsPage({
           <CardContent>
             <div className="grid gap-3 sm:grid-cols-1">
               <PlatformStatus name="LinkedIn" connected={hasLinkedIn} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Pinterest connection card */}
+      {pinterestEnabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Pinterest</CardTitle>
+                <CardDescription>
+                  Connect your Pinterest account to publish image pins to your
+                  first board.
+                </CardDescription>
+              </div>
+              <a
+                href="/api/oauth/pinterest/connect"
+                className="inline-flex items-center justify-center rounded-md bg-[#E60023] px-4 py-2 text-sm font-medium text-white hover:bg-[#B60020] focus:outline-none focus:ring-2 focus:ring-[#E60023] focus:ring-offset-2"
+              >
+                {hasPinterest ? "Reconnect Pinterest" : "Connect Pinterest"}
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <PlatformStatus name="Pinterest" connected={hasPinterest} />
             </div>
           </CardContent>
         </Card>
@@ -187,6 +219,7 @@ function errorMessage(code: string): string {
     invalid_state: "Security check failed. Please try again.",
     missing_params: "Missing OAuth parameters. Please try again.",
     oauth_failed: "OAuth connection failed. Please try again.",
+    no_boards: "No Pinterest boards found. Please create a board first.",
   };
   return messages[code] ?? "An unexpected error occurred. Please try again.";
 }
