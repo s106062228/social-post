@@ -120,6 +120,8 @@ model User {
   postingGoals       PostingGoal[]
   contentSnippets    ContentSnippet[]
   draftAutosave      DraftAutosave?
+  slackIntegrations  SlackIntegration[]
+  discordIntegrations DiscordIntegration[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -763,4 +765,36 @@ model DraftAutosave {
   tagIds             String[]
   platformVariants   Json?
   updatedAt          DateTime  @updatedAt
+}
+
+model SlackIntegration {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceName String
+  webhookUrl    String
+  events        String[]
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, isActive])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model DiscordIntegration {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channelName String
+  webhookUrl  String
+  events      String[]
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, isActive])
+  @@index([userId, createdAt(sort: Desc)])
 }

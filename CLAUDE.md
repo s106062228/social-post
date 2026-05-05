@@ -861,3 +861,14 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update `.env.example` with `PINTEREST_CLIENT_ID`, `PINTEREST_CLIENT_SECRET`, `PINTEREST_OAUTH_CALLBACK_URL`
 - [x] Update accounts page — add Pinterest connection card with status indicators and connect button
 - [x] Unit tests for Pinterest adapter (image post, no-media error, NONE/VIDEO unsupported, getStatus, deletePost, getInsights empty/data — 12 tests)
+
+### Phase 81: Slack & Discord Notification Integrations
+- [x] `SlackIntegration` model in Prisma (id, userId, workspaceName, webhookUrl, events[], isActive, createdAt, updatedAt) + `DiscordIntegration` model (id, userId, channelName, webhookUrl, events[], isActive, createdAt, updatedAt) + migration
+- [x] Slack notification dispatch (`src/lib/slack-notify.ts`) — sends Block Kit formatted message to Slack incoming webhook URL on post terminal events
+- [x] Discord notification dispatch (`src/lib/discord-notify.ts`) — sends embed message to Discord webhook URL on post terminal events
+- [x] CRUD API for Slack integrations (`GET /api/integrations/slack`, `POST /api/integrations/slack`, `DELETE /api/integrations/slack/[id]`, `PATCH /api/integrations/slack/[id]/toggle`) — auth + rate limit + zod validation
+- [x] CRUD API for Discord integrations (`GET /api/integrations/discord`, `POST /api/integrations/discord`, `DELETE /api/integrations/discord/[id]`, `PATCH /api/integrations/discord/[id]/toggle`) — auth + rate limit + zod validation
+- [x] Integrate both dispatchers into BullMQ publish worker — fire after post status is reconciled (same pattern as webhook dispatch)
+- [x] Integrations page in dashboard (`/integrations`) — tabbed UI for Slack and Discord; add webhook URL + name, select events, toggle active/inactive, delete
+- [x] Add "Integrations" to sidebar navigation
+- [x] Unit tests for Slack and Discord integration API endpoints (GET, POST, DELETE, toggle — auth, rate limit, validation, CRUD shape — 34 tests)

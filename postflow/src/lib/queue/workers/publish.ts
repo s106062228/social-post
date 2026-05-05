@@ -11,6 +11,8 @@ import { publishLogger } from "@/lib/logger";
 import { notifyPostOutcome } from "@/lib/email";
 import { notifyPostOutcomeInApp } from "@/lib/notifications";
 import { dispatchWebhooks, type WebhookEvent } from "@/lib/webhook-dispatch";
+import { dispatchSlackNotifications, type IntegrationEvent } from "@/lib/slack-notify";
+import { dispatchDiscordNotifications } from "@/lib/discord-notify";
 
 // ── Job payload types ──────────────────────────────────────────────────────────
 
@@ -159,7 +161,7 @@ async function reconcilePostStatus(postId: string): Promise<void> {
   notifyPostOutcome(postId, finalStatus);
   notifyPostOutcomeInApp(postId, updatedPost.userId, finalStatus);
 
-  const eventMap: Partial<Record<PostStatus, WebhookEvent>> = {
+  const eventMap: Partial<Record<PostStatus, WebhookEvent & IntegrationEvent>> = {
     [PostStatus.PUBLISHED]: "post.published",
     [PostStatus.FAILED]: "post.failed",
     [PostStatus.PARTIALLY_PUBLISHED]: "post.partially_published",
@@ -167,6 +169,8 @@ async function reconcilePostStatus(postId: string): Promise<void> {
   const webhookEvent = eventMap[finalStatus];
   if (webhookEvent) {
     dispatchWebhooks(updatedPost.userId, webhookEvent, { postId });
+    dispatchSlackNotifications(updatedPost.userId, webhookEvent, postId);
+    dispatchDiscordNotifications(updatedPost.userId, webhookEvent, postId);
   }
 }
 
