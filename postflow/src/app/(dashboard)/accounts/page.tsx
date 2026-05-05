@@ -33,6 +33,7 @@ export default async function AccountsPage({
   const hasLinkedIn = accounts.some((a) => a.platform === Platform.LINKEDIN);
   const hasPinterest = accounts.some((a) => a.platform === Platform.PINTEREST);
   const hasYouTube = accounts.some((a) => a.platform === Platform.YOUTUBE);
+  const hasTikTok = accounts.some((a) => a.platform === Platform.TIKTOK);
   const hasAnyMeta = hasFacebook || hasInstagram || hasThreads;
 
   const linkedInEnabled = !!(
@@ -43,6 +44,9 @@ export default async function AccountsPage({
   );
   const youtubeEnabled = !!(
     process.env.YOUTUBE_CLIENT_ID && process.env.YOUTUBE_CLIENT_SECRET
+  );
+  const tiktokEnabled = !!(
+    process.env.TIKTOK_CLIENT_KEY && process.env.TIKTOK_CLIENT_SECRET
   );
 
   return (
@@ -169,6 +173,34 @@ export default async function AccountsPage({
           <CardContent>
             <div className="grid gap-3 sm:grid-cols-1">
               <PlatformStatus name="YouTube" connected={hasYouTube} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* TikTok connection card */}
+      {tiktokEnabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>TikTok</CardTitle>
+                <CardDescription>
+                  Connect your TikTok account to publish video content via the
+                  TikTok Content Posting API.
+                </CardDescription>
+              </div>
+              <a
+                href="/api/oauth/tiktok/connect"
+                className="inline-flex items-center justify-center rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+              >
+                {hasTikTok ? "Reconnect TikTok" : "Connect TikTok"}
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <PlatformStatus name="TikTok" connected={hasTikTok} />
             </div>
           </CardContent>
         </Card>

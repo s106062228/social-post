@@ -883,3 +883,14 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update `.env.example` with `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`, `YOUTUBE_OAUTH_CALLBACK_URL`
 - [x] Update accounts page — add YouTube connection card with status indicators and connect button
 - [x] Unit tests for YouTube adapter (video post, no-media error, NONE/IMAGE unsupported, getStatus, deletePost, getInsights — 12 tests)
+
+### Phase 83: TikTok Platform Integration
+- [x] Add `TIKTOK` to `Platform` enum in Prisma schema + migration (`20260518000000_add_tiktok_platform`)
+- [x] TikTok OAuth utility (`src/lib/auth/tiktok-oauth.ts`) — `buildTikTokOAuthUrl`, `exchangeTikTokCode`, `getTikTokUserInfo`; uses `user.info.basic,video.publish` scopes
+- [x] TikTok connect route (`GET /api/oauth/tiktok/connect`) — CSRF state + redirect to TikTok OAuth dialog
+- [x] TikTok callback route (`GET /api/oauth/tiktok/callback`) — exchange code, fetch user info, store encrypted token in SocialAccount
+- [x] TikTok platform adapter (`src/lib/platforms/tiktok.ts`) — implements PlatformAdapter; supports video posts (VIDEO) via TikTok Content Posting API v2; NONE/IMAGE/CAROUSEL throw unsupported errors
+- [x] Update `character-limits.ts` — add `TIKTOK: 2200` to `PLATFORM_CHAR_LIMITS`
+- [x] Update `.env.example` with `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET`, `TIKTOK_OAUTH_CALLBACK_URL`
+- [x] Update accounts page — add TikTok connection card with status indicators and connect button
+- [x] Unit tests for TikTok adapter (video post, no-media error, NONE/IMAGE unsupported, getStatus, deletePost, getInsights — 12 tests)
