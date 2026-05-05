@@ -872,3 +872,14 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Integrations page in dashboard (`/integrations`) — tabbed UI for Slack and Discord; add webhook URL + name, select events, toggle active/inactive, delete
 - [x] Add "Integrations" to sidebar navigation
 - [x] Unit tests for Slack and Discord integration API endpoints (GET, POST, DELETE, toggle — auth, rate limit, validation, CRUD shape — 34 tests)
+
+### Phase 82: YouTube Platform Integration
+- [x] Add `YOUTUBE` to `Platform` enum in Prisma schema + migration (`20260517000000_add_youtube_platform`)
+- [x] YouTube OAuth utility (`src/lib/auth/youtube-oauth.ts`) — `buildYouTubeOAuthUrl`, `exchangeYouTubeCode`, `getYouTubeChannel`; uses `https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly` scopes
+- [x] YouTube connect route (`GET /api/oauth/youtube/connect`) — CSRF state + redirect to Google OAuth dialog
+- [x] YouTube callback route (`GET /api/oauth/youtube/callback`) — exchange code, fetch channel info, store encrypted token in SocialAccount
+- [x] YouTube platform adapter (`src/lib/platforms/youtube.ts`) — implements PlatformAdapter; supports video posts (VIDEO) via YouTube Data API v3; NONE/IMAGE/CAROUSEL throw unsupported errors
+- [x] Update `character-limits.ts` — add `YOUTUBE: 5000` to `PLATFORM_CHAR_LIMITS`
+- [x] Update `.env.example` with `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`, `YOUTUBE_OAUTH_CALLBACK_URL`
+- [x] Update accounts page — add YouTube connection card with status indicators and connect button
+- [x] Unit tests for YouTube adapter (video post, no-media error, NONE/IMAGE unsupported, getStatus, deletePost, getInsights — 12 tests)

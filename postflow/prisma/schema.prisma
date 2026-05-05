@@ -15,6 +15,7 @@ enum Platform {
   THREADS
   LINKEDIN
   PINTEREST
+  YOUTUBE
 }
 
 enum PostStatus {
