@@ -35,6 +35,7 @@ export default async function AccountsPage({
   const hasYouTube = accounts.some((a) => a.platform === Platform.YOUTUBE);
   const hasTikTok = accounts.some((a) => a.platform === Platform.TIKTOK);
   const hasTwitter = accounts.some((a) => a.platform === Platform.TWITTER);
+  const hasBluesky = accounts.some((a) => a.platform === Platform.BLUESKY);
   const hasAnyMeta = hasFacebook || hasInstagram || hasThreads;
 
   const linkedInEnabled = !!(
@@ -52,6 +53,8 @@ export default async function AccountsPage({
   const twitterEnabled = !!(
     process.env.TWITTER_CLIENT_ID && process.env.TWITTER_CLIENT_SECRET
   );
+  // Bluesky uses app passwords — no client credentials required
+  const blueskyEnabled = true;
 
   return (
     <div className="flex flex-col gap-8 p-8">
@@ -238,6 +241,34 @@ export default async function AccountsPage({
         </Card>
       )}
 
+      {/* Bluesky connection card */}
+      {blueskyEnabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Bluesky</CardTitle>
+                <CardDescription>
+                  Connect your Bluesky account to publish text and image posts
+                  via the AT Protocol.
+                </CardDescription>
+              </div>
+              <a
+                href="/accounts/bluesky-connect"
+                className="inline-flex items-center justify-center rounded-md bg-[#0085FF] px-4 py-2 text-sm font-medium text-white hover:bg-[#0070D8] focus:outline-none focus:ring-2 focus:ring-[#0085FF] focus:ring-offset-2"
+              >
+                {hasBluesky ? "Reconnect Bluesky" : "Connect Bluesky"}
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <PlatformStatus name="Bluesky" connected={hasBluesky} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Accounts list */}
       {accounts.length > 0 && (
         <Card>
@@ -316,6 +347,7 @@ function errorMessage(code: string): string {
     missing_params: "Missing OAuth parameters. Please try again.",
     oauth_failed: "OAuth connection failed. Please try again.",
     no_boards: "No Pinterest boards found. Please create a board first.",
+    bluesky_auth_failed: "Bluesky authentication failed. Check your handle and app password.",
   };
   return messages[code] ?? "An unexpected error occurred. Please try again.";
 }

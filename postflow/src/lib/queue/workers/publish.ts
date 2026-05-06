@@ -10,6 +10,7 @@ import { pinterestAdapter } from "@/lib/platforms/pinterest";
 import { youTubeAdapter } from "@/lib/platforms/youtube";
 import { tikTokAdapter } from "@/lib/platforms/tiktok";
 import { twitterAdapter } from "@/lib/platforms/twitter";
+import { blueskyAdapter } from "@/lib/platforms/bluesky";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { createRedisConnection, QUEUE_NAMES } from "../connection";
 import { publishLogger } from "@/lib/logger";
@@ -38,6 +39,7 @@ const adapters: Record<Platform, PlatformAdapter> = {
   [Platform.YOUTUBE]: youTubeAdapter,
   [Platform.TIKTOK]: tikTokAdapter,
   [Platform.TWITTER]: twitterAdapter,
+  [Platform.BLUESKY]: blueskyAdapter,
 };
 
 // ── Exponential backoff helper ─────────────────────────────────────────────────
@@ -80,6 +82,7 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<void> {
     id: account.id,
     encryptedToken: account.encryptedToken,
     tokenExpiresAt: account.tokenExpiresAt,
+    platform: account.platform,
   });
 
   const adapter = adapters[account.platform];

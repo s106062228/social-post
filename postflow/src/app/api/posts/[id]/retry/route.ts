@@ -12,6 +12,7 @@ import { pinterestAdapter } from "@/lib/platforms/pinterest";
 import { youTubeAdapter } from "@/lib/platforms/youtube";
 import { tikTokAdapter } from "@/lib/platforms/tiktok";
 import { twitterAdapter } from "@/lib/platforms/twitter";
+import { blueskyAdapter } from "@/lib/platforms/bluesky";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { handleRouteError } from "@/lib/errors";
 import { logActivity } from "@/lib/activity-log";
@@ -27,6 +28,7 @@ const adapters: Record<Platform, PlatformAdapter> = {
   [Platform.YOUTUBE]: youTubeAdapter,
   [Platform.TIKTOK]: tikTokAdapter,
   [Platform.TWITTER]: twitterAdapter,
+  [Platform.BLUESKY]: blueskyAdapter,
 };
 
 // ── POST /api/posts/[id]/retry ────────────────────────────────────────────────

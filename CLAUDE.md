@@ -906,3 +906,16 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update `.env.example` with `TWITTER_CLIENT_ID`, `TWITTER_CLIENT_SECRET`, `TWITTER_OAUTH_CALLBACK_URL`
 - [x] Update accounts page — add X (Twitter) connection card with status indicator and connect button
 - [x] Unit tests for Twitter adapter (text post, content trim, API error, image post with media upload, media upload failure, skip upload when no URL, VIDEO/CAROUSEL unsupported, getStatus, deletePost, getInsights, addComment — 19 tests)
+
+### Phase 85: Bluesky Platform Integration
+- [x] Add `BLUESKY` to `Platform` enum in Prisma schema + migration (`20260520000000_add_bluesky_platform`)
+- [x] Bluesky session utility (`src/lib/auth/bluesky-oauth.ts`) — `createBlueskySession(identifier, appPassword)`, `refreshBlueskySession(refreshJwt)`, `parseBlueskyToken`, `serializeBlueskyToken`; uses AT Protocol `com.atproto.server.createSession/refreshSession`
+- [x] Bluesky connect route (`POST /api/oauth/bluesky/connect`) — accepts `{identifier, appPassword}` JSON body; calls `createBlueskySession`; stores encrypted `{did, handle, accessJwt, refreshJwt}` JSON in SocialAccount; rate-limited
+- [x] Bluesky platform adapter (`src/lib/platforms/bluesky.ts`) — implements PlatformAdapter; supports text posts (NONE) and multi-image posts (IMAGE, up to 4 via blob upload) via `com.atproto.repo.createRecord`; `platformPostId` is the AT URI; VIDEO/CAROUSEL throw unsupported errors
+- [x] Update `character-limits.ts` — add `BLUESKY: 300` to `PLATFORM_CHAR_LIMITS`
+- [x] Update token-manager.ts — extend `RefreshableAccount` with optional `platform`; add BLUESKY-specific refresh path using `refreshBlueskySession` (refresh within 10 min of expiry, updates stored token + expiry)
+- [x] Update publish worker — import and register `blueskyAdapter`; pass `platform` field to `getTokenWithRefresh`
+- [x] Update `.env.example` — add Bluesky section noting no client credentials are required
+- [x] Update accounts page — add Bluesky connection card (always enabled) linking to `/accounts/bluesky-connect`
+- [x] Bluesky connect form page (`/accounts/bluesky-connect`) — client component form accepting handle + app password; POSTs to `/api/oauth/bluesky/connect`; redirects to `/accounts` on success; shows error inline
+- [x] Unit tests for Bluesky adapter (text post, image post with blob upload, image fetch failure, blob upload failure, VIDEO/CAROUSEL unsupported, getStatus found, getStatus not-found, deletePost, getInsights, content truncation, AT URI rkey extraction — 12 tests)

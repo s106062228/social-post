@@ -68,6 +68,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   YOUTUBE: "YouTube",
   TIKTOK: "TikTok",
   TWITTER: "X (Twitter)",
+  BLUESKY: "Bluesky",
 };
 
 export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps) {
