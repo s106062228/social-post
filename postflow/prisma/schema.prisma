@@ -17,6 +17,7 @@ enum Platform {
   PINTEREST
   YOUTUBE
   TIKTOK
+  TWITTER
 }
 
 enum PostStatus {

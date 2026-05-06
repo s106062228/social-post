@@ -6,12 +6,22 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   FACEBOOK: "Facebook",
   INSTAGRAM: "Instagram",
   THREADS: "Threads",
+  LINKEDIN: "LinkedIn",
+  PINTEREST: "Pinterest",
+  YOUTUBE: "YouTube",
+  TIKTOK: "TikTok",
+  TWITTER: "X (Twitter)",
 };
 
 const PREVIEW_TRUNCATE: Record<Platform, number> = {
   FACEBOOK: 125,
   INSTAGRAM: 125,
   THREADS: 300,
+  LINKEDIN: 150,
+  PINTEREST: 100,
+  YOUTUBE: 150,
+  TIKTOK: 150,
+  TWITTER: 280,
 };
 
 function truncate(text: string, maxLen: number): { text: string; truncated: boolean } {

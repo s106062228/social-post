@@ -5,6 +5,11 @@ import { getTokenWithRefresh } from "@/lib/auth/token-manager";
 import { facebookAdapter } from "@/lib/platforms/facebook";
 import { instagramAdapter } from "@/lib/platforms/instagram";
 import { threadsAdapter } from "@/lib/platforms/threads";
+import { linkedInAdapter } from "@/lib/platforms/linkedin";
+import { pinterestAdapter } from "@/lib/platforms/pinterest";
+import { youTubeAdapter } from "@/lib/platforms/youtube";
+import { tikTokAdapter } from "@/lib/platforms/tiktok";
+import { twitterAdapter } from "@/lib/platforms/twitter";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { createRedisConnection, QUEUE_NAMES } from "../connection";
 import { publishLogger } from "@/lib/logger";
@@ -28,6 +33,11 @@ const adapters: Record<Platform, PlatformAdapter> = {
   [Platform.FACEBOOK]: facebookAdapter,
   [Platform.INSTAGRAM]: instagramAdapter,
   [Platform.THREADS]: threadsAdapter,
+  [Platform.LINKEDIN]: linkedInAdapter,
+  [Platform.PINTEREST]: pinterestAdapter,
+  [Platform.YOUTUBE]: youTubeAdapter,
+  [Platform.TIKTOK]: tikTokAdapter,
+  [Platform.TWITTER]: twitterAdapter,
 };
 
 // ── Exponential backoff helper ─────────────────────────────────────────────────

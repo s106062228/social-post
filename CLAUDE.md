@@ -894,3 +894,15 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update `.env.example` with `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET`, `TIKTOK_OAUTH_CALLBACK_URL`
 - [x] Update accounts page — add TikTok connection card with status indicators and connect button
 - [x] Unit tests for TikTok adapter (video post, no-media error, NONE/IMAGE unsupported, getStatus, deletePost, getInsights — 12 tests)
+
+### Phase 84: X (Twitter) Platform Integration
+- [x] Add `TWITTER` to `Platform` enum in Prisma schema + migration (`20260519000000_add_twitter_platform`)
+- [x] Twitter OAuth 2.0 PKCE utility (`src/lib/auth/twitter-oauth.ts`) — `buildTwitterOAuthUrl`, `exchangeTwitterCode`, `getTwitterUser`; uses `tweet.write tweet.read users.read offline.access` scopes; PKCE code verifier/challenge helpers
+- [x] Twitter connect route (`GET /api/oauth/twitter/connect`) — CSRF state + PKCE code verifier stored in httpOnly cookies + redirect to Twitter OAuth dialog
+- [x] Twitter callback route (`GET /api/oauth/twitter/callback`) — verify state + code verifier, exchange code, fetch user info, store encrypted token in SocialAccount
+- [x] Twitter platform adapter (`src/lib/platforms/twitter.ts`) — implements PlatformAdapter; supports text posts (NONE) and single-image posts (IMAGE) via Twitter API v2; media upload via v1.1 endpoint; `addComment` posts a reply tweet
+- [x] Update `character-limits.ts` — add `TWITTER: 280` to `PLATFORM_CHAR_LIMITS`
+- [x] Update all `Record<Platform, ...>` maps across adapters, workers, and UI components to include TWITTER (and back-fill LINKEDIN/PINTEREST/YOUTUBE/TIKTOK where missing)
+- [x] Update `.env.example` with `TWITTER_CLIENT_ID`, `TWITTER_CLIENT_SECRET`, `TWITTER_OAUTH_CALLBACK_URL`
+- [x] Update accounts page — add X (Twitter) connection card with status indicator and connect button
+- [x] Unit tests for Twitter adapter (text post, content trim, API error, image post with media upload, media upload failure, skip upload when no URL, VIDEO/CAROUSEL unsupported, getStatus, deletePost, getInsights, addComment — 19 tests)

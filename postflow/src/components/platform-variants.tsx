@@ -9,12 +9,22 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   FACEBOOK: "Facebook",
   INSTAGRAM: "Instagram",
   THREADS: "Threads",
+  LINKEDIN: "LinkedIn",
+  PINTEREST: "Pinterest",
+  YOUTUBE: "YouTube",
+  TIKTOK: "TikTok",
+  TWITTER: "X (Twitter)",
 };
 
 const PLATFORM_LIMITS: Record<Platform, number> = {
   FACEBOOK: 63206,
   INSTAGRAM: 2200,
   THREADS: 500,
+  LINKEDIN: 3000,
+  PINTEREST: 500,
+  YOUTUBE: 5000,
+  TIKTOK: 2200,
+  TWITTER: 280,
 };
 
 export interface PlatformVariantData {

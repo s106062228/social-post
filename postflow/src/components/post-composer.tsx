@@ -63,6 +63,11 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   FACEBOOK: "Facebook",
   INSTAGRAM: "Instagram",
   THREADS: "Threads",
+  LINKEDIN: "LinkedIn",
+  PINTEREST: "Pinterest",
+  YOUTUBE: "YouTube",
+  TIKTOK: "TikTok",
+  TWITTER: "X (Twitter)",
 };
 
 export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps) {

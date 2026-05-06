@@ -34,6 +34,7 @@ export default async function AccountsPage({
   const hasPinterest = accounts.some((a) => a.platform === Platform.PINTEREST);
   const hasYouTube = accounts.some((a) => a.platform === Platform.YOUTUBE);
   const hasTikTok = accounts.some((a) => a.platform === Platform.TIKTOK);
+  const hasTwitter = accounts.some((a) => a.platform === Platform.TWITTER);
   const hasAnyMeta = hasFacebook || hasInstagram || hasThreads;
 
   const linkedInEnabled = !!(
@@ -47,6 +48,9 @@ export default async function AccountsPage({
   );
   const tiktokEnabled = !!(
     process.env.TIKTOK_CLIENT_KEY && process.env.TIKTOK_CLIENT_SECRET
+  );
+  const twitterEnabled = !!(
+    process.env.TWITTER_CLIENT_ID && process.env.TWITTER_CLIENT_SECRET
   );
 
   return (
@@ -201,6 +205,34 @@ export default async function AccountsPage({
           <CardContent>
             <div className="grid gap-3 sm:grid-cols-1">
               <PlatformStatus name="TikTok" connected={hasTikTok} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* X (Twitter) connection card */}
+      {twitterEnabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>X (Twitter)</CardTitle>
+                <CardDescription>
+                  Connect your X account to publish tweets and images via the
+                  Twitter API v2.
+                </CardDescription>
+              </div>
+              <a
+                href="/api/oauth/twitter/connect"
+                className="inline-flex items-center justify-center rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+              >
+                {hasTwitter ? "Reconnect X" : "Connect X"}
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <PlatformStatus name="X (Twitter)" connected={hasTwitter} />
             </div>
           </CardContent>
         </Card>
