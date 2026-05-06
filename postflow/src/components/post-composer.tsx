@@ -85,6 +85,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [queuing, setQueuing] = useState(false);
   const [reminderMinutes, setReminderMinutes] = useState<number | null>(null);
   const [firstComment, setFirstComment] = useState("");
+  const [language, setLanguage] = useState<string>("");
   const [templates, setTemplates] = useState<Template[]>([]);
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([]);
   const [snippets, setSnippets] = useState<ContentSnippet[]>([]);
@@ -263,6 +264,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       }
       if (firstComment.trim()) {
         body.firstComment = firstComment.trim();
+      }
+      if (language) {
+        body.language = language;
       }
 
       const res = await fetch("/api/posts", {
@@ -711,6 +715,29 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           )}
         </div>
       )}
+
+      {/* Post language */}
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="language-select">Post language</Label>
+        <select
+          id="language-select"
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="">None (unspecified)</option>
+          <option value="en">English (en)</option>
+          <option value="es">Spanish (es)</option>
+          <option value="fr">French (fr)</option>
+          <option value="de">German (de)</option>
+          <option value="ja">Japanese (ja)</option>
+          <option value="pt">Portuguese (pt)</option>
+          <option value="zh">Chinese (zh)</option>
+          <option value="ar">Arabic (ar)</option>
+          <option value="ko">Korean (ko)</option>
+          <option value="it">Italian (it)</option>
+        </select>
+      </div>
 
       {/* Per-platform content variants (shown when 2+ platforms are selected) */}
       {selectedPlatforms.length >= 2 && (

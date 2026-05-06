@@ -164,6 +164,58 @@ export async function generateScheduleAdvice(
   return [];
 }
 
+const TRANSLATE_SYSTEM = `You are a professional translator and social media expert. Translate the provided post content into the requested languages.
+Preserve all hashtags (words starting with #), mentions (words starting with @), URLs, and emojis exactly as they appear.
+Only translate the natural language text portions. Adapt the tone to be natural for social media in each target language.
+Always respond with valid JSON in this exact format: {"translations": [{"language": "ISO-639-1-code", "content": "translated content"}]}
+Include exactly one entry per requested language.`;
+
+export async function translateContent(
+  content: string,
+  targetLanguages: string[]
+): Promise<{ language: string; content: string }[]> {
+  const client = getClient();
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 2048,
+    system: [
+      {
+        type: "text",
+        text: TRANSLATE_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: `Original content:\n${content}\n\nTranslate into these languages (ISO 639-1 codes): ${targetLanguages.join(", ")}`,
+      },
+    ],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as { translations?: unknown };
+    const translations = parsed.translations;
+    if (
+      Array.isArray(translations) &&
+      translations.every(
+        (t) =>
+          typeof t === "object" &&
+          t !== null &&
+          typeof (t as Record<string, unknown>).language === "string" &&
+          typeof (t as Record<string, unknown>).content === "string"
+      )
+    ) {
+      return translations as { language: string; content: string }[];
+    }
+  } catch {
+    // fall through
+  }
+  return [];
+}
+
 export async function suggestHashtags(
   content: string,
   platforms: string[]

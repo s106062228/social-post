@@ -184,6 +184,7 @@ model Post {
   sentiment      String?
   sentimentScore Float?
   firstComment   String?
+  language       String?
   publishResults PublishResult[]
   tags           PostTag[]
   versions       PostVersion[]
