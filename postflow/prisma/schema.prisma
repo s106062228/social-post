@@ -185,6 +185,7 @@ model Post {
   sentimentScore Float?
   firstComment   String?
   language       String?
+  archivedAt     DateTime?
   publishResults PublishResult[]
   tags           PostTag[]
   versions       PostVersion[]
@@ -203,6 +204,7 @@ model Post {
   @@index([userId, createdAt(sort: Desc)])
   @@index([scheduledAt])
   @@index([status, scheduledAt])
+  @@index([userId, archivedAt])
 }
 
 model Template {

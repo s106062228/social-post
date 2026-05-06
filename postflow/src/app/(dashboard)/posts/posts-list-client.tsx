@@ -17,6 +17,7 @@ import { StarPostButton } from "./star-post-button";
 import { EvergreenButton } from "./evergreen-button";
 import { RecyclePostButton } from "./recycle-post-button";
 import { AnalyzeSentimentButton } from "./analyze-sentiment-button";
+import { ArchivePostButton } from "./archive-post-button";
 import { RepurposeDialog } from "@/components/repurpose-dialog";
 import { TranslateDialog } from "@/components/translate-dialog";
 import { computeScore, scoreLabel } from "@/lib/content-score";
@@ -53,6 +54,7 @@ export type PostListItem = {
   approverNote: string | null;
   sentiment: string | null;
   sentimentScore: number | null;
+  archivedAt: Date | string | null;
   publishResults: PublishResult[];
   tags: PostTagItem[];
 };
@@ -314,6 +316,10 @@ export function PostsListClient({ posts }: PostsListClientProps) {
               <div className="flex shrink-0 items-center gap-2">
                 <StarPostButton postId={post.id} initialStarred={post.starred} />
                 <EvergreenButton postId={post.id} initialEvergreen={post.isEvergreen} />
+                <ArchivePostButton
+                  postId={post.id}
+                  initialArchivedAt={post.archivedAt ? String(post.archivedAt) : null}
+                />
                 <AnalyzeSentimentButton postId={post.id} />
                 <RepurposeDialog postId={post.id} />
                 <TranslateDialog postId={post.id} />

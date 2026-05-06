@@ -32,6 +32,7 @@ const listPostsSchema = z.object({
   starred: z.enum(["true", "false"]).optional(),
   evergreen: z.enum(["true", "false"]).optional(),
   sentiment: z.enum(["POSITIVE", "NEUTRAL", "NEGATIVE"]).optional(),
+  archived: z.enum(["true", "false"]).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
@@ -62,11 +63,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { status, search, tag, from, to, platform, starred, evergreen, sentiment, page, limit } = parsed.data;
+    const { status, search, tag, from, to, platform, starred, evergreen, sentiment, archived, page, limit } = parsed.data;
     const skip = (page - 1) * limit;
 
     const where = {
       userId: session.user.id,
+      // By default exclude archived posts; only include them when archived=true
+      ...(archived === "true"
+        ? { archivedAt: { not: null } }
+        : { archivedAt: null }),
       ...(status ? { status } : {}),
       ...(search ? { content: { contains: search, mode: "insensitive" as const } } : {}),
       ...(tag ? { tags: { some: { tagId: tag } } } : {}),

@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Download, Leaf, Plus, SmilePlus, Star } from "lucide-react";
+import { Archive, Download, Leaf, Plus, SmilePlus, Star } from "lucide-react";
 import { SearchInput } from "./search-input";
 import { PostsListClient } from "./posts-list-client";
 import { DateRangeFilter } from "./date-range-filter";
@@ -22,12 +22,12 @@ const PLATFORMS: Platform[] = [Platform.FACEBOOK, Platform.INSTAGRAM, Platform.T
 export default async function PostsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; page?: string; search?: string; tag?: string; from?: string; to?: string; platform?: string; starred?: string; evergreen?: string; sentiment?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; search?: string; tag?: string; from?: string; to?: string; platform?: string; starred?: string; evergreen?: string; sentiment?: string; archived?: string }>;
 }) {
   const session = await auth();
   const userId = session!.user!.id;
 
-  const { status: statusFilter, page: pageStr, search: searchQuery, tag: tagFilter, from: fromFilter, to: toFilter, platform: platformFilter, starred: starredFilter, evergreen: evergreenFilter, sentiment: sentimentFilter } = await searchParams;
+  const { status: statusFilter, page: pageStr, search: searchQuery, tag: tagFilter, from: fromFilter, to: toFilter, platform: platformFilter, starred: starredFilter, evergreen: evergreenFilter, sentiment: sentimentFilter, archived: archivedFilter } = await searchParams;
   const page = Math.max(1, parseInt(pageStr ?? "1", 10));
   const limit = 20;
   const skip = (page - 1) * limit;
@@ -37,6 +37,7 @@ export default async function PostsPage({
   const search = searchQuery?.trim() ?? "";
   const onlyStarred = starredFilter === "true";
   const onlyEvergreen = evergreenFilter === "true";
+  const onlyArchived = archivedFilter === "true";
   const SENTIMENTS = ["POSITIVE", "NEUTRAL", "NEGATIVE"] as const;
   type SentimentValue = typeof SENTIMENTS[number];
   const sentimentEnum = SENTIMENTS.includes(sentimentFilter as SentimentValue)
@@ -48,6 +49,8 @@ export default async function PostsPage({
 
   const where = {
     userId,
+    // By default show only non-archived posts; when archived=true show only archived
+    ...(onlyArchived ? { archivedAt: { not: null } } : { archivedAt: null }),
     ...(statusEnum && Object.values(PostStatus).includes(statusEnum)
       ? { status: statusEnum }
       : {}),
@@ -97,7 +100,7 @@ export default async function PostsPage({
     { value: "FAILED", label: "Failed" },
   ];
 
-  function buildHref(opts: { status?: string; page?: number; search?: string; tag?: string; platform?: string; starred?: string; evergreen?: string; sentiment?: string }) {
+  function buildHref(opts: { status?: string; page?: number; search?: string; tag?: string; platform?: string; starred?: string; evergreen?: string; sentiment?: string; archived?: string }) {
     const params = new URLSearchParams();
     const s = opts.status ?? statusFilter ?? "";
     if (s) params.set("status", s);
@@ -113,6 +116,8 @@ export default async function PostsPage({
     if (ev) params.set("evergreen", ev);
     const se = opts.sentiment !== undefined ? opts.sentiment : (sentimentFilter ?? "");
     if (se) params.set("sentiment", se);
+    const ar = opts.archived !== undefined ? opts.archived : (archivedFilter ?? "");
+    if (ar) params.set("archived", ar);
     if (fromFilter) params.set("from", fromFilter);
     if (toFilter) params.set("to", toFilter);
     const p = opts.page ?? page;
@@ -176,8 +181,8 @@ export default async function PostsPage({
       {/* Status filter tabs */}
       <div className="flex flex-wrap items-center gap-2">
         {statuses.map(({ value, label }) => {
-          const isActive = (statusFilter ?? "") === value && !onlyStarred && !onlyEvergreen;
-          const href = buildHref({ status: value, starred: "", evergreen: "", page: 1 });
+          const isActive = (statusFilter ?? "") === value && !onlyStarred && !onlyEvergreen && !onlyArchived;
+          const href = buildHref({ status: value, starred: "", evergreen: "", archived: "", page: 1 });
           return (
             <Link
               key={value}
@@ -193,7 +198,7 @@ export default async function PostsPage({
           );
         })}
         <Link
-          href={buildHref({ starred: onlyStarred ? "" : "true", status: "", evergreen: "", page: 1 })}
+          href={buildHref({ starred: onlyStarred ? "" : "true", status: "", evergreen: "", archived: "", page: 1 })}
           className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
             onlyStarred
               ? "bg-yellow-400 text-white"
@@ -204,7 +209,7 @@ export default async function PostsPage({
           Starred
         </Link>
         <Link
-          href={buildHref({ evergreen: onlyEvergreen ? "" : "true", status: "", starred: "", page: 1 })}
+          href={buildHref({ evergreen: onlyEvergreen ? "" : "true", status: "", starred: "", archived: "", page: 1 })}
           className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
             onlyEvergreen
               ? "bg-emerald-500 text-white"
@@ -224,7 +229,7 @@ export default async function PostsPage({
           return (
             <Link
               key={s}
-              href={buildHref({ sentiment: isActive ? "" : s, status: "", starred: "", evergreen: "", page: 1 })}
+              href={buildHref({ sentiment: isActive ? "" : s, status: "", starred: "", evergreen: "", archived: "", page: 1 })}
               className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${colors[s]}`}
             >
               <SmilePlus className="h-3.5 w-3.5" />
@@ -232,6 +237,17 @@ export default async function PostsPage({
             </Link>
           );
         })}
+        <Link
+          href={buildHref({ archived: onlyArchived ? "" : "true", status: "", starred: "", evergreen: "", sentiment: "", page: 1 })}
+          className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+            onlyArchived
+              ? "bg-slate-600 text-white"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          }`}
+        >
+          <Archive className="h-3.5 w-3.5" />
+          Archived
+        </Link>
       </div>
 
       {/* Keyword search + tag filter row */}
@@ -313,11 +329,12 @@ export default async function PostsPage({
       <Card>
         <CardHeader>
           <CardTitle>{total} post{total !== 1 ? "s" : ""}</CardTitle>
-          {(statusFilter || search || tagFilter || platformEnum || fromFilter || toFilter || onlyStarred || onlyEvergreen || sentimentEnum) && (
+          {(statusFilter || search || tagFilter || platformEnum || fromFilter || toFilter || onlyStarred || onlyEvergreen || sentimentEnum || onlyArchived) && (
             <CardDescription>
               {[
                 onlyStarred && "Starred only",
                 onlyEvergreen && "Evergreen only",
+                onlyArchived && "Archived only",
                 sentimentEnum && `Sentiment: ${sentimentEnum.charAt(0) + sentimentEnum.slice(1).toLowerCase()}`,
                 statusFilter && `Status: ${statusFilter.toLowerCase()}`,
                 search && `Search: "${search}"`,

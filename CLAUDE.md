@@ -951,3 +951,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Language selector in post composer — compact `<select>` (None / English / Spanish / French / German / Japanese / Portuguese / Chinese / Arabic / Korean / Italian / custom code); sets `language` field submitted with post creation; shown below content textarea
 - [x] `TranslateDialog` component (`src/components/translate-dialog.tsx`) — modal triggered by "Translate" button in posts list row; shows per-language translated content with copy-to-clipboard and "Apply as Variant" action calling PUT `/api/posts/[id]/variants`; regenerate button; loading and empty states
 - [x] Unit tests for translate endpoint (auth, rate limit, AI disabled, not-found, ownership, success with 2 langs, max-languages exceeded, invalid body, AI error — 10 tests)
+
+### Phase 89: Post Archive & Soft Delete
+- [x] Add `archivedAt` (nullable DateTime) to Post model + Prisma migration (`20260524000000_add_post_archived`)
+- [x] `PATCH /api/posts/[id]/archive` endpoint — toggle archive state (sets archivedAt to now() or null); auth + rate limit + ownership; logs activity
+- [x] Extend `GET /api/posts` to exclude archived posts by default; support `?archived=true` to fetch only archived posts
+- [x] `ArchivePostButton` client component (`src/app/(dashboard)/posts/archive-post-button.tsx`) — archive/unarchive icon toggle with optimistic UI and toast feedback, integrated into posts list row
+- [x] "Archived" filter tab in posts list page alongside existing status/starred/evergreen/sentiment tabs
+- [x] Unit tests for the archive endpoint (auth, ownership, not-found, archive on, archive off/restore — 8 tests)
