@@ -12,6 +12,8 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   TIKTOK: "TikTok",
   TWITTER: "X (Twitter)",
   BLUESKY: "Bluesky",
+  MASTODON: "Mastodon",
+  TELEGRAM: "Telegram",
 };
 
 const PREVIEW_TRUNCATE: Record<Platform, number> = {
@@ -24,6 +26,8 @@ const PREVIEW_TRUNCATE: Record<Platform, number> = {
   TIKTOK: 150,
   TWITTER: 280,
   BLUESKY: 300,
+  MASTODON: 500,
+  TELEGRAM: 4096,
 };
 
 function truncate(text: string, maxLen: number): { text: string; truncated: boolean } {

@@ -20,6 +20,7 @@ enum Platform {
   TWITTER
   BLUESKY
   MASTODON
+  TELEGRAM
 }
 
 enum PostStatus {

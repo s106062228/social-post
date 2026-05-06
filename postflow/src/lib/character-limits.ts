@@ -11,6 +11,7 @@ export const PLATFORM_CHAR_LIMITS: Record<Platform, number> = {
   TWITTER: 280,
   BLUESKY: 300,
   MASTODON: 500,
+  TELEGRAM: 4096,
 };
 
 export interface CharacterInfo {

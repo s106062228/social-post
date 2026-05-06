@@ -37,6 +37,7 @@ export default async function AccountsPage({
   const hasTwitter = accounts.some((a) => a.platform === Platform.TWITTER);
   const hasBluesky = accounts.some((a) => a.platform === Platform.BLUESKY);
   const hasMastodon = accounts.some((a) => a.platform === Platform.MASTODON);
+  const hasTelegram = accounts.some((a) => a.platform === Platform.TELEGRAM);
   const hasAnyMeta = hasFacebook || hasInstagram || hasThreads;
 
   const linkedInEnabled = !!(
@@ -58,6 +59,8 @@ export default async function AccountsPage({
   const blueskyEnabled = true;
   // Mastodon uses access tokens — no client credentials required
   const mastodonEnabled = true;
+  // Telegram uses Bot API tokens — no client credentials required
+  const telegramEnabled = true;
 
   return (
     <div className="flex flex-col gap-8 p-8">
@@ -300,6 +303,34 @@ export default async function AccountsPage({
         </Card>
       )}
 
+      {/* Telegram connection card */}
+      {telegramEnabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Telegram</CardTitle>
+                <CardDescription>
+                  Connect a Telegram Bot to publish text and image posts to any
+                  channel or group via the Telegram Bot API.
+                </CardDescription>
+              </div>
+              <a
+                href="/accounts/telegram-connect"
+                className="inline-flex items-center justify-center rounded-md bg-[#2AABEE] px-4 py-2 text-sm font-medium text-white hover:bg-[#229ED9] focus:outline-none focus:ring-2 focus:ring-[#2AABEE] focus:ring-offset-2"
+              >
+                {hasTelegram ? "Reconnect Telegram" : "Connect Telegram"}
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <PlatformStatus name="Telegram" connected={hasTelegram} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Accounts list */}
       {accounts.length > 0 && (
         <Card>
@@ -379,6 +410,7 @@ function errorMessage(code: string): string {
     oauth_failed: "OAuth connection failed. Please try again.",
     no_boards: "No Pinterest boards found. Please create a board first.",
     bluesky_auth_failed: "Bluesky authentication failed. Check your handle and app password.",
+    telegram_auth_failed: "Telegram authentication failed. Check your bot token and chat ID.",
   };
   return messages[code] ?? "An unexpected error occurred. Please try again.";
 }

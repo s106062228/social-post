@@ -20,6 +20,8 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   TIKTOK: "TikTok",
   TWITTER: "X (Twitter)",
   BLUESKY: "Bluesky",
+  MASTODON: "Mastodon",
+  TELEGRAM: "Telegram",
 };
 
 interface QueueSlot {

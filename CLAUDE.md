@@ -931,3 +931,15 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update accounts page — add Mastodon connection card (always enabled) linking to `/accounts/mastodon-connect`
 - [x] Mastodon connect form page (`/accounts/mastodon-connect`) — client component form accepting instance URL + access token; POSTs to `/api/oauth/mastodon/connect`; redirects to `/accounts` on success; shows error inline
 - [x] Unit tests for Mastodon adapter (text post, content truncation, image post with media upload, image fetch failure, media upload failure, VIDEO/CAROUSEL unsupported, getStatus found, getStatus not-found, deletePost success, deletePost failure, getInsights, multiple images capped at 4 — 12 tests)
+
+### Phase 87: Telegram Platform Integration
+- [x] Add `TELEGRAM` to `Platform` enum in Prisma schema + migration (`20260522000000_add_telegram_platform`)
+- [x] Telegram bot token utility (`src/lib/auth/telegram-oauth.ts`) — `verifyTelegramBotToken(botToken)` verifies via Bot API `getMe`; `serializeTelegramToken`, `parseTelegramToken` for encrypted storage
+- [x] Telegram connect route (`POST /api/oauth/telegram/connect`) — accepts `{botToken, chatId}` JSON body; verifies token with Telegram API; stores encrypted `{botToken, chatId, botUsername, botName}` JSON in SocialAccount; rate-limited
+- [x] Telegram platform adapter (`src/lib/platforms/telegram.ts`) — implements PlatformAdapter; supports text posts (NONE via `sendMessage`), single-image posts (IMAGE via `sendPhoto`), and multi-image posts (IMAGE/CAROUSEL via `sendMediaGroup`, up to 10); VIDEO throws unsupported error
+- [x] Update `character-limits.ts` — add `TELEGRAM: 4096` to `PLATFORM_CHAR_LIMITS`
+- [x] Update `.env.example` — add Telegram section noting no client credentials are required
+- [x] Update accounts page — add Telegram connection card (always enabled) linking to `/accounts/telegram-connect`
+- [x] Telegram connect form page (`/accounts/telegram-connect`) — client component form accepting bot token + chat ID; POSTs to `/api/oauth/telegram/connect`; redirects to `/accounts` on success; shows error inline
+- [x] Update publish worker, publish route, sync-insights worker, insights route, retry route, and UI components (`platform-char-counter`, `platform-variants`, `post-composer`, `post-preview`, `queue-client`, `performance-alerts form`) to include TELEGRAM (and back-fill MASTODON where missing)
+- [x] Unit tests for Telegram adapter (text post, content truncation, API error, single image via sendPhoto, caption truncation, media group for multiple images, 10-image cap, CAROUSEL as media group, VIDEO unsupported, getStatus always PUBLISHED, deletePost success, deletePost failure, getInsights empty — 13 tests)

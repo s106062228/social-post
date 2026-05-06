@@ -15,6 +15,8 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   TIKTOK: "TikTok",
   TWITTER: "X (Twitter)",
   BLUESKY: "Bluesky",
+  MASTODON: "Mastodon",
+  TELEGRAM: "Telegram",
 };
 
 const PLATFORM_LIMITS: Record<Platform, number> = {
@@ -27,6 +29,8 @@ const PLATFORM_LIMITS: Record<Platform, number> = {
   TIKTOK: 2200,
   TWITTER: 280,
   BLUESKY: 300,
+  MASTODON: 500,
+  TELEGRAM: 4096,
 };
 
 export interface PlatformVariantData {

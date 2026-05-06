@@ -12,6 +12,8 @@ import { youTubeAdapter } from "@/lib/platforms/youtube";
 import { tikTokAdapter } from "@/lib/platforms/tiktok";
 import { twitterAdapter } from "@/lib/platforms/twitter";
 import { blueskyAdapter } from "@/lib/platforms/bluesky";
+import { mastodonAdapter } from "@/lib/platforms/mastodon";
+import { telegramAdapter } from "@/lib/platforms/telegram";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { workerLogger } from "@/lib/logger";
 
@@ -35,6 +37,8 @@ const adapters: Record<Platform, PlatformAdapter> = {
   [Platform.TIKTOK]: tikTokAdapter,
   [Platform.TWITTER]: twitterAdapter,
   [Platform.BLUESKY]: blueskyAdapter,
+  [Platform.MASTODON]: mastodonAdapter,
+  [Platform.TELEGRAM]: telegramAdapter,
 };
 
 // ── Per-post insights sync ─────────────────────────────────────────────────────
