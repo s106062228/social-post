@@ -919,3 +919,15 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update accounts page — add Bluesky connection card (always enabled) linking to `/accounts/bluesky-connect`
 - [x] Bluesky connect form page (`/accounts/bluesky-connect`) — client component form accepting handle + app password; POSTs to `/api/oauth/bluesky/connect`; redirects to `/accounts` on success; shows error inline
 - [x] Unit tests for Bluesky adapter (text post, image post with blob upload, image fetch failure, blob upload failure, VIDEO/CAROUSEL unsupported, getStatus found, getStatus not-found, deletePost, getInsights, content truncation, AT URI rkey extraction — 12 tests)
+
+### Phase 86: Mastodon Platform Integration
+- [x] Add `MASTODON` to `Platform` enum in Prisma schema + migration (`20260521000000_add_mastodon_platform`)
+- [x] Mastodon token utility (`src/lib/auth/mastodon-oauth.ts`) — `verifyMastodonToken(instanceUrl, accessToken)` verifies token via `/api/v1/accounts/verify_credentials`; `serializeMastodonToken`, `parseMastodonToken` for encrypted storage
+- [x] Mastodon connect route (`POST /api/oauth/mastodon/connect`) — accepts `{instanceUrl, accessToken}` JSON body; verifies token with instance; stores encrypted `{instanceUrl, accessToken, accountId, username}` JSON in SocialAccount; rate-limited
+- [x] Mastodon platform adapter (`src/lib/platforms/mastodon.ts`) — implements PlatformAdapter; supports text posts (NONE) and image posts (IMAGE, up to 4 images via `/api/v2/media` upload + `/api/v1/statuses`); VIDEO/CAROUSEL throw unsupported errors
+- [x] Update `character-limits.ts` — add `MASTODON: 500` to `PLATFORM_CHAR_LIMITS`
+- [x] Update publish worker — import and register `mastodonAdapter`; no token refresh needed (Mastodon tokens do not expire)
+- [x] Update `.env.example` — add Mastodon section noting no client credentials are required
+- [x] Update accounts page — add Mastodon connection card (always enabled) linking to `/accounts/mastodon-connect`
+- [x] Mastodon connect form page (`/accounts/mastodon-connect`) — client component form accepting instance URL + access token; POSTs to `/api/oauth/mastodon/connect`; redirects to `/accounts` on success; shows error inline
+- [x] Unit tests for Mastodon adapter (text post, content truncation, image post with media upload, image fetch failure, media upload failure, VIDEO/CAROUSEL unsupported, getStatus found, getStatus not-found, deletePost success, deletePost failure, getInsights, multiple images capped at 4 — 12 tests)

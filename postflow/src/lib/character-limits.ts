@@ -10,6 +10,7 @@ export const PLATFORM_CHAR_LIMITS: Record<Platform, number> = {
   TIKTOK: 2200,
   TWITTER: 280,
   BLUESKY: 300,
+  MASTODON: 500,
 };
 
 export interface CharacterInfo {

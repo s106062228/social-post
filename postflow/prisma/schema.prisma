@@ -19,6 +19,7 @@ enum Platform {
   TIKTOK
   TWITTER
   BLUESKY
+  MASTODON
 }
 
 enum PostStatus {
