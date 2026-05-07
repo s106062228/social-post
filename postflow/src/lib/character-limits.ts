@@ -13,6 +13,7 @@ export const PLATFORM_CHAR_LIMITS: Record<Platform, number> = {
   MASTODON: 500,
   TELEGRAM: 4096,
   REDDIT: 40000,
+  NOSTR: 4096,
 };
 
 export interface CharacterInfo {

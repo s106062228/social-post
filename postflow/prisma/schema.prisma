@@ -22,6 +22,7 @@ enum Platform {
   MASTODON
   TELEGRAM
   REDDIT
+  NOSTR
 }
 
 enum PostStatus {

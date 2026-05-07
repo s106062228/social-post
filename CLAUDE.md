@@ -978,3 +978,17 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update `.env.example` with `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_OAUTH_CALLBACK_URL`
 - [x] Update accounts page — add Reddit connection card with status indicators and connect button
 - [x] Unit tests for Reddit adapter (text post, link/image post, no-media error, VIDEO/CAROUSEL unsupported, getStatus, deletePost, getInsights, API error — 12 tests)
+
+### Phase 92: Nostr Platform Integration
+- [x] Add `NOSTR` to `Platform` enum in Prisma schema + migration (`20260526000000_add_nostr_platform`)
+- [x] Install `nostr-tools` npm package
+- [x] Nostr key utility (`src/lib/auth/nostr-oauth.ts`) — `verifyNostrPrivateKey(privateKey)` validates hex/nsec key and derives public key; `serializeNostrToken`, `parseNostrToken` for encrypted storage
+- [x] Nostr connect route (`POST /api/oauth/nostr/connect`) — accepts `{privateKey, relayUrls}` JSON body; validates key; stores encrypted `{privateKey, publicKey, relayUrls}` JSON in SocialAccount; rate-limited
+- [x] Nostr platform adapter (`src/lib/platforms/nostr.ts`) — implements PlatformAdapter; supports text posts (NONE) and image posts with URL embedding (IMAGE); publishes kind-1 events to user-provided relays; VIDEO/CAROUSEL throw unsupported errors
+- [x] Update `character-limits.ts` — add `NOSTR: 4096` to `PLATFORM_CHAR_LIMITS`
+- [x] Update `.env.example` — add Nostr section noting no client credentials are required
+- [x] Update accounts page — add Nostr connection card (always enabled) linking to `/accounts/nostr-connect`
+- [x] Nostr connect form page (`/accounts/nostr-connect`) — client component form accepting private key (hex or nsec) + relay URLs (newline-separated); POSTs to `/api/oauth/nostr/connect`; redirects to `/accounts` on success; shows error inline
+- [x] Update publish worker — import and register `nostrAdapter`
+- [x] Update all `Record<Platform, ...>` maps and UI components to include NOSTR
+- [x] Unit tests for Nostr adapter (text post, image post with URL, content truncation, VIDEO/CAROUSEL unsupported, getStatus, deletePost, getInsights, relay timeout, invalid key — 12 tests)

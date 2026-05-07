@@ -18,6 +18,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   MASTODON: "Mastodon",
   TELEGRAM: "Telegram",
   REDDIT: "Reddit",
+  NOSTR: "Nostr",
 };
 
 const PLATFORM_LIMITS: Record<Platform, number> = {
@@ -33,6 +34,7 @@ const PLATFORM_LIMITS: Record<Platform, number> = {
   MASTODON: 500,
   TELEGRAM: 4096,
   REDDIT: 40000,
+  NOSTR: 4096,
 };
 
 export interface PlatformVariantData {

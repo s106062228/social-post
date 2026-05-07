@@ -39,6 +39,7 @@ export default async function AccountsPage({
   const hasMastodon = accounts.some((a) => a.platform === Platform.MASTODON);
   const hasTelegram = accounts.some((a) => a.platform === Platform.TELEGRAM);
   const hasReddit = accounts.some((a) => a.platform === Platform.REDDIT);
+  const hasNostr = accounts.some((a) => a.platform === Platform.NOSTR);
   const hasAnyMeta = hasFacebook || hasInstagram || hasThreads;
 
   const linkedInEnabled = !!(
@@ -65,6 +66,8 @@ export default async function AccountsPage({
   const redditEnabled = !!(
     process.env.REDDIT_CLIENT_ID && process.env.REDDIT_CLIENT_SECRET
   );
+  // Nostr uses private keys — no client credentials required
+  const nostrEnabled = true;
 
   return (
     <div className="flex flex-col gap-8 p-8">
@@ -363,6 +366,34 @@ export default async function AccountsPage({
         </Card>
       )}
 
+      {/* Nostr connection card */}
+      {nostrEnabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Nostr</CardTitle>
+                <CardDescription>
+                  Connect your Nostr identity using your private key (nsec or
+                  hex) to publish notes to any relay network.
+                </CardDescription>
+              </div>
+              <a
+                href="/accounts/nostr-connect"
+                className="inline-flex items-center justify-center rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-offset-2"
+              >
+                {hasNostr ? "Reconnect Nostr" : "Connect Nostr"}
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <PlatformStatus name="Nostr" connected={hasNostr} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Accounts list */}
       {accounts.length > 0 && (
         <Card>
@@ -444,6 +475,7 @@ function errorMessage(code: string): string {
     bluesky_auth_failed: "Bluesky authentication failed. Check your handle and app password.",
     telegram_auth_failed: "Telegram authentication failed. Check your bot token and chat ID.",
     reddit_auth_failed: "Reddit authentication failed. Please try again.",
+    nostr_auth_failed: "Nostr authentication failed. Please check your private key.",
   };
   return messages[code] ?? "An unexpected error occurred. Please try again.";
 }
