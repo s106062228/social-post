@@ -25,6 +25,7 @@ enum Platform {
   NOSTR
   TUMBLR
   WORDPRESS
+  MEDIUM
 }
 
 enum PostStatus {

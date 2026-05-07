@@ -17,6 +17,7 @@ import { redditAdapter } from "@/lib/platforms/reddit";
 import { nostrAdapter } from "@/lib/platforms/nostr";
 import { tumblrAdapter } from "@/lib/platforms/tumblr";
 import { wordpressAdapter } from "@/lib/platforms/wordpress";
+import { mediumAdapter } from "@/lib/platforms/medium";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { createRedisConnection, QUEUE_NAMES } from "../connection";
 import { publishLogger } from "@/lib/logger";
@@ -52,6 +53,7 @@ const adapters: Record<Platform, PlatformAdapter> = {
   [Platform.NOSTR]: nostrAdapter,
   [Platform.TUMBLR]: tumblrAdapter,
   [Platform.WORDPRESS]: wordpressAdapter,
+  [Platform.MEDIUM]: mediumAdapter,
 };
 
 // ── Exponential backoff helper ─────────────────────────────────────────────────

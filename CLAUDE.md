@@ -1016,3 +1016,15 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update `.env.example` with `WORDPRESS_CLIENT_ID`, `WORDPRESS_CLIENT_SECRET`, `WORDPRESS_OAUTH_CALLBACK_URL`
 - [x] Update accounts page — add WordPress.com connection card with status indicators and connect button
 - [x] Unit tests for WordPress adapter (text post, image post with media upload, image fetch failure, media upload failure, VIDEO/CAROUSEL unsupported, getStatus published/pending/draft/missing, deletePost success/error, getInsights — 14 tests)
+
+### Phase 95: Medium.com Platform Integration
+- [x] Add `MEDIUM` to `Platform` enum in Prisma schema + migration (`20260529000000_add_medium_platform`)
+- [x] Medium OAuth utility (`src/lib/auth/medium-oauth.ts`) — `buildMediumOAuthUrl`, `exchangeMediumCode`, `getMediumUser`; uses `basicProfile publishPost` scopes; `serializeMediumToken`/`parseMediumToken`
+- [x] Medium connect route (`GET /api/oauth/medium/connect`) — CSRF state + redirect to Medium OAuth dialog
+- [x] Medium callback route (`GET /api/oauth/medium/callback`) — exchange code, fetch user info, store encrypted token in SocialAccount
+- [x] Medium platform adapter (`src/lib/platforms/medium.ts`) — implements PlatformAdapter; supports text posts (NONE via HTML story) and image posts (IMAGE with embedded image URL in HTML); VIDEO/CAROUSEL throw unsupported errors
+- [x] Update `character-limits.ts` — add `MEDIUM: 100000` to `PLATFORM_CHAR_LIMITS`
+- [x] Update publish worker, retry route, insights route, sync-insights worker, and UI components (`platform-char-counter`, `platform-variants`, `post-preview`, `post-composer`, `queue-client`, `performance-alerts form`) to include MEDIUM
+- [x] Update `.env.example` with `MEDIUM_CLIENT_ID`, `MEDIUM_CLIENT_SECRET`, `MEDIUM_OAUTH_CALLBACK_URL`
+- [x] Update accounts page — add Medium connection card with status indicators and connect button
+- [x] Unit tests for Medium adapter (text post, image post with embedded URL, VIDEO/CAROUSEL unsupported, getStatus, deletePost no-op, getInsights empty — 8 tests)

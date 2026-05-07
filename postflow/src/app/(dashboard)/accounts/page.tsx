@@ -42,6 +42,7 @@ export default async function AccountsPage({
   const hasNostr = accounts.some((a) => a.platform === Platform.NOSTR);
   const hasTumblr = accounts.some((a) => a.platform === Platform.TUMBLR);
   const hasWordPress = accounts.some((a) => a.platform === Platform.WORDPRESS);
+  const hasMedium = accounts.some((a) => a.platform === Platform.MEDIUM);
   const hasAnyMeta = hasFacebook || hasInstagram || hasThreads;
 
   const linkedInEnabled = !!(
@@ -75,6 +76,9 @@ export default async function AccountsPage({
   );
   const wordpressEnabled = !!(
     process.env.WORDPRESS_CLIENT_ID && process.env.WORDPRESS_CLIENT_SECRET
+  );
+  const mediumEnabled = !!(
+    process.env.MEDIUM_CLIENT_ID && process.env.MEDIUM_CLIENT_SECRET
   );
 
   return (
@@ -430,6 +434,34 @@ export default async function AccountsPage({
         </Card>
       )}
 
+      {/* Medium connection card */}
+      {mediumEnabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Medium</CardTitle>
+                <CardDescription>
+                  Connect your Medium account to publish text and image stories
+                  via the Medium API.
+                </CardDescription>
+              </div>
+              <a
+                href="/api/oauth/medium/connect"
+                className="inline-flex items-center justify-center rounded-md bg-[#000000] px-4 py-2 text-sm font-medium text-white hover:bg-[#333333] focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+              >
+                {hasMedium ? "Reconnect Medium" : "Connect Medium"}
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <PlatformStatus name="Medium" connected={hasMedium} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* WordPress connection card */}
       {wordpressEnabled && (
         <Card>
@@ -542,6 +574,7 @@ function errorMessage(code: string): string {
     nostr_auth_failed: "Nostr authentication failed. Please check your private key.",
     tumblr_auth_failed: "Tumblr authentication failed. Please try again.",
     wordpress_auth_failed: "WordPress authentication failed. Please try again.",
+    medium_auth_failed: "Medium authentication failed. Please try again.",
   };
   return messages[code] ?? "An unexpected error occurred. Please try again.";
 }

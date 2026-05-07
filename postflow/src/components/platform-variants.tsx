@@ -21,6 +21,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   NOSTR: "Nostr",
   TUMBLR: "Tumblr",
   WORDPRESS: "WordPress",
+  MEDIUM: "Medium",
 };
 
 const PLATFORM_LIMITS: Record<Platform, number> = {
@@ -39,6 +40,7 @@ const PLATFORM_LIMITS: Record<Platform, number> = {
   NOSTR: 4096,
   TUMBLR: 4096,
   WORDPRESS: 200000,
+  MEDIUM: 100000,
 };
 
 export interface PlatformVariantData {

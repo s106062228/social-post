@@ -75,6 +75,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   NOSTR: "Nostr",
   TUMBLR: "Tumblr",
   WORDPRESS: "WordPress",
+  MEDIUM: "Medium",
 };
 
 export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps) {
