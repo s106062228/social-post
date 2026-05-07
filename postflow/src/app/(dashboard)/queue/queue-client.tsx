@@ -25,6 +25,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   REDDIT: "Reddit",
   NOSTR: "Nostr",
   TUMBLR: "Tumblr",
+  WORDPRESS: "WordPress",
 };
 
 interface QueueSlot {

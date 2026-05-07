@@ -17,6 +17,7 @@ import { telegramAdapter } from "@/lib/platforms/telegram";
 import { redditAdapter } from "@/lib/platforms/reddit";
 import { nostrAdapter } from "@/lib/platforms/nostr";
 import { tumblrAdapter } from "@/lib/platforms/tumblr";
+import { wordpressAdapter } from "@/lib/platforms/wordpress";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { workerLogger } from "@/lib/logger";
 
@@ -45,6 +46,7 @@ const adapters: Record<Platform, PlatformAdapter> = {
   [Platform.REDDIT]: redditAdapter,
   [Platform.NOSTR]: nostrAdapter,
   [Platform.TUMBLR]: tumblrAdapter,
+  [Platform.WORDPRESS]: wordpressAdapter,
 };
 
 // ── Per-post insights sync ─────────────────────────────────────────────────────

@@ -18,6 +18,7 @@ import { telegramAdapter } from "@/lib/platforms/telegram";
 import { redditAdapter } from "@/lib/platforms/reddit";
 import { nostrAdapter } from "@/lib/platforms/nostr";
 import { tumblrAdapter } from "@/lib/platforms/tumblr";
+import { wordpressAdapter } from "@/lib/platforms/wordpress";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { handleRouteError } from "@/lib/errors";
 import { logActivity } from "@/lib/activity-log";
@@ -39,6 +40,7 @@ const adapters: Record<Platform, PlatformAdapter> = {
   [Platform.REDDIT]: redditAdapter,
   [Platform.NOSTR]: nostrAdapter,
   [Platform.TUMBLR]: tumblrAdapter,
+  [Platform.WORDPRESS]: wordpressAdapter,
 };
 
 // ── POST /api/posts/[id]/retry ────────────────────────────────────────────────

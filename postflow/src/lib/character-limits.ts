@@ -15,6 +15,7 @@ export const PLATFORM_CHAR_LIMITS: Record<Platform, number> = {
   REDDIT: 40000,
   NOSTR: 4096,
   TUMBLR: 4096,
+  WORDPRESS: 200000,
 };
 
 export interface CharacterInfo {

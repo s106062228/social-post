@@ -41,6 +41,7 @@ export default async function AccountsPage({
   const hasReddit = accounts.some((a) => a.platform === Platform.REDDIT);
   const hasNostr = accounts.some((a) => a.platform === Platform.NOSTR);
   const hasTumblr = accounts.some((a) => a.platform === Platform.TUMBLR);
+  const hasWordPress = accounts.some((a) => a.platform === Platform.WORDPRESS);
   const hasAnyMeta = hasFacebook || hasInstagram || hasThreads;
 
   const linkedInEnabled = !!(
@@ -71,6 +72,9 @@ export default async function AccountsPage({
   const nostrEnabled = true;
   const tumblrEnabled = !!(
     process.env.TUMBLR_CLIENT_ID && process.env.TUMBLR_CLIENT_SECRET
+  );
+  const wordpressEnabled = !!(
+    process.env.WORDPRESS_CLIENT_ID && process.env.WORDPRESS_CLIENT_SECRET
   );
 
   return (
@@ -426,6 +430,34 @@ export default async function AccountsPage({
         </Card>
       )}
 
+      {/* WordPress connection card */}
+      {wordpressEnabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>WordPress.com</CardTitle>
+                <CardDescription>
+                  Connect your WordPress.com site to publish text and image posts
+                  via the WordPress.com REST API.
+                </CardDescription>
+              </div>
+              <a
+                href="/api/oauth/wordpress/connect"
+                className="inline-flex items-center justify-center rounded-md bg-[#21759b] px-4 py-2 text-sm font-medium text-white hover:bg-[#1a5e7a] focus:outline-none focus:ring-2 focus:ring-[#21759b] focus:ring-offset-2"
+              >
+                {hasWordPress ? "Reconnect WordPress" : "Connect WordPress"}
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <PlatformStatus name="WordPress.com" connected={hasWordPress} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Accounts list */}
       {accounts.length > 0 && (
         <Card>
@@ -509,6 +541,7 @@ function errorMessage(code: string): string {
     reddit_auth_failed: "Reddit authentication failed. Please try again.",
     nostr_auth_failed: "Nostr authentication failed. Please check your private key.",
     tumblr_auth_failed: "Tumblr authentication failed. Please try again.",
+    wordpress_auth_failed: "WordPress authentication failed. Please try again.",
   };
   return messages[code] ?? "An unexpected error occurred. Please try again.";
 }

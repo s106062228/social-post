@@ -17,6 +17,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   REDDIT: "Reddit",
   NOSTR: "Nostr",
   TUMBLR: "Tumblr",
+  WORDPRESS: "WordPress",
 };
 
 const PREVIEW_TRUNCATE: Record<Platform, number> = {
@@ -34,6 +35,7 @@ const PREVIEW_TRUNCATE: Record<Platform, number> = {
   REDDIT: 300,
   NOSTR: 4096,
   TUMBLR: 4096,
+  WORDPRESS: 300,
 };
 
 function truncate(text: string, maxLen: number): { text: string; truncated: boolean } {

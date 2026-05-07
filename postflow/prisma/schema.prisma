@@ -24,6 +24,7 @@ enum Platform {
   REDDIT
   NOSTR
   TUMBLR
+  WORDPRESS
 }
 
 enum PostStatus {

@@ -1004,3 +1004,15 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update `.env.example` with `TUMBLR_CLIENT_ID`, `TUMBLR_CLIENT_SECRET`, `TUMBLR_OAUTH_CALLBACK_URL`
 - [x] Update accounts page — add Tumblr connection card with status indicators and connect button
 - [x] Unit tests for Tumblr adapter (text post, content truncation, API error, image post with NPF blocks, multiple images, VIDEO/CAROUSEL unsupported, getStatus published/queued/draft/missing/error, deletePost success/404/error, getInsights with data/empty/error — 19 tests)
+
+### Phase 94: WordPress.com Platform Integration
+- [x] Add `WORDPRESS` to `Platform` enum in Prisma schema + migration (`20260528000000_add_wordpress_platform`)
+- [x] WordPress.com OAuth 2.0 utility (`src/lib/auth/wordpress-oauth.ts`) — `buildWordPressOAuthUrl`, `exchangeWordPressCode`, `getWordPressSites`; uses `posts global` scopes; `serializeWordPressToken`/`parseWordPressToken` storing `{accessToken, siteId, siteUrl, blogName}`
+- [x] WordPress connect route (`GET /api/oauth/wordpress/connect`) — CSRF state + redirect to WordPress.com OAuth dialog
+- [x] WordPress callback route (`GET /api/oauth/wordpress/callback`) — exchange code, fetch user's primary site, store encrypted token in SocialAccount
+- [x] WordPress platform adapter (`src/lib/platforms/wordpress.ts`) — implements PlatformAdapter; supports text posts (NONE via post content/title) and image posts (IMAGE via media upload + featured image); VIDEO/CAROUSEL throw unsupported errors
+- [x] Update `character-limits.ts` — add `WORDPRESS: 200000` to `PLATFORM_CHAR_LIMITS`
+- [x] Update publish worker, retry route, insights route, sync-insights worker, and UI components (`platform-char-counter`, `platform-variants`, `post-preview`, `post-composer`, `queue-client`, `performance-alerts form`) to include WORDPRESS
+- [x] Update `.env.example` with `WORDPRESS_CLIENT_ID`, `WORDPRESS_CLIENT_SECRET`, `WORDPRESS_OAUTH_CALLBACK_URL`
+- [x] Update accounts page — add WordPress.com connection card with status indicators and connect button
+- [x] Unit tests for WordPress adapter (text post, image post with media upload, image fetch failure, media upload failure, VIDEO/CAROUSEL unsupported, getStatus published/pending/draft/missing, deletePost success/error, getInsights — 14 tests)
