@@ -992,3 +992,15 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update publish worker — import and register `nostrAdapter`
 - [x] Update all `Record<Platform, ...>` maps and UI components to include NOSTR
 - [x] Unit tests for Nostr adapter (text post, image post with URL, content truncation, VIDEO/CAROUSEL unsupported, getStatus, deletePost, getInsights, relay timeout, invalid key — 12 tests)
+
+### Phase 93: Tumblr Platform Integration
+- [x] Add `TUMBLR` to `Platform` enum in Prisma schema + migration (`20260527000000_add_tumblr_platform`)
+- [x] Tumblr OAuth 2.0 utility (`src/lib/auth/tumblr-oauth.ts`) — `buildTumblrOAuthUrl`, `exchangeTumblrCode`, `getTumblrUser`; uses `basic write offline_access` scopes; `serializeTumblrToken`/`parseTumblrToken`
+- [x] Tumblr connect route (`GET /api/oauth/tumblr/connect`) — CSRF state + redirect to Tumblr OAuth dialog
+- [x] Tumblr callback route (`GET /api/oauth/tumblr/callback`) — exchange code, fetch user + primary blog, store encrypted token in SocialAccount
+- [x] Tumblr platform adapter (`src/lib/platforms/tumblr.ts`) — implements PlatformAdapter; supports text posts (NONE via NPF text block) and image posts (IMAGE via NPF image blocks, up to N images); VIDEO/CAROUSEL throw unsupported errors
+- [x] Update `character-limits.ts` — add `TUMBLR: 4096` to `PLATFORM_CHAR_LIMITS`
+- [x] Update publish worker, retry route, insights route, sync-insights worker, and UI components (`platform-char-counter`, `platform-variants`, `post-preview`, `post-composer`, `queue-client`, `performance-alerts form`) to include TUMBLR
+- [x] Update `.env.example` with `TUMBLR_CLIENT_ID`, `TUMBLR_CLIENT_SECRET`, `TUMBLR_OAUTH_CALLBACK_URL`
+- [x] Update accounts page — add Tumblr connection card with status indicators and connect button
+- [x] Unit tests for Tumblr adapter (text post, content truncation, API error, image post with NPF blocks, multiple images, VIDEO/CAROUSEL unsupported, getStatus published/queued/draft/missing/error, deletePost success/404/error, getInsights with data/empty/error — 19 tests)

@@ -73,6 +73,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   TELEGRAM: "Telegram",
   REDDIT: "Reddit",
   NOSTR: "Nostr",
+  TUMBLR: "Tumblr",
 };
 
 export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps) {

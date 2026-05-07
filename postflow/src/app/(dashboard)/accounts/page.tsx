@@ -40,6 +40,7 @@ export default async function AccountsPage({
   const hasTelegram = accounts.some((a) => a.platform === Platform.TELEGRAM);
   const hasReddit = accounts.some((a) => a.platform === Platform.REDDIT);
   const hasNostr = accounts.some((a) => a.platform === Platform.NOSTR);
+  const hasTumblr = accounts.some((a) => a.platform === Platform.TUMBLR);
   const hasAnyMeta = hasFacebook || hasInstagram || hasThreads;
 
   const linkedInEnabled = !!(
@@ -68,6 +69,9 @@ export default async function AccountsPage({
   );
   // Nostr uses private keys — no client credentials required
   const nostrEnabled = true;
+  const tumblrEnabled = !!(
+    process.env.TUMBLR_CLIENT_ID && process.env.TUMBLR_CLIENT_SECRET
+  );
 
   return (
     <div className="flex flex-col gap-8 p-8">
@@ -394,6 +398,34 @@ export default async function AccountsPage({
         </Card>
       )}
 
+      {/* Tumblr connection card */}
+      {tumblrEnabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Tumblr</CardTitle>
+                <CardDescription>
+                  Connect your Tumblr account to publish text and image posts to
+                  your primary blog via the Tumblr API v2.
+                </CardDescription>
+              </div>
+              <a
+                href="/api/oauth/tumblr/connect"
+                className="inline-flex items-center justify-center rounded-md bg-[#35465C] px-4 py-2 text-sm font-medium text-white hover:bg-[#293749] focus:outline-none focus:ring-2 focus:ring-[#35465C] focus:ring-offset-2"
+              >
+                {hasTumblr ? "Reconnect Tumblr" : "Connect Tumblr"}
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <PlatformStatus name="Tumblr" connected={hasTumblr} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Accounts list */}
       {accounts.length > 0 && (
         <Card>
@@ -476,6 +508,7 @@ function errorMessage(code: string): string {
     telegram_auth_failed: "Telegram authentication failed. Check your bot token and chat ID.",
     reddit_auth_failed: "Reddit authentication failed. Please try again.",
     nostr_auth_failed: "Nostr authentication failed. Please check your private key.",
+    tumblr_auth_failed: "Tumblr authentication failed. Please try again.",
   };
   return messages[code] ?? "An unexpected error occurred. Please try again.";
 }

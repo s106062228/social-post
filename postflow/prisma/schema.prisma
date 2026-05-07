@@ -23,6 +23,7 @@ enum Platform {
   TELEGRAM
   REDDIT
   NOSTR
+  TUMBLR
 }
 
 enum PostStatus {

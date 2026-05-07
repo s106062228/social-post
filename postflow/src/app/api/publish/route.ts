@@ -17,6 +17,7 @@ import { mastodonAdapter } from "@/lib/platforms/mastodon";
 import { telegramAdapter } from "@/lib/platforms/telegram";
 import { redditAdapter } from "@/lib/platforms/reddit";
 import { nostrAdapter } from "@/lib/platforms/nostr";
+import { tumblrAdapter } from "@/lib/platforms/tumblr";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { handleRouteError } from "@/lib/errors";
 import { publishLimiter, rateLimitHeaders } from "@/lib/rate-limit";
@@ -49,6 +50,7 @@ const adapters: Record<Platform, PlatformAdapter> = {
   [Platform.TELEGRAM]: telegramAdapter,
   [Platform.REDDIT]: redditAdapter,
   [Platform.NOSTR]: nostrAdapter,
+  [Platform.TUMBLR]: tumblrAdapter,
 };
 
 // ── POST /api/publish ─────────────────────────────────────────────────────────
