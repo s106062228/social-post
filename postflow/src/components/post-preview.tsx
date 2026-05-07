@@ -14,6 +14,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   BLUESKY: "Bluesky",
   MASTODON: "Mastodon",
   TELEGRAM: "Telegram",
+  REDDIT: "Reddit",
 };
 
 const PREVIEW_TRUNCATE: Record<Platform, number> = {
@@ -28,6 +29,7 @@ const PREVIEW_TRUNCATE: Record<Platform, number> = {
   BLUESKY: 300,
   MASTODON: 500,
   TELEGRAM: 4096,
+  REDDIT: 300,
 };
 
 function truncate(text: string, maxLen: number): { text: string; truncated: boolean } {

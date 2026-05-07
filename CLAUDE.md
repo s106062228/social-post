@@ -967,3 +967,14 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Zapier integration guide page in dashboard (`/zapier`) — instructions for creating a Zapier polling trigger, sample cURL, reminder to use API key from Settings → API Keys
 - [x] Add "Zapier" to sidebar navigation
 - [x] Unit tests for Zap API endpoints (valid key, invalid/missing key, expired key, posts shape, published shape, since filter — 13 tests)
+
+### Phase 91: Reddit Platform Integration
+- [x] Add `REDDIT` to `Platform` enum in Prisma schema + migration (`20260525000000_add_reddit_platform`)
+- [x] Reddit OAuth 2.0 utility (`src/lib/auth/reddit-oauth.ts`) — `buildRedditOAuthUrl`, `exchangeRedditCode`, `getRedditUser`; uses `submit identity` scopes; stores `{accessToken, refreshToken, username, subreddits[]}` JSON
+- [x] Reddit connect route (`GET /api/oauth/reddit/connect`) — CSRF state + redirect to Reddit OAuth dialog
+- [x] Reddit callback route (`GET /api/oauth/reddit/callback`) — exchange code, fetch user info + subscribed subreddits, store encrypted token in SocialAccount
+- [x] Reddit platform adapter (`src/lib/platforms/reddit.ts`) — implements PlatformAdapter; supports text posts (NONE via `kind=self`) and link posts (IMAGE via `kind=link`); targets subreddit from accountId; VIDEO/CAROUSEL throw unsupported errors
+- [x] Update `character-limits.ts` — add `REDDIT: 40000` to `PLATFORM_CHAR_LIMITS`
+- [x] Update `.env.example` with `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_OAUTH_CALLBACK_URL`
+- [x] Update accounts page — add Reddit connection card with status indicators and connect button
+- [x] Unit tests for Reddit adapter (text post, link/image post, no-media error, VIDEO/CAROUSEL unsupported, getStatus, deletePost, getInsights, API error — 12 tests)

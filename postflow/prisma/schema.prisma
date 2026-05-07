@@ -21,6 +21,7 @@ enum Platform {
   BLUESKY
   MASTODON
   TELEGRAM
+  REDDIT
 }
 
 enum PostStatus {

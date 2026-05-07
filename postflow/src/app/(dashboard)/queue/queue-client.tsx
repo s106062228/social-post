@@ -22,6 +22,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   BLUESKY: "Bluesky",
   MASTODON: "Mastodon",
   TELEGRAM: "Telegram",
+  REDDIT: "Reddit",
 };
 
 interface QueueSlot {

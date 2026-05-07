@@ -38,6 +38,7 @@ export default async function AccountsPage({
   const hasBluesky = accounts.some((a) => a.platform === Platform.BLUESKY);
   const hasMastodon = accounts.some((a) => a.platform === Platform.MASTODON);
   const hasTelegram = accounts.some((a) => a.platform === Platform.TELEGRAM);
+  const hasReddit = accounts.some((a) => a.platform === Platform.REDDIT);
   const hasAnyMeta = hasFacebook || hasInstagram || hasThreads;
 
   const linkedInEnabled = !!(
@@ -61,6 +62,9 @@ export default async function AccountsPage({
   const mastodonEnabled = true;
   // Telegram uses Bot API tokens — no client credentials required
   const telegramEnabled = true;
+  const redditEnabled = !!(
+    process.env.REDDIT_CLIENT_ID && process.env.REDDIT_CLIENT_SECRET
+  );
 
   return (
     <div className="flex flex-col gap-8 p-8">
@@ -331,6 +335,34 @@ export default async function AccountsPage({
         </Card>
       )}
 
+      {/* Reddit connection card */}
+      {redditEnabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Reddit</CardTitle>
+                <CardDescription>
+                  Connect your Reddit account to publish text and link posts to
+                  subreddits you moderate.
+                </CardDescription>
+              </div>
+              <a
+                href="/api/oauth/reddit/connect"
+                className="inline-flex items-center justify-center rounded-md bg-[#FF4500] px-4 py-2 text-sm font-medium text-white hover:bg-[#E03D00] focus:outline-none focus:ring-2 focus:ring-[#FF4500] focus:ring-offset-2"
+              >
+                {hasReddit ? "Reconnect Reddit" : "Connect Reddit"}
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <PlatformStatus name="Reddit" connected={hasReddit} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Accounts list */}
       {accounts.length > 0 && (
         <Card>
@@ -411,6 +443,7 @@ function errorMessage(code: string): string {
     no_boards: "No Pinterest boards found. Please create a board first.",
     bluesky_auth_failed: "Bluesky authentication failed. Check your handle and app password.",
     telegram_auth_failed: "Telegram authentication failed. Check your bot token and chat ID.",
+    reddit_auth_failed: "Reddit authentication failed. Please try again.",
   };
   return messages[code] ?? "An unexpected error occurred. Please try again.";
 }

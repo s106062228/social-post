@@ -17,6 +17,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   BLUESKY: "Bluesky",
   MASTODON: "Mastodon",
   TELEGRAM: "Telegram",
+  REDDIT: "Reddit",
 };
 
 const PLATFORM_LIMITS: Record<Platform, number> = {
@@ -31,6 +32,7 @@ const PLATFORM_LIMITS: Record<Platform, number> = {
   BLUESKY: 300,
   MASTODON: 500,
   TELEGRAM: 4096,
+  REDDIT: 40000,
 };
 
 export interface PlatformVariantData {
