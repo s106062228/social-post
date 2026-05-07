@@ -33,6 +33,7 @@ import {
   Target,
   BookMarked,
   Zap,
+  Workflow,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -67,6 +68,7 @@ const navItems = [
   { href: "/posting-goals", label: "Goals", icon: Target },
   { href: "/snippets", label: "Snippets", icon: BookMarked },
   { href: "/integrations", label: "Integrations", icon: Zap },
+  { href: "/zapier", label: "Zapier", icon: Workflow },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

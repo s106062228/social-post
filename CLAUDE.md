@@ -959,3 +959,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `ArchivePostButton` client component (`src/app/(dashboard)/posts/archive-post-button.tsx`) — archive/unarchive icon toggle with optimistic UI and toast feedback, integrated into posts list row
 - [x] "Archived" filter tab in posts list page alongside existing status/starred/evergreen/sentiment tabs
 - [x] Unit tests for the archive endpoint (auth, ownership, not-found, archive on, archive off/restore — 8 tests)
+
+### Phase 90: Zapier-Compatible Polling Triggers
+- [x] API key auth middleware (`src/lib/api-key-auth.ts`) — validates `x-api-key` header against hashed ApiKey records, updates lastUsedAt, returns userId or error response
+- [x] `GET /api/zap/posts` endpoint — returns newest posts (up to 10, created after optional `?since=ISO_DATE`); auth via API key header; Zapier-friendly flat response shape
+- [x] `GET /api/zap/published` endpoint — returns recently PUBLISHED posts (since optional `?since=ISO_DATE`, default last 24 h); auth via API key; includes platform publish results
+- [x] Zapier integration guide page in dashboard (`/zapier`) — instructions for creating a Zapier polling trigger, sample cURL, reminder to use API key from Settings → API Keys
+- [x] Add "Zapier" to sidebar navigation
+- [x] Unit tests for Zap API endpoints (valid key, invalid/missing key, expired key, posts shape, published shape, since filter — 13 tests)
