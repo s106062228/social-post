@@ -44,6 +44,7 @@ export default async function AccountsPage({
   const hasWordPress = accounts.some((a) => a.platform === Platform.WORDPRESS);
   const hasMedium = accounts.some((a) => a.platform === Platform.MEDIUM);
   const hasGhost = accounts.some((a) => a.platform === Platform.GHOST);
+  const hasDevTo = accounts.some((a) => a.platform === Platform.DEVTO);
   const hasAnyMeta = hasFacebook || hasInstagram || hasThreads;
 
   const linkedInEnabled = !!(
@@ -83,6 +84,8 @@ export default async function AccountsPage({
   );
   // Ghost uses Admin API keys — no client credentials required
   const ghostEnabled = true;
+  // Dev.to uses personal API keys — no client credentials required
+  const devtoEnabled = true;
 
   return (
     <div className="flex flex-col gap-8 p-8">
@@ -521,6 +524,34 @@ export default async function AccountsPage({
         </Card>
       )}
 
+      {/* Dev.to connection card */}
+      {devtoEnabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Dev.to</CardTitle>
+                <CardDescription>
+                  Connect your Dev.to account using a personal API key to publish
+                  text and image articles to the developer community.
+                </CardDescription>
+              </div>
+              <a
+                href="/accounts/devto-connect"
+                className="inline-flex items-center justify-center rounded-md bg-[#3D3D3D] px-4 py-2 text-sm font-medium text-white hover:bg-[#5a5a5a] focus:outline-none focus:ring-2 focus:ring-[#3D3D3D] focus:ring-offset-2"
+              >
+                {hasDevTo ? "Reconnect Dev.to" : "Connect Dev.to"}
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <PlatformStatus name="Dev.to" connected={hasDevTo} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Accounts list */}
       {accounts.length > 0 && (
         <Card>
@@ -607,6 +638,7 @@ function errorMessage(code: string): string {
     wordpress_auth_failed: "WordPress authentication failed. Please try again.",
     medium_auth_failed: "Medium authentication failed. Please try again.",
     ghost_auth_failed: "Ghost authentication failed. Check your instance URL and Admin API key.",
+    devto_auth_failed: "Dev.to authentication failed. Check your personal API key.",
   };
   return messages[code] ?? "An unexpected error occurred. Please try again.";
 }

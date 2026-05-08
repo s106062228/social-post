@@ -23,6 +23,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   WORDPRESS: "WordPress",
   MEDIUM: "Medium",
   GHOST: "Ghost",
+  DEVTO: "Dev.to",
 };
 
 const PLATFORM_LIMITS: Record<Platform, number> = {
@@ -43,6 +44,7 @@ const PLATFORM_LIMITS: Record<Platform, number> = {
   WORDPRESS: 200000,
   MEDIUM: 100000,
   GHOST: 100000,
+  DEVTO: 100000,
 };
 
 export interface PlatformVariantData {

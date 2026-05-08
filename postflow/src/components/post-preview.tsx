@@ -20,6 +20,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   WORDPRESS: "WordPress",
   MEDIUM: "Medium",
   GHOST: "Ghost",
+  DEVTO: "Dev.to",
 };
 
 const PREVIEW_TRUNCATE: Record<Platform, number> = {
@@ -40,6 +41,7 @@ const PREVIEW_TRUNCATE: Record<Platform, number> = {
   WORDPRESS: 300,
   MEDIUM: 300,
   GHOST: 300,
+  DEVTO: 300,
 };
 
 function truncate(text: string, maxLen: number): { text: string; truncated: boolean } {

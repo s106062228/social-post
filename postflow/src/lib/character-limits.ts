@@ -18,6 +18,7 @@ export const PLATFORM_CHAR_LIMITS: Record<Platform, number> = {
   WORDPRESS: 200000,
   MEDIUM: 100000,
   GHOST: 100000,
+  DEVTO: 100000,
 };
 
 export interface CharacterInfo {

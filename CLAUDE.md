@@ -1040,3 +1040,15 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update accounts page — add Ghost connection card (always enabled) linking to `/accounts/ghost-connect`
 - [x] Ghost connect form page (`/accounts/ghost-connect`) — client component form accepting Ghost instance URL + Admin API key (`{id}:{secret}` format); POSTs to `/api/oauth/ghost/connect`; redirects to `/accounts` on success; shows error inline
 - [x] Unit tests for Ghost adapter (text post, content truncation, API error, image post with featured image, image fetch failure, VIDEO/CAROUSEL unsupported, getStatus published/draft/scheduled, deletePost success/error, getInsights — 14 tests)
+
+### Phase 97: Dev.to Platform Integration
+- [x] Add `DEVTO` to `Platform` enum in Prisma schema + migration (`20260531000000_add_devto_platform`)
+- [x] Dev.to API key utility (`src/lib/auth/devto-oauth.ts`) — `verifyDevToApiKey(apiKey)` verifies via `GET /api/users/me` with `api-key` header; `serializeDevToToken`/`parseDevToToken` for encrypted storage
+- [x] Dev.to connect route (`POST /api/oauth/devto/connect`) — accepts `{apiKey}` JSON body; verifies with Dev.to API; stores encrypted `{apiKey, username, name}` JSON in SocialAccount; rate-limited
+- [x] Dev.to platform adapter (`src/lib/platforms/devto.ts`) — implements PlatformAdapter; supports text posts (NONE via Markdown article body) and image posts (IMAGE with embedded image URL in Markdown); VIDEO/CAROUSEL throw unsupported errors
+- [x] Update `character-limits.ts` — add `DEVTO: 100000` to `PLATFORM_CHAR_LIMITS`
+- [x] Update publish worker, retry route, insights route, sync-insights worker, and UI components (`platform-char-counter`, `platform-variants`, `post-preview`, `post-composer`, `queue-client`, `performance-alerts form`) to include DEVTO
+- [x] Update `.env.example` — add Dev.to section noting no client credentials are required (uses personal API key)
+- [x] Update accounts page — add Dev.to connection card (always enabled) linking to `/accounts/devto-connect`
+- [x] Dev.to connect form page (`/accounts/devto-connect`) — client component form accepting personal API key; POSTs to `/api/oauth/devto/connect`; redirects to `/accounts` on success; shows error inline
+- [x] Unit tests for Dev.to adapter (text post, title extraction, image post with embedded URL, VIDEO/CAROUSEL unsupported, getStatus published/draft, deletePost no-op, getInsights — 17 tests)

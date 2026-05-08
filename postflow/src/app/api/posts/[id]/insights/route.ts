@@ -21,6 +21,7 @@ import { tumblrAdapter } from "@/lib/platforms/tumblr";
 import { wordpressAdapter } from "@/lib/platforms/wordpress";
 import { mediumAdapter } from "@/lib/platforms/medium";
 import { ghostAdapter } from "@/lib/platforms/ghost";
+import { devtoAdapter } from "@/lib/platforms/devto";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { handleRouteError } from "@/lib/errors";
 
@@ -44,6 +45,7 @@ const adapters: Record<Platform, PlatformAdapter> = {
   [Platform.WORDPRESS]: wordpressAdapter,
   [Platform.MEDIUM]: mediumAdapter,
   [Platform.GHOST]: ghostAdapter,
+  [Platform.DEVTO]: devtoAdapter,
 };
 
 // ── GET /api/posts/[id]/insights ──────────────────────────────────────────────
