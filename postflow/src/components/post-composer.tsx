@@ -78,6 +78,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   MEDIUM: "Medium",
   GHOST: "Ghost",
   DEVTO: "Dev.to",
+  HASHNODE: "Hashnode",
 };
 
 export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps) {

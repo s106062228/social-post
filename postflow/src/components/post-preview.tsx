@@ -21,6 +21,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   MEDIUM: "Medium",
   GHOST: "Ghost",
   DEVTO: "Dev.to",
+  HASHNODE: "Hashnode",
 };
 
 const PREVIEW_TRUNCATE: Record<Platform, number> = {
@@ -42,6 +43,7 @@ const PREVIEW_TRUNCATE: Record<Platform, number> = {
   MEDIUM: 300,
   GHOST: 300,
   DEVTO: 300,
+  HASHNODE: 300,
 };
 
 function truncate(text: string, maxLen: number): { text: string; truncated: boolean } {

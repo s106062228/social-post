@@ -22,6 +22,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   MEDIUM: "Medium",
   GHOST: "Ghost",
   DEVTO: "Dev.to",
+  HASHNODE: "Hashnode",
 };
 
 interface PlatformCharCounterProps {

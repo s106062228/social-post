@@ -1064,3 +1064,16 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Billing page in dashboard (`/billing`) — shows current plan (Free/Pro), plan expiry, Upgrade button (links to checkout), Manage Subscription button (links to portal); gracefully handles Stripe not configured with a "Stripe not configured" notice
 - [x] Add "Billing" to sidebar navigation
 - [x] Unit tests for billing endpoints (auth, checkout returns URL, portal returns URL, status shape, Stripe not configured, webhook signature validation, subscription sync — 18 tests)
+
+### Phase 99: Hashnode Platform Integration
+- [x] Add `HASHNODE` to `Platform` enum in Prisma schema + migration (`20260602000000_add_hashnode_platform`)
+- [x] Hashnode token utility (`src/lib/auth/hashnode-oauth.ts`) — `verifyHashnodeToken(apiToken)` verifies via Hashnode GraphQL API (`/` + `me` query), returns username + name + first publicationId/URL; `serializeHashnodeToken`/`parseHashnodeToken` for encrypted storage
+- [x] Hashnode connect route (`POST /api/oauth/hashnode/connect`) — accepts `{apiToken}` JSON body; verifies with Hashnode GraphQL API; stores encrypted `{apiToken, username, name, publicationId, publicationUrl}` JSON in SocialAccount; rate-limited
+- [x] Hashnode platform adapter (`src/lib/platforms/hashnode.ts`) — implements PlatformAdapter; supports text posts (NONE via Markdown article, first line = title) and image posts (IMAGE, images embedded as Markdown in body); VIDEO/CAROUSEL throw unsupported errors; uses `publishPost` GraphQL mutation
+- [x] Update `character-limits.ts` — add `HASHNODE: 40000` to `PLATFORM_CHAR_LIMITS`
+- [x] Update publish worker, retry route, insights route, sync-insights worker, and publish route to include `hashnodeAdapter`
+- [x] Update UI components (`platform-char-counter`, `platform-variants`, `post-preview`, `post-composer`, `queue-client`, `performance-alerts form`) to include HASHNODE
+- [x] Update `.env.example` — add Hashnode section noting no client credentials are required (uses personal access token)
+- [x] Update accounts page — add Hashnode connection card (always enabled) linking to `/accounts/hashnode-connect`
+- [x] Hashnode connect form page (`/accounts/hashnode-connect`) — client component form accepting personal access token; POSTs to `/api/oauth/hashnode/connect`; redirects to `/accounts` on success; shows error inline
+- [x] Unit tests for Hashnode adapter (text post, title extraction, content truncation, GraphQL error, HTTP error, image post with Markdown embed, multiple images, VIDEO/CAROUSEL unsupported, getStatus found/null/error, deletePost success/404/error, getInsights with data/null fields/null post/error — 19 tests)

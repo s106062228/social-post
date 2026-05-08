@@ -45,6 +45,7 @@ export default async function AccountsPage({
   const hasMedium = accounts.some((a) => a.platform === Platform.MEDIUM);
   const hasGhost = accounts.some((a) => a.platform === Platform.GHOST);
   const hasDevTo = accounts.some((a) => a.platform === Platform.DEVTO);
+  const hasHashnode = accounts.some((a) => a.platform === Platform.HASHNODE);
   const hasAnyMeta = hasFacebook || hasInstagram || hasThreads;
 
   const linkedInEnabled = !!(
@@ -86,6 +87,8 @@ export default async function AccountsPage({
   const ghostEnabled = true;
   // Dev.to uses personal API keys — no client credentials required
   const devtoEnabled = true;
+  // Hashnode uses personal access tokens — no client credentials required
+  const hashnodeEnabled = true;
 
   return (
     <div className="flex flex-col gap-8 p-8">
@@ -552,6 +555,34 @@ export default async function AccountsPage({
         </Card>
       )}
 
+      {/* Hashnode connection card */}
+      {hashnodeEnabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Hashnode</CardTitle>
+                <CardDescription>
+                  Connect your Hashnode account using a personal access token to
+                  publish articles to your Hashnode blog.
+                </CardDescription>
+              </div>
+              <a
+                href="/accounts/hashnode-connect"
+                className="inline-flex items-center justify-center rounded-md bg-[#2962FF] px-4 py-2 text-sm font-medium text-white hover:bg-[#1E4FD8] focus:outline-none focus:ring-2 focus:ring-[#2962FF] focus:ring-offset-2"
+              >
+                {hasHashnode ? "Reconnect Hashnode" : "Connect Hashnode"}
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <PlatformStatus name="Hashnode" connected={hasHashnode} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Accounts list */}
       {accounts.length > 0 && (
         <Card>
@@ -639,6 +670,7 @@ function errorMessage(code: string): string {
     medium_auth_failed: "Medium authentication failed. Please try again.",
     ghost_auth_failed: "Ghost authentication failed. Check your instance URL and Admin API key.",
     devto_auth_failed: "Dev.to authentication failed. Check your personal API key.",
+    hashnode_auth_failed: "Hashnode authentication failed. Check your personal access token.",
   };
   return messages[code] ?? "An unexpected error occurred. Please try again.";
 }
