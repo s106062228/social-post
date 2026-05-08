@@ -1028,3 +1028,15 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update `.env.example` with `MEDIUM_CLIENT_ID`, `MEDIUM_CLIENT_SECRET`, `MEDIUM_OAUTH_CALLBACK_URL`
 - [x] Update accounts page — add Medium connection card with status indicators and connect button
 - [x] Unit tests for Medium adapter (text post, image post with embedded URL, VIDEO/CAROUSEL unsupported, getStatus, deletePost no-op, getInsights empty — 8 tests)
+
+### Phase 96: Ghost CMS Platform Integration
+- [x] Add `GHOST` to `Platform` enum in Prisma schema + migration (`20260530000000_add_ghost_platform`)
+- [x] Ghost Admin API key utility (`src/lib/auth/ghost-oauth.ts`) — `verifyGhostAdminKey(instanceUrl, adminApiKey)` verifies via Admin API `/ghost/api/admin/site/`; `generateGhostJwt(adminApiKey)` creates short-lived JWT from `{id}:{secret}` key; `serializeGhostToken`/`parseGhostToken` for encrypted storage
+- [x] Ghost connect route (`POST /api/oauth/ghost/connect`) — accepts `{instanceUrl, adminApiKey}` JSON body; verifies key with Ghost instance; stores encrypted `{instanceUrl, adminApiKey, siteTitle, siteUrl}` JSON in SocialAccount; rate-limited
+- [x] Ghost platform adapter (`src/lib/platforms/ghost.ts`) — implements PlatformAdapter; supports text posts (NONE via HTML post) and image posts (IMAGE with featured image); VIDEO/CAROUSEL throw unsupported errors; uses Admin API `/ghost/api/admin/posts/`
+- [x] Update `character-limits.ts` — add `GHOST: 100000` to `PLATFORM_CHAR_LIMITS`
+- [x] Update publish worker, retry route, insights route, sync-insights worker, and UI components (`platform-char-counter`, `platform-variants`, `post-preview`, `post-composer`, `queue-client`, `performance-alerts form`) to include GHOST
+- [x] Update `.env.example` — add Ghost section noting no client credentials are required (uses Admin API key)
+- [x] Update accounts page — add Ghost connection card (always enabled) linking to `/accounts/ghost-connect`
+- [x] Ghost connect form page (`/accounts/ghost-connect`) — client component form accepting Ghost instance URL + Admin API key (`{id}:{secret}` format); POSTs to `/api/oauth/ghost/connect`; redirects to `/accounts` on success; shows error inline
+- [x] Unit tests for Ghost adapter (text post, content truncation, API error, image post with featured image, image fetch failure, VIDEO/CAROUSEL unsupported, getStatus published/draft/scheduled, deletePost success/error, getInsights — 14 tests)

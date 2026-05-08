@@ -19,6 +19,7 @@ import { nostrAdapter } from "@/lib/platforms/nostr";
 import { tumblrAdapter } from "@/lib/platforms/tumblr";
 import { wordpressAdapter } from "@/lib/platforms/wordpress";
 import { mediumAdapter } from "@/lib/platforms/medium";
+import { ghostAdapter } from "@/lib/platforms/ghost";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { workerLogger } from "@/lib/logger";
 
@@ -49,6 +50,7 @@ const adapters: Record<Platform, PlatformAdapter> = {
   [Platform.TUMBLR]: tumblrAdapter,
   [Platform.WORDPRESS]: wordpressAdapter,
   [Platform.MEDIUM]: mediumAdapter,
+  [Platform.GHOST]: ghostAdapter,
 };
 
 // ── Per-post insights sync ─────────────────────────────────────────────────────
