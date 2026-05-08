@@ -1077,3 +1077,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update accounts page — add Hashnode connection card (always enabled) linking to `/accounts/hashnode-connect`
 - [x] Hashnode connect form page (`/accounts/hashnode-connect`) — client component form accepting personal access token; POSTs to `/api/oauth/hashnode/connect`; redirects to `/accounts` on success; shows error inline
 - [x] Unit tests for Hashnode adapter (text post, title extraction, content truncation, GraphQL error, HTTP error, image post with Markdown embed, multiple images, VIDEO/CAROUSEL unsupported, getStatus found/null/error, deletePost success/404/error, getInsights with data/null fields/null post/error — 19 tests)
+
+### Phase 100: AI Caption Generation from Media
+- [x] Add `generateCaptionsFromImageUrl(imageUrl, platforms)` to `src/lib/ai.ts` — calls `claude-haiku-4-5` with image vision (image_url content block) to analyze the image and suggest platform-optimized captions; returns `{platform, content}[]`; uses prompt caching on system block
+- [x] `POST /api/ai/caption` endpoint — auth + rate limit + AI check + zod validation (`imageUrl: string`, `platforms: Platform[]`); calls `generateCaptionsFromImageUrl`; returns `{captions: {platform, content}[]}`; returns 503 when AI not configured
+- [x] `ImageCaptionDialog` component (`src/components/image-caption-dialog.tsx`) — modal with per-platform caption previews showing character count vs limit, per-caption copy-to-clipboard and "Use as Content" button that fills the post composer content field, regenerate button, loading/empty states
+- [x] Integrate "AI Caption" button (camera + sparkle icon) into post composer — visible when `mediaUrls` has at least one entry; opens `ImageCaptionDialog` with the first media URL
+- [x] Unit tests for the caption endpoint (auth, rate limit, AI disabled, success shape with 2 platforms, invalid body, AI error — 8 tests)

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2 } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -16,6 +16,7 @@ import { LinkPreviewCard } from "@/components/link-preview-card";
 import { ReadabilityIndicator } from "@/components/readability-indicator";
 import { DuplicateWarning } from "@/components/duplicate-warning";
 import { AutosaveIndicator } from "@/components/autosave-indicator";
+import { ImageCaptionDialog } from "@/components/image-caption-dialog";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
 import {
@@ -127,6 +128,11 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   // UTM tagging state
   const [utmLoading, setUtmLoading] = useState(false);
   const [utmTaggedCount, setUtmTaggedCount] = useState<number | null>(null);
+
+  // Media URLs state
+  const [mediaUrls, setMediaUrls] = useState<string[]>([]);
+  const [mediaUrlInput, setMediaUrlInput] = useState("");
+  const [showCaptionDialog, setShowCaptionDialog] = useState(false);
 
   useEffect(() => {
     fetch("/api/templates?limit=50")
@@ -260,8 +266,8 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
     try {
       const body: Record<string, unknown> = {
         content,
-        mediaType: "NONE",
-        mediaUrls: [],
+        mediaType: mediaUrls.length > 0 ? "IMAGE" : "NONE",
+        mediaUrls,
         tagIds: selectedTagIds,
       };
       if (scheduledAt) {
@@ -366,8 +372,8 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           content,
-          mediaType: "NONE",
-          mediaUrls: [],
+          mediaType: mediaUrls.length > 0 ? "IMAGE" : "NONE",
+          mediaUrls,
           tagIds: selectedTagIds,
         }),
       });
@@ -697,6 +703,84 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         <DuplicateWarning content={content} />
         <LinkPreviewCard content={content} />
       </div>
+
+      {/* Media URLs */}
+      <div className="flex flex-col gap-2">
+        <Label>Media URLs <span className="text-muted-foreground font-normal">(optional)</span></Label>
+        <div className="flex gap-2">
+          <Input
+            placeholder="https://example.com/image.jpg"
+            value={mediaUrlInput}
+            onChange={(e) => setMediaUrlInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && mediaUrlInput.trim()) {
+                e.preventDefault();
+                try {
+                  new URL(mediaUrlInput.trim());
+                  setMediaUrls((prev) => [...prev, mediaUrlInput.trim()]);
+                  setMediaUrlInput("");
+                } catch {
+                  toast({ title: "Enter a valid URL", variant: "destructive" });
+                }
+              }
+            }}
+            className="flex-1 text-sm"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (!mediaUrlInput.trim()) return;
+              try {
+                new URL(mediaUrlInput.trim());
+                setMediaUrls((prev) => [...prev, mediaUrlInput.trim()]);
+                setMediaUrlInput("");
+              } catch {
+                toast({ title: "Enter a valid URL", variant: "destructive" });
+              }
+            }}
+          >
+            Add
+          </Button>
+        </div>
+        {mediaUrls.length > 0 && (
+          <div className="flex flex-col gap-1.5">
+            {mediaUrls.map((url, i) => (
+              <div key={i} className="flex items-center gap-2 rounded-md border border-input bg-muted/30 px-2 py-1.5 text-xs">
+                <span className="flex-1 truncate text-foreground">{url}</span>
+                <button
+                  type="button"
+                  onClick={() => setMediaUrls((prev) => prev.filter((_, j) => j !== i))}
+                  className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setShowCaptionDialog(true)}
+              className="flex w-fit items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <Camera className="h-3 w-3" />
+              <Sparkles className="h-3 w-3" />
+              AI Caption
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* AI Caption Dialog */}
+      {mediaUrls.length > 0 && (
+        <ImageCaptionDialog
+          open={showCaptionDialog}
+          onOpenChange={setShowCaptionDialog}
+          imageUrl={mediaUrls[0]}
+          platforms={selectedPlatforms}
+          onUseCaption={(caption) => setContent(caption)}
+        />
+      )}
 
       {/* First comment — shown when Facebook or Instagram accounts are selected */}
       {selectedPlatforms.some((p) => p === "FACEBOOK" || p === "INSTAGRAM") && (

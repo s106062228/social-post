@@ -216,6 +216,74 @@ export async function translateContent(
   return [];
 }
 
+const CAPTION_SYSTEM = `You are a social media content writer specializing in image captions. Analyze the provided image and generate platform-optimized captions.
+Always respond with valid JSON in this exact format: {"captions": [{"platform": "PLATFORM_NAME", "content": "caption text"}]}
+Platform guidelines:
+- FACEBOOK (max 63,206 chars): Descriptive, engaging, storytelling-friendly, can be longer
+- INSTAGRAM (max 2,200 chars): Visual-focused, punchy hook, emoji-friendly, hashtag-ready
+- THREADS (max 500 chars): Short, witty, conversational
+- TWITTER (max 280 chars): Concise, punchy, with relevant hashtags
+- LINKEDIN (max 3,000 chars): Professional tone, contextual description
+Only include the platforms requested. Each caption should feel native to that platform.`;
+
+export async function generateCaptionsFromImageUrl(
+  imageUrl: string,
+  platforms: string[]
+): Promise<{ platform: string; content: string }[]> {
+  const client = getClient();
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 1024,
+    system: [
+      {
+        type: "text",
+        text: CAPTION_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "image",
+            source: {
+              type: "url",
+              url: imageUrl,
+            },
+          },
+          {
+            type: "text",
+            text: `Generate captions for this image optimized for: ${platforms.join(", ")}`,
+          },
+        ],
+      },
+    ],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as { captions?: unknown };
+    const captions = parsed.captions;
+    if (
+      Array.isArray(captions) &&
+      captions.every(
+        (c) =>
+          typeof c === "object" &&
+          c !== null &&
+          typeof (c as Record<string, unknown>).platform === "string" &&
+          typeof (c as Record<string, unknown>).content === "string"
+      )
+    ) {
+      return captions as { platform: string; content: string }[];
+    }
+  } catch {
+    // fall through
+  }
+  return [];
+}
+
 export async function suggestHashtags(
   content: string,
   platforms: string[]
