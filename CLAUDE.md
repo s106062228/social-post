@@ -1052,3 +1052,15 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update accounts page — add Dev.to connection card (always enabled) linking to `/accounts/devto-connect`
 - [x] Dev.to connect form page (`/accounts/devto-connect`) — client component form accepting personal API key; POSTs to `/api/oauth/devto/connect`; redirects to `/accounts` on success; shows error inline
 - [x] Unit tests for Dev.to adapter (text post, title extraction, image post with embedded URL, VIDEO/CAROUSEL unsupported, getStatus published/draft, deletePost no-op, getInsights — 17 tests)
+
+### Phase 98: Stripe Billing & Subscription Management
+- [x] Install `stripe` npm package; add `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRO_PRICE_ID` (all optional) to `.env.example` and `src/lib/env.ts`
+- [x] Extend User model with `stripeCustomerId` (nullable String), `planTier` (String default "free"), `planExpiresAt` (nullable DateTime) + Prisma migration (`20260601000000_add_billing`)
+- [x] Stripe service (`src/lib/stripe.ts`) — `getStripeClient()`, `createCheckoutSession(userId, email, priceId)`, `createPortalSession(customerId)`, `syncSubscription(event)` helpers; gracefully returns null when Stripe is not configured
+- [x] `POST /api/billing/checkout` endpoint — creates Stripe Checkout session for PRO upgrade; auth + zod validation; returns `{url}`
+- [x] `POST /api/billing/portal` endpoint — creates Stripe Customer Portal session; auth; returns `{url}`
+- [x] `GET /api/billing/status` endpoint — returns `{planTier, planExpiresAt, stripeCustomerId, stripeEnabled}`; auth
+- [x] `POST /api/webhooks/stripe` endpoint — verifies Stripe signature; handles `checkout.session.completed` and `customer.subscription.deleted` events; updates User.planTier and planExpiresAt
+- [x] Billing page in dashboard (`/billing`) — shows current plan (Free/Pro), plan expiry, Upgrade button (links to checkout), Manage Subscription button (links to portal); gracefully handles Stripe not configured with a "Stripe not configured" notice
+- [x] Add "Billing" to sidebar navigation
+- [x] Unit tests for billing endpoints (auth, checkout returns URL, portal returns URL, status shape, Stripe not configured, webhook signature validation, subscription sync — 18 tests)

@@ -37,6 +37,12 @@ const envSchema = z.object({
   // Anthropic AI (optional — required only for AI content suggestion features)
   ANTHROPIC_API_KEY: z.string().optional(),
 
+  // Stripe billing (optional — required only for subscription management)
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_PRO_PRICE_ID: z.string().optional(),
+
   // Node environment
   NODE_ENV: z
     .enum(["development", "test", "production"])
