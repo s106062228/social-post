@@ -139,6 +139,7 @@ model User {
   draftAutosave      DraftAutosave?
   slackIntegrations  SlackIntegration[]
   discordIntegrations DiscordIntegration[]
+  linkBioPages       LinkBioPage[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -817,4 +818,38 @@ model DiscordIntegration {
   @@index([userId])
   @@index([userId, isActive])
   @@index([userId, createdAt(sort: Desc)])
+}
+
+model LinkBioPage {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug        String        @unique
+  title       String
+  bio         String?
+  isPublished Boolean       @default(true)
+  items       LinkBioItem[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([slug])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model LinkBioItem {
+  id        String      @id @default(cuid())
+  pageId    String
+  page      LinkBioPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  label     String
+  url       String
+  icon      String?
+  order     Int         @default(0)
+  isActive  Boolean     @default(true)
+  clicks    Int         @default(0)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([pageId])
+  @@index([pageId, order])
 }
