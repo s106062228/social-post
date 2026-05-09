@@ -1084,3 +1084,14 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `ImageCaptionDialog` component (`src/components/image-caption-dialog.tsx`) — modal with per-platform caption previews showing character count vs limit, per-caption copy-to-clipboard and "Use as Content" button that fills the post composer content field, regenerate button, loading/empty states
 - [x] Integrate "AI Caption" button (camera + sparkle icon) into post composer — visible when `mediaUrls` has at least one entry; opens `ImageCaptionDialog` with the first media URL
 - [x] Unit tests for the caption endpoint (auth, rate limit, AI disabled, success shape with 2 platforms, invalid body, AI error — 8 tests)
+
+### Phase 101: Link-in-Bio Page Builder
+- [x] `LinkBioPage` model in Prisma (id, userId, slug unique, title, bio?, isPublished, createdAt, updatedAt) + `LinkBioItem` model (id, pageId, label, url, icon?, order, isActive, clicks, createdAt, updatedAt) + migration (`20260603000001_add_link_bio`)
+- [x] CRUD API for bio pages (`GET /api/bio-pages`, `POST /api/bio-pages`, `GET /api/bio-pages/[id]`, `PATCH /api/bio-pages/[id]`, `DELETE /api/bio-pages/[id]`) — auth + rate limit + zod validation; max 10 pages per user; slug uniqueness check with 409 conflict
+- [x] Items API (`POST /api/bio-pages/[id]/items`, `PATCH /api/bio-pages/[id]/items/[itemId]`, `DELETE /api/bio-pages/[id]/items/[itemId]`) — auth + ownership check; max 30 items per page; URL validation
+- [x] Public bio page API (`GET /api/bio/[slug]`) — no auth required; returns active items only; 404 for unpublished pages
+- [x] Click tracking endpoint (`POST /api/bio/[slug]/click/[itemId]`) — public; increments item click counter
+- [x] Bio pages management page in dashboard (`/bio-pages`) — list pages with publish toggle, copy URL, open preview, edit slug/title/bio; expand each page to manage links (add, toggle active/inactive, delete, click count)
+- [x] Public bio page (`/bio/[slug]`) — server-rendered; shows avatar initial, title, bio, active links with click-tracking; `generateMetadata` for SEO; no auth required
+- [x] Add "Bio Pages" to sidebar navigation
+- [x] Unit tests for bio pages API (GET list, POST create, GET page+items, PATCH, DELETE, add item, update item, delete item, public GET, click tracking — 31 tests)
