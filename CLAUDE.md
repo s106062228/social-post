@@ -1095,3 +1095,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Public bio page (`/bio/[slug]`) — server-rendered; shows avatar initial, title, bio, active links with click-tracking; `generateMetadata` for SEO; no auth required
 - [x] Add "Bio Pages" to sidebar navigation
 - [x] Unit tests for bio pages API (GET list, POST create, GET page+items, PATCH, DELETE, add item, update item, delete item, public GET, click tracking — 31 tests)
+
+### Phase 102: Embeddable Social Feed Widget
+- [x] `FeedWidget` model in Prisma (id, userId, name, accountIds[], maxPosts Int default 10, theme String default "light", showPlatformIcons Boolean default true, showTimestamps Boolean default true, createdAt, updatedAt) + migration (`20260604000000_add_feed_widget`)
+- [x] CRUD API for feed widgets (`GET /api/feed-widgets`, `POST /api/feed-widgets`, `PATCH /api/feed-widgets/[id]`, `DELETE /api/feed-widgets/[id]`) — auth + rate limit + zod validation; max 10 widgets per user
+- [x] Public widget data endpoint (`GET /api/widget/[id]`) — no auth required; returns PUBLISHED posts for the widget's accountIds (up to maxPosts, newest first), sanitized (content, mediaUrls, platform, publishedAt only); cached in Redis for 5 min
+- [x] Feed widget management page in dashboard (`/feed-widgets`) — list widgets, create form (name, max posts, theme toggle), copy embed code (iframe snippet pointing to `/widget/[id]`), delete
+- [x] Public embeddable widget page (`/widget/[id]`) — server-rendered; renders posts as a clean card feed using theme; no login required; used as the iframe src
+- [x] Add "Feed Widgets" to sidebar navigation
+- [x] Unit tests for feed widgets API (GET list, POST create, PATCH, DELETE, public GET — auth, rate limit, max-widgets, ownership, shape — 20 tests)
