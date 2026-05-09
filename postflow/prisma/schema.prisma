@@ -141,6 +141,7 @@ model User {
   discordIntegrations DiscordIntegration[]
   linkBioPages       LinkBioPage[]
   feedWidgets        FeedWidget[]
+  contentPillars     ContentPillar[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -199,6 +200,8 @@ model Post {
   firstComment   String?
   language       String?
   archivedAt     DateTime?
+  pillarId       String?
+  pillar         ContentPillar? @relation(fields: [pillarId], references: [id])
   publishResults PublishResult[]
   tags           PostTag[]
   versions       PostVersion[]
@@ -218,6 +221,7 @@ model Post {
   @@index([scheduledAt])
   @@index([status, scheduledAt])
   @@index([userId, archivedAt])
+  @@index([userId, pillarId])
 }
 
 model Template {
@@ -870,4 +874,20 @@ model FeedWidget {
 
   @@index([userId])
   @@index([userId, createdAt(sort: Desc)])
+}
+
+model ContentPillar {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  color       String   @default("#6366f1")
+  description String?
+  isActive    Boolean  @default(true)
+  posts       Post[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, isActive])
 }
