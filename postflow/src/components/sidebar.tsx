@@ -70,6 +70,7 @@ const navItems = [
   { href: "/snippets", label: "Snippets", icon: BookMarked },
   { href: "/integrations", label: "Integrations", icon: Zap },
   { href: "/zapier", label: "Zapier", icon: Workflow },
+  { href: "/bio-pages", label: "Bio Pages", icon: Link2 },
   { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
