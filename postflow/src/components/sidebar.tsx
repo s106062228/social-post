@@ -35,6 +35,7 @@ import {
   Zap,
   Workflow,
   CreditCard,
+  LayoutGrid,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -71,6 +72,7 @@ const navItems = [
   { href: "/integrations", label: "Integrations", icon: Zap },
   { href: "/zapier", label: "Zapier", icon: Workflow },
   { href: "/bio-pages", label: "Bio Pages", icon: Link2 },
+  { href: "/feed-widgets", label: "Feed Widgets", icon: LayoutGrid },
   { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

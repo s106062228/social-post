@@ -140,6 +140,7 @@ model User {
   slackIntegrations  SlackIntegration[]
   discordIntegrations DiscordIntegration[]
   linkBioPages       LinkBioPage[]
+  feedWidgets        FeedWidget[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -852,4 +853,21 @@ model LinkBioItem {
 
   @@index([pageId])
   @@index([pageId, order])
+}
+
+model FeedWidget {
+  id                 String   @id @default(cuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name               String
+  accountIds         String[]
+  maxPosts           Int      @default(10)
+  theme              String   @default("light")
+  showPlatformIcons  Boolean  @default(true)
+  showTimestamps     Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
 }
