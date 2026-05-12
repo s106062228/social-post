@@ -12,8 +12,9 @@ import type { RssImportScanJobData } from "./workers/rss-import";
 import type { ReportScanJobData } from "./workers/report";
 import type { ReminderJobData } from "./workers/reminder";
 import type { PerformanceAlertScanJobData } from "./workers/performance-alert";
+import type { PostExpiryJobData } from "./workers/expiry";
 
-// ── Queue singletons ───────────────────────────────────────────────────────────
+// ── Queue singletons ────────────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
 
 let publishQueue: Queue<PublishJobData> | null = null;
@@ -77,7 +78,7 @@ function getTokenExpiryCheckQueue(): Queue<TokenExpiryCheckJobData> {
   return tokenExpiryCheckQueue;
 }
 
-// ── Publish scheduling ─────────────────────────────────────────────────────────
+// ── Publish scheduling ─────────────────────────────────────────────────────────────────
 
 export interface SchedulePublishOptions {
   postId: string;
@@ -176,7 +177,7 @@ export async function cancelScheduledPublish(
   return false;
 }
 
-// ── Token refresh scheduling ───────────────────────────────────────────────────
+// ── Token refresh scheduling ───────────────────────────────────────────────────────────
 
 /**
  * Enqueues a token refresh job for a social account.
@@ -233,7 +234,7 @@ export async function scheduleExpiringTokenRefreshes(
   return expiringAccounts.length;
 }
 
-// ── Token expiry cron ──────────────────────────────────────────────────────────
+// ── Token expiry cron ─────────────────────────────────────────────────────────────
 
 /**
  * Registers (or upserts) the daily BullMQ repeatable job that checks for
@@ -255,7 +256,7 @@ export async function scheduleTokenExpiryCheck(): Promise<void> {
   );
 }
 
-// ── Recurring schedule queue ───────────────────────────────────────────────────
+// ── Recurring schedule queue ───────────────────────────────────────────────────────────
 
 let recurringScheduleQueue: Queue<RecurringScheduleJobData> | null = null;
 
@@ -320,7 +321,7 @@ export function isValidCronExpr(cronExpr: string): boolean {
   }
 }
 
-// ── Insights sync queue ────────────────────────────────────────────────────────
+// ── Insights sync queue ──────────────────────────────────────────────────────────────
 
 let syncInsightsScanQueue: Queue<SyncInsightsScanJobData> | null = null;
 
@@ -360,7 +361,7 @@ export async function scheduleSyncInsightsScan(): Promise<void> {
   );
 }
 
-// ── RSS import queue ───────────────────────────────────────────────────────────
+// ── RSS import queue ──────────────────────────────────────────────────────────────
 
 let rssImportQueue: Queue<RssImportScanJobData> | null = null;
 
@@ -409,7 +410,7 @@ export async function triggerRssImport(): Promise<void> {
   );
 }
 
-// ── Report schedule queue ──────────────────────────────────────────────────────
+// ── Report schedule queue ───────────────────────────────────────────────────────────
 
 let reportQueue: Queue<ReportScanJobData> | null = null;
 
@@ -447,7 +448,7 @@ export async function scheduleReportScan(): Promise<void> {
   );
 }
 
-// ── Performance alert scan queue ───────────────────────────────────────────────
+// ── Performance alert scan queue ───────────────────────────────────────────────────────
 
 let performanceAlertScanQueue: Queue<PerformanceAlertScanJobData> | null = null;
 
@@ -487,7 +488,7 @@ export async function schedulePerformanceAlertScan(): Promise<void> {
   );
 }
 
-// ── Queue event helpers ────────────────────────────────────────────────────────
+// ── Queue event helpers ────────────────────────────────────────────────────────────
 
 /**
  * Creates a QueueEvents instance for listening to publish queue events.
@@ -499,12 +500,12 @@ export function createPublishQueueEvents(): QueueEvents {
   });
 }
 
-// ── Platform-specific routing note ────────────────────────────────────────────
+// ── Platform-specific routing note ────────────────────────────────────────────────
 // Facebook supports native scheduled_publish_time, but we still route all
 // platforms through BullMQ for consistent retry, observability, and status
 // tracking. The Facebook adapter will pass scheduledAt to the Graph API.
 
-// ── Reminder queue ─────────────────────────────────────────────────────────────
+// ── Reminder queue ───────────────────────────────────────────────────────────────
 
 let reminderQueue: Queue<ReminderJobData> | null = null;
 
@@ -553,6 +554,62 @@ export async function scheduleReminder(
 export async function cancelReminder(postId: string): Promise<boolean> {
   const queue = getReminderQueue();
   const jobId = `reminder:${postId}`;
+  const job = await queue.getJob(jobId);
+  if (!job) return false;
+
+  const state = await job.getState();
+  if (state === "delayed" || state === "waiting") {
+    await job.remove();
+    return true;
+  }
+  return false;
+}
+
+// ── Post expiry queue ──────────────────────────────────────────────────────────────
+
+let postExpiryQueue: Queue<PostExpiryJobData> | null = null;
+
+function getPostExpiryQueue(): Queue<PostExpiryJobData> {
+  if (!postExpiryQueue) {
+    postExpiryQueue = new Queue<PostExpiryJobData>(QUEUE_NAMES.POST_EXPIRY, {
+      connection: createRedisConnection(),
+      defaultJobOptions: {
+        attempts: 2,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { count: 200 },
+        removeOnFail: { count: 100 },
+      },
+    });
+  }
+  return postExpiryQueue;
+}
+
+/**
+ * Schedules (or replaces) a delayed expiry job for a post.
+ * Fires at `expiresAt`. If the fire time is in the past, runs immediately.
+ */
+export async function scheduleExpiry(
+  postId: string,
+  userId: string,
+  expiresAt: Date
+): Promise<void> {
+  const delayMs = Math.max(0, expiresAt.getTime() - Date.now());
+  const queue = getPostExpiryQueue();
+  const jobId = `expiry:${postId}`;
+
+  await queue.add(
+    jobId,
+    { postId, userId },
+    { jobId, delay: delayMs }
+  );
+}
+
+/**
+ * Cancels a pending expiry job for a post (no-op if not found or already fired).
+ */
+export async function cancelExpiry(postId: string): Promise<boolean> {
+  const queue = getPostExpiryQueue();
+  const jobId = `expiry:${postId}`;
   const job = await queue.getJob(jobId);
   if (!job) return false;
 
