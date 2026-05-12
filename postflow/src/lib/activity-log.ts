@@ -21,7 +21,8 @@ export type ActivityAction =
   | "post.rejected"
   | "post.imported"
   | "post.archived"
-  | "post.unarchived";
+  | "post.unarchived"
+  | "post.expired";
 
 export interface LogActivityOptions {
   userId: string;
