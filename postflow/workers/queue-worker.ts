@@ -29,6 +29,7 @@ import { createRssImportWorker } from "../src/lib/queue/workers/rss-import";
 import { createReportWorker } from "../src/lib/queue/workers/report";
 import { createReminderWorker } from "../src/lib/queue/workers/reminder";
 import { createPerformanceAlertWorker } from "../src/lib/queue/workers/performance-alert";
+import { createPostExpiryWorker } from "../src/lib/queue/workers/expiry";
 import {
   scheduleTokenExpiryCheck,
   scheduleExpiringTokenRefreshes,
@@ -52,6 +53,7 @@ const rssImportWorker = createRssImportWorker();
 const reportWorker = createReportWorker();
 const reminderWorker = createReminderWorker();
 const performanceAlertWorker = createPerformanceAlertWorker();
+const postExpiryWorker = createPostExpiryWorker();
 
 workerLogger.info("Publish worker started");
 workerLogger.info("Token refresh worker started");
@@ -63,6 +65,7 @@ workerLogger.info("RSS import worker started");
 workerLogger.info("Report worker started");
 workerLogger.info("Reminder worker started");
 workerLogger.info("Performance alert worker started");
+workerLogger.info("Post expiry worker started");
 
 // ── Register repeatable cron jobs ─────────────────────────────────────────────
 
@@ -116,7 +119,7 @@ async function registerCronJobs(): Promise<void> {
   }
 }
 
-// ── Initial token refresh scan ────────────────────────────────────────────────
+// ── Initial token refresh scan ────────────────────────────────────────────
 // On startup, immediately schedule any token refreshes that are already due
 // within the 7-day window (covers gaps when the worker was offline).
 
@@ -138,7 +141,7 @@ async function runInitialTokenRefreshScan(): Promise<void> {
 registerCronJobs();
 runInitialTokenRefreshScan();
 
-// ── Graceful shutdown ──────────────────────────────────────────────────────────
+// ── Graceful shutdown ────────────────────────────────────────────────────────────
 
 async function shutdown(signal: string): Promise<void> {
   workerLogger.info({ signal }, "Received signal, shutting down gracefully");
@@ -154,6 +157,7 @@ async function shutdown(signal: string): Promise<void> {
     reportWorker.close(),
     reminderWorker.close(),
     performanceAlertWorker.close(),
+    postExpiryWorker.close(),
   ]);
 
   workerLogger.info("All workers stopped. Exiting.");
