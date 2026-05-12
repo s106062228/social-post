@@ -38,6 +38,7 @@ import {
   LayoutGrid,
   Layers,
   BookOpen,
+  Scissors,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -76,6 +77,7 @@ const navItems = [
   { href: "/bio-pages", label: "Bio Pages", icon: Link2 },
   { href: "/feed-widgets", label: "Feed Widgets", icon: LayoutGrid },
   { href: "/content-pillars", label: "Pillars", icon: Layers },
+  { href: "/short-links", label: "Short Links", icon: Scissors },
   { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/api-explorer", label: "API Docs", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
