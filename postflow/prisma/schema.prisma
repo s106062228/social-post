@@ -200,6 +200,7 @@ model Post {
   firstComment   String?
   language       String?
   archivedAt     DateTime?
+  expiresAt      DateTime?
   pillarId       String?
   pillar         ContentPillar? @relation(fields: [pillarId], references: [id])
   publishResults PublishResult[]
@@ -222,6 +223,7 @@ model Post {
   @@index([status, scheduledAt])
   @@index([userId, archivedAt])
   @@index([userId, pillarId])
+  @@index([expiresAt])
 }
 
 model Template {
