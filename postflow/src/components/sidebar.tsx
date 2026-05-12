@@ -77,7 +77,7 @@ const navItems = [
   { href: "/feed-widgets", label: "Feed Widgets", icon: LayoutGrid },
   { href: "/content-pillars", label: "Pillars", icon: Layers },
   { href: "/billing", label: "Billing", icon: CreditCard },
-  { href: "/api-explorer", label: "API Docs", icon: BookOpen },
+  { href: "/api-docs", label: "API Docs", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

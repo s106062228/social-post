@@ -1104,3 +1104,18 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Public embeddable widget page (`/widget/[id]`) — server-rendered; renders posts as a clean card feed using theme; no login required; used as the iframe src
 - [x] Add "Feed Widgets" to sidebar navigation
 - [x] Unit tests for feed widgets API (GET list, POST create, PATCH, DELETE, public GET — auth, rate limit, max-widgets, ownership, shape — 20 tests)
+
+### Phase 103: Content Pillars & Strategy Tracking
+- [x] `ContentPillar` model in Prisma (id, userId, name, color, description?, createdAt, updatedAt) + `PostPillar` join table (postId, pillarId) + migration — organises posts around strategic content themes
+- [x] CRUD API for content pillars (`GET /api/content-pillars`, `POST /api/content-pillars`, `PATCH /api/content-pillars/[id]`, `DELETE /api/content-pillars/[id]`) — auth + rate limit + zod validation; max 20 pillars per user
+- [x] Pillar analytics endpoint (`GET /api/content-pillars/analytics`) — returns per-pillar post counts, published count, and last-post date
+- [x] Content pillars page in dashboard (`/content-pillars`) — grid of pillars with colour swatches, post count, analytics, inline create/edit/delete
+- [x] Add "Pillars" to sidebar navigation
+- [x] Unit tests for content pillars API (GET list, POST create, PATCH, DELETE, analytics — auth, rate limit, max-pillars, ownership, validation)
+
+### Phase 104: OpenAPI REST API Documentation
+- [x] OpenAPI 3.0 spec utility (`src/lib/openapi.ts`) — builds a complete OpenAPI JSON document describing all major PostFlow API endpoints (posts, templates, campaigns, accounts, analytics, tags, schedules, etc.) with request/response schemas
+- [x] `GET /api/openapi.json` endpoint — returns the OpenAPI spec as JSON; no auth required (public)
+- [x] API documentation page in dashboard (`/api-docs`) — renders interactive docs using the OpenAPI spec: grouped endpoint cards (expand to show method, path, description, request/response schema), search/filter, copy-curl button per endpoint
+- [x] Add "API Docs" to sidebar navigation
+- [x] Unit tests for the OpenAPI endpoint (response shape has `openapi`, `info`, `paths` fields; correct Content-Type — 6 tests)
