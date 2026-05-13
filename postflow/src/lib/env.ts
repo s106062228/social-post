@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// ── Schema ─────────────────────────────────────────────────────────────────────
+// ── Schema ──────────────────────────────────────────────────────────────────────────────────
 // All required environment variables validated at startup.
 // Optional vars (R2, etc.) are validated lazily when the feature is used.
 
@@ -43,6 +43,11 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PRO_PRICE_ID: z.string().optional(),
 
+  // Web Push / VAPID (optional — required only for browser push notifications)
+  VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  VAPID_EMAIL: z.string().email().optional(),
+
   // Node environment
   NODE_ENV: z
     .enum(["development", "test", "production"])
@@ -51,7 +56,7 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
-// ── Validation ─────────────────────────────────────────────────────────────────
+// ── Validation ─────────────────────────────────────────────────────────────────────────────
 
 function validateEnv(): Env {
   const result = envSchema.safeParse(process.env);
@@ -69,7 +74,7 @@ function validateEnv(): Env {
   return result.data;
 }
 
-// ── Singleton ──────────────────────────────────────────────────────────────────
+// ── Singleton ──────────────────────────────────────────────────────────────────────────────
 // Validated once at module load time. Any missing var surfaces immediately on
 // startup rather than at the first request that uses it.
 

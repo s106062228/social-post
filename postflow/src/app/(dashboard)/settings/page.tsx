@@ -2,6 +2,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { SettingsForm } from "./settings-form";
 import { TwoFactorSettings } from "./two-factor-settings";
+import { PushNotificationSetup } from "@/components/push-notification-setup";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -32,6 +34,18 @@ export default async function SettingsPage() {
       <div className="max-w-2xl flex flex-col gap-8">
         <SettingsForm user={user} />
         <TwoFactorSettings totpEnabled={user.totpEnabled} />
+        <Card>
+          <CardHeader>
+            <CardTitle>Browser Notifications</CardTitle>
+            <CardDescription>
+              Receive instant push notifications in this browser when posts are published, fail, or
+              are partially published.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PushNotificationSetup />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
