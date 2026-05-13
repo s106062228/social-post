@@ -1104,3 +1104,19 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Public embeddable widget page (`/widget/[id]`) — server-rendered; renders posts as a clean card feed using theme; no login required; used as the iframe src
 - [x] Add "Feed Widgets" to sidebar navigation
 - [x] Unit tests for feed widgets API (GET list, POST create, PATCH, DELETE, public GET — auth, rate limit, max-widgets, ownership, shape — 20 tests)
+
+### Phase 103: Content Pillars & Strategy Tracking
+- [x] `ContentPillar` model in Prisma (id, userId, name, description?, color, icon?, isActive, createdAt, updatedAt) + `PostPillar` join table (postId, pillarId) + migration — organizes posts into strategic content categories
+- [x] CRUD API for content pillars (`GET /api/content-pillars`, `POST /api/content-pillars`, `PATCH /api/content-pillars/[id]`, `DELETE /api/content-pillars/[id]`) — auth + rate limit + zod validation; max 20 pillars per user
+- [x] Pillar analytics endpoint (`GET /api/content-pillars/analytics`) — per-pillar post count, published count, scheduled count, avg engagement score
+- [x] Extend `POST /api/posts` and `PATCH /api/posts/[id]` to accept optional `pillarId`; extend `GET /api/posts` to filter by `?pillar=pillarId`
+- [x] `PillarSelector` component (`src/components/pillar-selector.tsx`) — dropdown to assign a content pillar, integrated into post composer
+- [x] Content pillars management page in dashboard (`/content-pillars`) — list pillars with analytics, inline create/edit form, delete
+- [x] Add "Content Pillars" to sidebar navigation
+- [x] Unit tests for content pillars API (CRUD, analytics, auth, rate limit, max-pillars limit — 33 tests)
+
+### Phase 104: Content Quality Dashboard
+- [x] `GET /api/analytics/content-quality` endpoint — auth + rate limit + `?period=7d|30d|90d`; queries PUBLISHED posts in the period; returns sentiment distribution (POSITIVE/NEUTRAL/NEGATIVE counts + percentages + unanalyzed count), readability distribution (very-easy/easy/medium/hard/very-hard counts using word count heuristic), word count stats (avg, median, min, max), post length distribution buckets
+- [x] `ContentQualityCard` component (`src/components/content-quality-card.tsx`) — bar charts for sentiment distribution and readability distribution using recharts, stat tiles for avg/median word count, period selector; "No posts yet" empty state
+- [x] Integrate `ContentQualityCard` into the analytics dashboard page below the scheduling advisor card
+- [x] Unit tests for content-quality endpoint (auth, rate limit, period validation, empty result, mixed sentiment shape, readability shape — 11 tests)

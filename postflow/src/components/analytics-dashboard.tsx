@@ -29,6 +29,7 @@ import { BestTimesCard } from "@/components/best-times-card";
 import { WordCloudCard } from "@/components/word-cloud-card";
 import { ConsistencyCard } from "@/components/consistency-card";
 import { SchedulingAdvisorCard } from "@/components/scheduling-advisor-card";
+import { ContentQualityCard } from "@/components/content-quality-card";
 
 type Period = "7d" | "30d" | "90d";
 
@@ -436,6 +437,9 @@ export function AnalyticsDashboard() {
 
       {/* AI Scheduling Advisor */}
       <SchedulingAdvisorCard />
+
+      {/* Content Quality Dashboard */}
+      <ContentQualityCard />
     </div>
   );
 }
