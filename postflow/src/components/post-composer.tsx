@@ -17,6 +17,7 @@ import { ReadabilityIndicator } from "@/components/readability-indicator";
 import { DuplicateWarning } from "@/components/duplicate-warning";
 import { AutosaveIndicator } from "@/components/autosave-indicator";
 import { ImageCaptionDialog } from "@/components/image-caption-dialog";
+import { BrandGuidelinesPanel } from "@/components/brand-guidelines-panel";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
 import {
@@ -702,6 +703,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         </div>
         <DuplicateWarning content={content} />
         <LinkPreviewCard content={content} />
+        <BrandGuidelinesPanel />
       </div>
 
       {/* Media URLs */}
