@@ -145,6 +145,7 @@ model User {
   shortLinks         ShortLink[]
   pushSubscriptions  PushSubscription[]
   blackoutPeriods    BlackoutPeriod[]
+  brandKit           BrandKit?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -941,4 +942,20 @@ model BlackoutPeriod {
   @@index([userId])
   @@index([userId, startDate])
   @@index([userId, isRecurring])
+}
+
+model BrandKit {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  primaryColor    String?
+  secondaryColor  String?
+  accentColor     String?
+  logoUrl         String?
+  tagline         String?
+  voiceGuide      String?
+  doKeywords      String[]
+  dontKeywords    String[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
