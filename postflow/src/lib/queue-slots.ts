@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { PostStatus } from "@prisma/client";
+import { isInBlackout } from "@/lib/blackout";
 
 // ── Timezone helpers ──────────────────────────────────────────────────────────
 
@@ -62,7 +63,7 @@ function slotToUtc(baseDate: Date, hour: number, minute: number, tz: string): Da
   return new Date(naive.getTime() - offsetMins * 60_000);
 }
 
-// ── Main export ───────────────────────────────────────────────────────────────
+// ── Main export ──────────────────────────────────────────────────────────────
 
 /**
  * Finds the next unoccupied posting queue slot for a user within 30 days.
@@ -96,6 +97,12 @@ export async function findNextAvailableSlot(
     .map((p) => p.scheduledAt!.getTime())
     .filter(Boolean);
 
+  // Fetch blackout periods for this user
+  const blackouts = await prisma.blackoutPeriod.findMany({
+    where: { userId },
+    select: { name: true, startDate: true, endDate: true, isRecurring: true, daysOfWeek: true },
+  });
+
   const BUFFER_MS = 15 * 60_000;
 
   function isOccupied(candidate: Date): boolean {
@@ -119,6 +126,11 @@ export async function findNextAvailableSlot(
 
       // Must be in the future
       if (candidate <= now) continue;
+
+      // Skip slots that fall within a blackout period
+      if (blackouts.length > 0 && isInBlackout(candidate, blackouts) !== null) {
+        continue;
+      }
 
       if (!isOccupied(candidate)) {
         return candidate;

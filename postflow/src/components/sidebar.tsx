@@ -39,6 +39,7 @@ import {
   Layers,
   BookOpen,
   Scissors,
+  CalendarOff,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -78,6 +79,7 @@ const navItems = [
   { href: "/feed-widgets", label: "Feed Widgets", icon: LayoutGrid },
   { href: "/content-pillars", label: "Pillars", icon: Layers },
   { href: "/short-links", label: "Short Links", icon: Scissors },
+  { href: "/blackout-periods", label: "Blackouts", icon: CalendarOff },
   { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/api-explorer", label: "API Docs", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
