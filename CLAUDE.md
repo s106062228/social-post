@@ -1104,3 +1104,54 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Public embeddable widget page (`/widget/[id]`) — server-rendered; renders posts as a clean card feed using theme; no login required; used as the iframe src
 - [x] Add "Feed Widgets" to sidebar navigation
 - [x] Unit tests for feed widgets API (GET list, POST create, PATCH, DELETE, public GET — auth, rate limit, max-widgets, ownership, shape — 20 tests)
+
+### Phase 103: Content Pillars & Post Organization
+- [x] `ContentPillar` model in Prisma (id, userId, name, color, description?, isActive, createdAt, updatedAt) + add `pillarId` FK to Post + migration (`20260605000000_add_content_pillars`)
+- [x] CRUD API for content pillars (`GET /api/content-pillars`, `POST /api/content-pillars`, `PATCH /api/content-pillars/[id]`, `DELETE /api/content-pillars/[id]`) + analytics endpoint — auth + rate limit + zod validation
+- [x] Content pillars management page in dashboard (`/content-pillars`) — list pillars with color swatch, post count, inline create/edit/delete
+- [x] Add "Pillars" to sidebar navigation
+- [x] Unit tests for content pillars API (GET, POST, PATCH, DELETE — auth, rate limit, CRUD shape)
+
+### Phase 104: Post Expiry & Auto-Unpublish
+- [x] Add `expiresAt` (nullable DateTime) to Post model + Prisma migration (`20260607000000_add_post_expiry`) with index on `expiresAt`
+- [x] `PATCH /api/posts/[id]/expiry` endpoint — auth + rate limit + ownership; sets/clears expiresAt; returns updated post
+- [x] BullMQ expiry worker — daily cron; finds PUBLISHED posts where expiresAt ≤ now(); marks them archived or failed; fires in-app notification
+- [x] Expiry date selector in post composer — datetime picker shown when scheduling; sets expiresAt along with scheduledAt
+- [x] Unit tests for expiry endpoint (auth, ownership, set date, clear date, expired post handling)
+
+### Phase 105: Custom Branded Short Links
+- [x] `ShortLink` model in Prisma (id, userId, slug unique, originalUrl, title?, clicks, expiresAt?, createdAt, updatedAt) + migration (`20260608000000_add_short_links`)
+- [x] CRUD API for short links (`GET /api/short-links`, `POST /api/short-links`, `PATCH /api/short-links/[id]`, `DELETE /api/short-links/[id]`) — auth + rate limit + zod validation; max 200 links per user; auto-generates 6-char slug if not specified; slug uniqueness check with 409 conflict
+- [x] Public redirect endpoint (`GET /s/[slug]`) — no auth; 302 redirect to originalUrl; increment clicks counter; 404 for expired links
+- [x] Short links management page in dashboard (`/short-links`) — table with slug, original URL, click count, expiry, copy short URL, delete
+- [x] Add "Short Links" to sidebar navigation
+- [x] Unit tests for short links API (GET list, POST create, PATCH, DELETE, public redirect — auth, rate limit, slug uniqueness, click tracking, expiry — 18 tests)
+
+### Phase 106: Web Push Notifications
+- [x] `PushSubscription` model in Prisma (id, userId, endpoint unique, p256dhKey, authKey, userAgent?, createdAt) + migration (`20260611000000_add_push_subscriptions`)
+- [x] `GET /api/push/vapid-key` endpoint — returns public VAPID key for browser subscription; `POST /api/push/subscribe` — registers push subscription; auth + rate limit
+- [x] Web Push dispatch helper — sends push notification to all user's subscriptions on post terminal events
+- [x] Service worker integration in dashboard — registers service worker, subscribes to push; persists subscription across sessions
+- [x] Unit tests for push API endpoints (auth, subscribe, vapid key shape)
+
+### Phase 107: Scheduling Blackout Periods
+- [x] `BlackoutPeriod` model in Prisma (id, userId, name, startDate, endDate, isRecurring, daysOfWeek[], createdAt, updatedAt) + migration (`20260612000000_add_blackout_periods`)
+- [x] CRUD API for blackout periods (`GET /api/blackout-periods`, `POST /api/blackout-periods`, `PATCH /api/blackout-periods/[id]`, `DELETE /api/blackout-periods/[id]`) — auth + rate limit + zod validation
+- [x] Integrate blackout periods into `findNextAvailableSlot` — skip slots that fall within any active blackout period
+- [x] Blackout periods management page in dashboard (`/blackout-periods`) — list periods with date range, recurring toggle, delete; inline create form
+- [x] Add "Blackouts" to sidebar navigation
+- [x] Unit tests for blackout periods API and blackout utility (GET, POST, PATCH, DELETE — auth, rate limit, validation, CRUD shape)
+
+### Phase 108: Brand Kit & Voice Guidelines
+- [x] `BrandKit` model in Prisma (id, userId unique, primaryColor?, secondaryColor?, accentColor?, logoUrl?, tagline?, voiceGuide?, doKeywords[], dontKeywords[], createdAt, updatedAt) + migration (`20260613000000_add_brand_kit`)
+- [x] `GET /api/brand-kit` + `POST /api/brand-kit` endpoint — upsert brand kit for current user; auth + rate limit + zod validation
+- [x] Brand kit management page in dashboard (`/brand-kit`) — color pickers, logo URL input, tagline, voice guide textarea, do/don't keyword lists
+- [x] Add "Brand Kit" to sidebar navigation
+- [x] Unit tests for brand kit API (GET, POST upsert — auth, rate limit, CRUD shape)
+
+### Phase 109: Brand Compliance Scanner
+- [x] Brand compliance utility (`src/lib/brand-compliance.ts`) — checks post content against user's BrandKit: detects forbidden `dontKeywords`, verifies presence of at least one `doKeyword` (when list is non-empty), warns when content is unusually short; returns `{violations: {type: "forbidden"|"missing_do"|"too_short", message: string, keyword?: string}[], compliant: boolean, score: number}`
+- [x] `POST /api/brand-compliance` content-based endpoint — auth + rate limit; accepts `{content}` body; fetches user's BrandKit; returns compliance report; returns `{compliant: true, violations: [], score: 100}` when no BrandKit configured
+- [x] `POST /api/posts/[id]/check-compliance` endpoint — auth + rate limit + ownership check; fetches user's BrandKit and post content; runs compliance utility; returns compliance report
+- [x] `BrandComplianceIndicator` component (`src/components/brand-compliance-indicator.tsx`) — compact badge (green "Compliant" / red "X Violations") with expandable list of violations; integrated below the content textarea in post composer with 600 ms debounce; hidden when no content
+- [x] Unit tests for brand compliance utility and endpoints (utility: clean, forbidden, multiple forbidden, missing do-keyword, empty do list, too-short, combined, score range; API: auth, rate limit, no kit, violations, compliant; post route: auth, rate limit, not found, ownership, no kit, violations — 20 tests)

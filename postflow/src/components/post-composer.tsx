@@ -18,6 +18,7 @@ import { DuplicateWarning } from "@/components/duplicate-warning";
 import { AutosaveIndicator } from "@/components/autosave-indicator";
 import { ImageCaptionDialog } from "@/components/image-caption-dialog";
 import { BrandGuidelinesPanel } from "@/components/brand-guidelines-panel";
+import { BrandComplianceIndicator } from "@/components/brand-compliance-indicator";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
 import {
@@ -702,6 +703,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           <AutosaveIndicator state={autosaveState} savedAt={autosavedAt} />
         </div>
         <DuplicateWarning content={content} />
+        <BrandComplianceIndicator content={content} />
         <LinkPreviewCard content={content} />
         <BrandGuidelinesPanel />
       </div>
