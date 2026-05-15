@@ -1181,3 +1181,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Inspiration board page in dashboard (`/inspiration`) — masonry card grid with preview image, title, description, notes, platform badge, URL link; "Create Post" and "AI Inspire" buttons per card; inline add form
 - [x] Add "Inspiration" to sidebar navigation
 - [x] Unit tests for inspiration API (GET list, POST create with OG fetch, POST max-items, PATCH, DELETE, to-post without AI, to-post with AI, AI fallback — 15 tests)
+
+### Phase 113: Audience Growth & Follower Tracking
+- [x] `AudienceMetric` model in Prisma (id, accountId, followersCount Int?, followingCount Int?, syncedAt DateTime @default(now())) + migration (`20260616000000_add_audience_metrics`); add `audienceMetrics AudienceMetric[]` to SocialAccount model
+- [x] Daily BullMQ audience sync worker (`src/lib/queue/workers/audience-sync.ts`) — for each active SocialAccount, fetches follower counts from Facebook (fan_count), Instagram (followers_count/follows_count), and Twitter (public_metrics) APIs; creates AudienceMetric records; skips other platforms gracefully; add `AUDIENCE_SYNC` to QUEUE_NAMES; add `scheduleAudienceSync()` to scheduler.ts (daily 05:00 UTC); register worker + cron in `workers/queue-worker.ts`
+- [x] `GET /api/audience/metrics` endpoint — auth + rate limit; returns per-account 90-day time-series follower data; supports `?accountId=` filter; returns `{accounts: [{accountId, accountName, platform, metrics: [{syncedAt, followersCount, followingCount}]}]}`
+- [x] `AudienceGrowthCard` component (`src/components/audience-growth-card.tsx`) — Recharts line chart of follower count over time; per-account toggle buttons; period selector (7d/30d/90d); "No data yet" empty state
+- [x] Audience page in dashboard (`/audience`) — shows `AudienceGrowthCard` with all connected accounts
+- [x] Add "Audience" to sidebar navigation
+- [x] Unit tests for audience metrics API (auth, rate limit, no-filter returns all, accountId filter, empty result, account shape, metric shape, null followingCount, ascending sort, error — 10 tests)

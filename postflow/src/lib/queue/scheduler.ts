@@ -14,6 +14,7 @@ import type { ReminderJobData } from "./workers/reminder";
 import type { PerformanceAlertScanJobData } from "./workers/performance-alert";
 import type { PostExpiryJobData } from "./workers/expiry";
 import type { DigestScanJobData } from "./workers/digest";
+import type { AudienceSyncJobData } from "./workers/audience-sync";
 
 // ── Queue singletons ────────────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -485,6 +486,42 @@ export async function schedulePerformanceAlertScan(): Promise<void> {
     {
       repeat: { pattern: "0 4 * * *" },
       jobId: "performance-alert-scan:daily",
+    }
+  );
+}
+
+// ── Audience sync queue ───────────────────────────────────────────────────────────
+
+let audienceSyncQueue: Queue<AudienceSyncJobData> | null = null;
+
+function getAudienceSyncQueue(): Queue<AudienceSyncJobData> {
+  if (!audienceSyncQueue) {
+    audienceSyncQueue = new Queue<AudienceSyncJobData>(QUEUE_NAMES.AUDIENCE_SYNC, {
+      connection: createRedisConnection(),
+      defaultJobOptions: {
+        attempts: 2,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { count: 10 },
+        removeOnFail: { count: 20 },
+      },
+    });
+  }
+  return audienceSyncQueue;
+}
+
+/**
+ * Registers (or upserts) the daily BullMQ repeatable job that syncs follower
+ * counts for all active social accounts. Runs at 05:00 UTC every day.
+ * Safe to call on every worker startup — BullMQ deduplicates by job key.
+ */
+export async function scheduleAudienceSync(): Promise<void> {
+  const queue = getAudienceSyncQueue();
+  await queue.add(
+    "audience-sync",
+    { triggeredAt: new Date().toISOString() },
+    {
+      repeat: { pattern: "0 5 * * *" },
+      jobId: "audience-sync:daily",
     }
   );
 }

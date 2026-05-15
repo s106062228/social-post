@@ -42,6 +42,7 @@ import {
   CalendarOff,
   Palette,
   Globe,
+  TrendingUp,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -56,6 +57,7 @@ const navItems = [
   { href: "/templates", label: "Templates", icon: LayoutTemplate },
   { href: "/schedules", label: "Schedules", icon: Repeat },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
+  { href: "/audience", label: "Audience", icon: TrendingUp },
   { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/ab-tests", label: "A/B Tests", icon: FlaskConical },
   { href: "/activity", label: "Activity", icon: Activity },

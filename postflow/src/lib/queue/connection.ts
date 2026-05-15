@@ -34,6 +34,7 @@ export const QUEUE_NAMES = {
   PERFORMANCE_ALERT_SCAN: "postflow:performance-alert-scan",
   POST_EXPIRY: "postflow:post-expiry",
   NOTIFICATION_DIGEST: "postflow:notification-digest",
+  AUDIENCE_SYNC: "postflow:audience-sync",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];

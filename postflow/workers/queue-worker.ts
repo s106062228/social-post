@@ -31,6 +31,7 @@ import { createReminderWorker } from "../src/lib/queue/workers/reminder";
 import { createPerformanceAlertWorker } from "../src/lib/queue/workers/performance-alert";
 import { createPostExpiryWorker } from "../src/lib/queue/workers/expiry";
 import { createDigestWorker } from "../src/lib/queue/workers/digest";
+import { createAudienceSyncWorker } from "../src/lib/queue/workers/audience-sync";
 import {
   scheduleTokenExpiryCheck,
   scheduleExpiringTokenRefreshes,
@@ -40,6 +41,7 @@ import {
   scheduleReportScan,
   schedulePerformanceAlertScan,
   scheduleDigest,
+  scheduleAudienceSync,
 } from "../src/lib/queue/scheduler";
 import { workerLogger } from "../src/lib/logger";
 
@@ -57,6 +59,7 @@ const reminderWorker = createReminderWorker();
 const performanceAlertWorker = createPerformanceAlertWorker();
 const postExpiryWorker = createPostExpiryWorker();
 const digestWorker = createDigestWorker();
+const audienceSyncWorker = createAudienceSyncWorker();
 
 workerLogger.info("Publish worker started");
 workerLogger.info("Token refresh worker started");
@@ -70,6 +73,7 @@ workerLogger.info("Reminder worker started");
 workerLogger.info("Performance alert worker started");
 workerLogger.info("Post expiry worker started");
 workerLogger.info("Notification digest worker started");
+workerLogger.info("Audience sync worker started");
 
 // ── Register repeatable cron jobs ─────────────────────────────────────────────
 
@@ -129,6 +133,14 @@ async function registerCronJobs(): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     workerLogger.error({ err: message }, "Failed to register digest cron");
   }
+
+  try {
+    await scheduleAudienceSync();
+    workerLogger.info("Registered daily audience sync cron (05:00 UTC)");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    workerLogger.error({ err: message }, "Failed to register audience sync cron");
+  }
 }
 
 // ── Initial token refresh scan ────────────────────────────────────────────
@@ -171,6 +183,7 @@ async function shutdown(signal: string): Promise<void> {
     performanceAlertWorker.close(),
     postExpiryWorker.close(),
     digestWorker.close(),
+    audienceSyncWorker.close(),
   ]);
 
   workerLogger.info("All workers stopped. Exiting.");
