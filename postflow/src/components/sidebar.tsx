@@ -41,6 +41,7 @@ import {
   Scissors,
   CalendarOff,
   Palette,
+  Globe,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -82,6 +83,7 @@ const navItems = [
   { href: "/short-links", label: "Short Links", icon: Scissors },
   { href: "/blackout-periods", label: "Blackouts", icon: CalendarOff },
   { href: "/brand-kit", label: "Brand Kit", icon: Palette },
+  { href: "/inspiration", label: "Inspiration", icon: Globe },
   { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/api-explorer", label: "API Docs", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },

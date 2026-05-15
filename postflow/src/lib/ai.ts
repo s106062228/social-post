@@ -412,3 +412,57 @@ export async function generateContentCalendar(
   }
   return [];
 }
+
+const INSPIRE_SYSTEM = `You are a social media content writer. Given a URL title, description, and optional notes, create an engaging social media post inspired by that content.
+Always respond with valid JSON in this exact format: {"content": "the post content here"}
+The post should be original, engaging, and ready to publish. Do not copy the source text verbatim — write fresh content inspired by it.`;
+
+/**
+ * Generate a social media post inspired by a saved URL/inspiration item.
+ */
+export async function generateInspiredContent(
+  title: string,
+  description: string,
+  notes: string,
+  platforms: string[]
+): Promise<string> {
+  const client = getClient();
+  const contextParts = [
+    `Title: ${title}`,
+    description ? `Description: ${description}` : null,
+    notes ? `Notes: ${notes}` : null,
+    platforms.length > 0 ? `Target platforms: ${platforms.join(", ")}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 1024,
+    system: [
+      {
+        type: "text",
+        text: INSPIRE_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: `Create a social media post inspired by:\n${contextParts}`,
+      },
+    ],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as { content?: unknown };
+    if (typeof parsed.content === "string" && parsed.content.length > 0) {
+      return parsed.content;
+    }
+  } catch {
+    // fall through
+  }
+  return title;
+}

@@ -1172,3 +1172,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Digest email worker (`src/lib/queue/workers/digest.ts`) — weekly cron Monday 09:00 UTC; for each user with `emailNotifications=true` and at least one unread notification in the past 7 days, sends a single digest HTML email summarising unread notifications (title + body, max 20); add `NOTIFICATION_DIGEST` to `QUEUE_NAMES`; register worker + cron in `workers/queue-worker.ts`
 - [x] `NotificationPreferences` client component (`src/components/notification-preferences.tsx`) — table showing each notification type as a row with In-App and Email toggle switches; calls `PATCH /api/notification-preferences` on change; loading skeleton while fetching; integrated as a new Card in the Settings page
 - [x] Unit tests for notification-preferences API (GET returns defaults for unknown types, GET returns stored values, PATCH upserts, PATCH invalid body, auth, rate limit — 10 tests)
+
+### Phase 112: Inspiration Boards & URL Content Import
+- [x] `InspirationItem` model in Prisma (id, userId, url, title?, description?, imageUrl?, notes?, platform?, createdAt, updatedAt) + migration (`20260615000000_add_inspiration`)
+- [x] CRUD API for inspiration items (`GET /api/inspiration`, `POST /api/inspiration`, `PATCH /api/inspiration/[id]`, `DELETE /api/inspiration/[id]`) — auth + rate limit + zod validation; max 200 items per user; auto-fetch URL OG metadata on create
+- [x] `POST /api/inspiration/[id]/to-post` endpoint — auth + rate limit; creates DRAFT post from item; optional `useAi` flag calls `generateInspiredContent` (AI-rewritten) or falls back to plain title+description
+- [x] Add `generateInspiredContent(title, description, notes, platforms)` to `src/lib/ai.ts` — calls `claude-haiku-4-5` with prompt caching on system block
+- [x] Inspiration board page in dashboard (`/inspiration`) — masonry card grid with preview image, title, description, notes, platform badge, URL link; "Create Post" and "AI Inspire" buttons per card; inline add form
+- [x] Add "Inspiration" to sidebar navigation
+- [x] Unit tests for inspiration API (GET list, POST create with OG fetch, POST max-items, PATCH, DELETE, to-post without AI, to-post with AI, AI fallback — 15 tests)

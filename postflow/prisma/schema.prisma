@@ -147,6 +147,7 @@ model User {
   blackoutPeriods    BlackoutPeriod[]
   brandKit                 BrandKit?
   notificationPreferences  NotificationPreference[]
+  inspirationItems         InspirationItem[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -972,4 +973,21 @@ model NotificationPreference {
 
   @@unique([userId, notificationType])
   @@index([userId])
+}
+
+model InspirationItem {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url         String
+  title       String?
+  description String?
+  imageUrl    String?
+  notes       String?
+  platform    Platform?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
 }
