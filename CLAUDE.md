@@ -1198,3 +1198,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Group selector in post composer — compact dropdown above account toggles; selecting a group auto-selects all its accounts (does not deselect already selected accounts outside the group)
 - [x] Add "Account Groups" to sidebar navigation
 - [x] Unit tests for account groups API (GET list, POST create, PATCH update, DELETE — auth, rate limit, max-groups, ownership, validation, account ownership check — 14 tests)
+
+### Phase 115: Evergreen Auto-Recycling Scheduler
+- [x] Add `recycleInterval` (nullable Int, days) + `lastRecycledAt` (nullable DateTime) to Post model + Prisma migration (`20260618000000_add_evergreen_recycle_config`)
+- [x] `PATCH /api/posts/[id]/recycle-config` endpoint — auth + rate limit + ownership; sets/clears `recycleInterval` on evergreen posts only; returns `{recycleInterval, lastRecycledAt}`
+- [x] BullMQ evergreen recycle worker (`src/lib/queue/workers/evergreen-recycle.ts`) — daily cron 03:00 UTC; finds evergreen PUBLISHED posts where `recycleInterval` is set and (`lastRecycledAt` is null OR `lastRecycledAt` ≤ now − recycleInterval days); creates a new DRAFT copy via existing recycle logic; updates `lastRecycledAt`; logs activity; fires in-app notification
+- [x] Add `EVERGREEN_RECYCLE` to `QUEUE_NAMES` in connection.ts; add `scheduleEvergreenRecycle()` to scheduler.ts; register worker + cron in `workers/queue-worker.ts`
+- [x] `RecycleConfigButton` client component (`src/app/(dashboard)/posts/recycle-config-button.tsx`) — compact interval selector (Off / 7d / 14d / 30d / 60d / 90d) shown only for evergreen posts; calls PATCH endpoint on change; toast feedback
+- [x] Integrate `RecycleConfigButton` into posts list row alongside `EvergreenButton` (visible when `isEvergreen` is true)
+- [x] Unit tests for recycle-config endpoint and evergreen recycle worker logic (auth, ownership, non-evergreen rejection, set interval, clear interval, worker due detection, worker skips recent — 14 tests)

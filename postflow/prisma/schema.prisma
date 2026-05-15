@@ -218,8 +218,10 @@ model Post {
   sentimentScore Float?
   firstComment   String?
   language       String?
-  archivedAt     DateTime?
-  expiresAt      DateTime?
+  archivedAt       DateTime?
+  expiresAt        DateTime?
+  recycleInterval  Int?
+  lastRecycledAt   DateTime?
   pillarId       String?
   pillar         ContentPillar? @relation(fields: [pillarId], references: [id])
   publishResults PublishResult[]
@@ -243,6 +245,7 @@ model Post {
   @@index([userId, archivedAt])
   @@index([userId, pillarId])
   @@index([expiresAt])
+  @@index([isEvergreen, lastRecycledAt])
 }
 
 model Template {

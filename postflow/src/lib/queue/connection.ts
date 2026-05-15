@@ -35,6 +35,7 @@ export const QUEUE_NAMES = {
   POST_EXPIRY: "postflow:post-expiry",
   NOTIFICATION_DIGEST: "postflow:notification-digest",
   AUDIENCE_SYNC: "postflow:audience-sync",
+  EVERGREEN_RECYCLE: "postflow:evergreen-recycle",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];

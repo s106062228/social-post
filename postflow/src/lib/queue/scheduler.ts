@@ -15,6 +15,7 @@ import type { PerformanceAlertScanJobData } from "./workers/performance-alert";
 import type { PostExpiryJobData } from "./workers/expiry";
 import type { DigestScanJobData } from "./workers/digest";
 import type { AudienceSyncJobData } from "./workers/audience-sync";
+import type { EvergreenRecycleJobData } from "./workers/evergreen-recycle";
 
 // ── Queue singletons ────────────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -688,6 +689,49 @@ export async function scheduleDigest(): Promise<void> {
     { pattern: "0 9 * * 1" },
     {
       name: "notification-digest-weekly",
+      data: { triggeredAt: new Date().toISOString() },
+      opts: {
+        attempts: 2,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { count: 5 },
+        removeOnFail: { count: 10 },
+      },
+    }
+  );
+}
+
+// ── Evergreen Recycle Queue ────────────────────────────────────────────────────
+
+let evergreenRecycleQueue: Queue<EvergreenRecycleJobData> | null = null;
+
+function getEvergreenRecycleQueue(): Queue<EvergreenRecycleJobData> {
+  if (!evergreenRecycleQueue) {
+    evergreenRecycleQueue = new Queue<EvergreenRecycleJobData>(
+      QUEUE_NAMES.EVERGREEN_RECYCLE,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 2,
+          backoff: { type: "exponential", delay: 5000 },
+          removeOnComplete: { count: 10 },
+          removeOnFail: { count: 20 },
+        },
+      }
+    );
+  }
+  return evergreenRecycleQueue;
+}
+
+/**
+ * Registers (or replaces) the daily 03:00 UTC evergreen recycle cron job.
+ */
+export async function scheduleEvergreenRecycle(): Promise<void> {
+  const queue = getEvergreenRecycleQueue();
+  await queue.upsertJobScheduler(
+    "evergreen-recycle-daily",
+    { pattern: "0 3 * * *" },
+    {
+      name: "evergreen-recycle-daily",
       data: { triggeredAt: new Date().toISOString() },
       opts: {
         attempts: 2,

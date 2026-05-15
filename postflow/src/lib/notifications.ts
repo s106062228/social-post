@@ -11,6 +11,7 @@ export const NOTIFICATION_TYPES = {
   POST_REJECTED: "post.rejected",
   POST_REMINDER: "post.reminder",
   POST_EXPIRED: "post.expired",
+  POST_RECYCLED: "post.recycled",
 } as const;
 
 export type NotificationType =
