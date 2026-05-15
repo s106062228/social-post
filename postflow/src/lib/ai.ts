@@ -320,3 +320,95 @@ export async function suggestHashtags(
   }
   return [];
 }
+
+export interface ContentCalendarSuggestion {
+  platform: string;
+  contentType: string;
+  draft: string;
+  reasoning: string;
+}
+
+export interface ContentCalendarDay {
+  date: string;
+  suggestions: ContentCalendarSuggestion[];
+}
+
+export interface ContentCalendarOptions {
+  startDate: string;
+  endDate: string;
+  postsPerWeek: number;
+  platforms: string[];
+  tone?: string;
+  brandContext?: string;
+  bestTimesContext?: string;
+}
+
+const CONTENT_CALENDAR_SYSTEM = `You are a social media content strategist. Generate a structured content calendar plan for the requested date range.
+Always respond with valid JSON in this exact format:
+{"days": [{"date": "YYYY-MM-DD", "suggestions": [{"platform": "PLATFORM_NAME", "contentType": "TEXT|IMAGE|VIDEO", "draft": "draft content text", "reasoning": "why this content for this day/platform"}]}]}
+Guidelines:
+- Spread posts evenly across the date range based on postsPerWeek
+- Vary platforms across days to keep the schedule balanced
+- Vary content types (TEXT, IMAGE, VIDEO) to keep the feed diverse
+- Draft content should be ready-to-post, engaging, and platform-appropriate
+- Keep drafts concise and within platform character limits
+- Reasoning should be 1-2 sentences explaining the strategic rationale
+- Only include days that have suggestions (skip days with no posts)
+- Total suggestions across all days should approximately match postsPerWeek * number_of_weeks`;
+
+export async function generateContentCalendar(
+  options: ContentCalendarOptions
+): Promise<ContentCalendarDay[]> {
+  const client = getClient();
+
+  const contextParts = [
+    `Date range: ${options.startDate} to ${options.endDate}`,
+    `Posts per week: ${options.postsPerWeek}`,
+    `Target platforms: ${options.platforms.join(", ")}`,
+    options.tone ? `Tone: ${options.tone}` : null,
+    options.brandContext ? `Brand context: ${options.brandContext}` : null,
+    options.bestTimesContext ? `Best posting times insight: ${options.bestTimesContext}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 4096,
+    system: [
+      {
+        type: "text",
+        text: CONTENT_CALENDAR_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: `Generate a content calendar plan:\n${contextParts}`,
+      },
+    ],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as { days?: unknown };
+    const days = parsed.days;
+    if (
+      Array.isArray(days) &&
+      days.every(
+        (d) =>
+          typeof d === "object" &&
+          d !== null &&
+          typeof (d as Record<string, unknown>).date === "string" &&
+          Array.isArray((d as Record<string, unknown>).suggestions)
+      )
+    ) {
+      return days as ContentCalendarDay[];
+    }
+  } catch {
+    // fall through
+  }
+  return [];
+}

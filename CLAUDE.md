@@ -1155,3 +1155,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `POST /api/posts/[id]/check-compliance` endpoint — auth + rate limit + ownership check; fetches user's BrandKit and post content; runs compliance utility; returns compliance report
 - [x] `BrandComplianceIndicator` component (`src/components/brand-compliance-indicator.tsx`) — compact badge (green "Compliant" / red "X Violations") with expandable list of violations; integrated below the content textarea in post composer with 600 ms debounce; hidden when no content
 - [x] Unit tests for brand compliance utility and endpoints (utility: clean, forbidden, multiple forbidden, missing do-keyword, empty do list, too-short, combined, score range; API: auth, rate limit, no kit, violations, compliant; post route: auth, rate limit, not found, ownership, no kit, violations — 20 tests)
+
+### Phase 110: AI-Powered Content Calendar Planning
+- [x] Add `generateContentCalendar(options)` to `src/lib/ai.ts` — calls Claude AI (`claude-haiku-4-5`) with date range, postsPerWeek, platforms, optional tone, brand kit context, and best-times context; returns `{days: [{date, suggestions: [{platform, contentType, draft, reasoning}]}]}`; uses prompt caching on system block
+- [x] `POST /api/ai/content-calendar` endpoint — auth + rate limit + zod validation; accepts `{startDate, endDate, postsPerWeek, platforms[], tone?}`; queries brand kit and PostInsights for best-times context; calls `generateContentCalendar`; returns `{days}`; 503 when AI not configured
+- [x] `CalendarPlannerDialog` component (`src/components/calendar-planner-dialog.tsx`) — modal with date pickers, posts-per-week input, tone selector, platform multi-select chips; calls content-calendar endpoint; shows day-by-day plan with accept/reject toggle per suggestion; accepted suggestions batch-create DRAFT posts via `POST /api/posts`
+- [x] "AI Plan" button in calendar page header — opens CalendarPlannerDialog
+- [x] Unit tests for content-calendar endpoint (auth, rate limit, AI disabled, invalid JSON, startDate > endDate, empty platforms, success without brand kit, brand context included, AI error — 9 tests)
