@@ -1190,3 +1190,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Audience page in dashboard (`/audience`) — shows `AudienceGrowthCard` with all connected accounts
 - [x] Add "Audience" to sidebar navigation
 - [x] Unit tests for audience metrics API (auth, rate limit, no-filter returns all, accountId filter, empty result, account shape, metric shape, null followingCount, ascending sort, error — 10 tests)
+
+### Phase 114: Social Account Groups
+- [x] `AccountGroup` model in Prisma (id, userId, name, accountIds[], createdAt, updatedAt) + migration (`20260617000000_add_account_groups`)
+- [x] CRUD API for account groups (`GET /api/account-groups`, `POST /api/account-groups`, `PATCH /api/account-groups/[id]`, `DELETE /api/account-groups/[id]`) — auth + rate limit + zod validation; max 20 groups per user; validate that accountIds belong to current user
+- [x] Account groups management page in dashboard (`/account-groups`) — list groups with account chips, inline create form (name + multi-select accounts), edit name/accounts inline, delete
+- [x] Group selector in post composer — compact dropdown above account toggles; selecting a group auto-selects all its accounts (does not deselect already selected accounts outside the group)
+- [x] Add "Account Groups" to sidebar navigation
+- [x] Unit tests for account groups API (GET list, POST create, PATCH update, DELETE — auth, rate limit, max-groups, ownership, validation, account ownership check — 14 tests)

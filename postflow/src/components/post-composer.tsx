@@ -57,6 +57,12 @@ interface ContentSnippet {
   category: string | null;
 }
 
+interface AccountGroup {
+  id: string;
+  name: string;
+  accountIds: string[];
+}
+
 interface PostComposerProps {
   defaultScheduledAt?: string;
   accounts: Account[];
@@ -100,6 +106,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [templates, setTemplates] = useState<Template[]>([]);
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([]);
   const [snippets, setSnippets] = useState<ContentSnippet[]>([]);
+  const [accountGroups, setAccountGroups] = useState<AccountGroup[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [platformVariants, setPlatformVariants] = useState<PlatformVariantData[]>([]);
@@ -155,6 +162,13 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       .then((r) => r.json())
       .then((data: { snippets?: ContentSnippet[] }) => {
         if (data.snippets) setSnippets(data.snippets);
+      })
+      .catch(() => undefined);
+
+    fetch("/api/account-groups")
+      .then((r) => r.json())
+      .then((data: { groups?: AccountGroup[] }) => {
+        if (data.groups) setAccountGroups(data.groups);
       })
       .catch(() => undefined);
 
@@ -522,7 +536,31 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
     <div className="flex flex-col gap-6">
       {/* Account selection */}
       <div className="flex flex-col gap-2">
-        <Label>Publish to</Label>
+        <div className="flex items-center justify-between">
+          <Label>Publish to</Label>
+          {accountGroups.length > 0 && (
+            <select
+              className="rounded border border-input bg-background px-2 py-1 text-xs text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              value=""
+              onChange={(e) => {
+                const group = accountGroups.find((g) => g.id === e.target.value);
+                if (group) {
+                  setSelectedAccountIds((prev) => {
+                    const next = new Set(prev);
+                    group.accountIds.forEach((id) => next.add(id));
+                    return next;
+                  });
+                  e.target.value = "";
+                }
+              }}
+            >
+              <option value="" disabled>Apply group…</option>
+              {accountGroups.map((g) => (
+                <option key={g.id} value={g.id}>{g.name}</option>
+              ))}
+            </select>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
           {accounts.map((account) => {
             const selected = selectedAccountIds.has(account.id);

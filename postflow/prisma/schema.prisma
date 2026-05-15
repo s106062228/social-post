@@ -148,6 +148,7 @@ model User {
   brandKit                 BrandKit?
   notificationPreferences  NotificationPreference[]
   inspirationItems         InspirationItem[]
+  accountGroups            AccountGroup[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -999,6 +1000,19 @@ model InspirationItem {
   platform    Platform?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model AccountGroup {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  accountIds String[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([userId])
   @@index([userId, createdAt(sort: Desc)])

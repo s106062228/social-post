@@ -43,6 +43,7 @@ import {
   Palette,
   Globe,
   TrendingUp,
+  FolderOpen,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -87,6 +88,7 @@ const navItems = [
   { href: "/brand-kit", label: "Brand Kit", icon: Palette },
   { href: "/inspiration", label: "Inspiration", icon: Globe },
   { href: "/billing", label: "Billing", icon: CreditCard },
+  { href: "/account-groups", label: "Account Groups", icon: FolderOpen },
   { href: "/api-explorer", label: "API Docs", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
