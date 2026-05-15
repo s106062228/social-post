@@ -30,6 +30,7 @@ import { createReportWorker } from "../src/lib/queue/workers/report";
 import { createReminderWorker } from "../src/lib/queue/workers/reminder";
 import { createPerformanceAlertWorker } from "../src/lib/queue/workers/performance-alert";
 import { createPostExpiryWorker } from "../src/lib/queue/workers/expiry";
+import { createDigestWorker } from "../src/lib/queue/workers/digest";
 import {
   scheduleTokenExpiryCheck,
   scheduleExpiringTokenRefreshes,
@@ -38,6 +39,7 @@ import {
   scheduleRssImport,
   scheduleReportScan,
   schedulePerformanceAlertScan,
+  scheduleDigest,
 } from "../src/lib/queue/scheduler";
 import { workerLogger } from "../src/lib/logger";
 
@@ -54,6 +56,7 @@ const reportWorker = createReportWorker();
 const reminderWorker = createReminderWorker();
 const performanceAlertWorker = createPerformanceAlertWorker();
 const postExpiryWorker = createPostExpiryWorker();
+const digestWorker = createDigestWorker();
 
 workerLogger.info("Publish worker started");
 workerLogger.info("Token refresh worker started");
@@ -66,6 +69,7 @@ workerLogger.info("Report worker started");
 workerLogger.info("Reminder worker started");
 workerLogger.info("Performance alert worker started");
 workerLogger.info("Post expiry worker started");
+workerLogger.info("Notification digest worker started");
 
 // ── Register repeatable cron jobs ─────────────────────────────────────────────
 
@@ -117,6 +121,14 @@ async function registerCronJobs(): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     workerLogger.error({ err: message }, "Failed to register performance alert scan cron");
   }
+
+  try {
+    await scheduleDigest();
+    workerLogger.info("Registered weekly notification digest cron (Mon 09:00 UTC)");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    workerLogger.error({ err: message }, "Failed to register digest cron");
+  }
 }
 
 // ── Initial token refresh scan ────────────────────────────────────────────
@@ -158,6 +170,7 @@ async function shutdown(signal: string): Promise<void> {
     reminderWorker.close(),
     performanceAlertWorker.close(),
     postExpiryWorker.close(),
+    digestWorker.close(),
   ]);
 
   workerLogger.info("All workers stopped. Exiting.");

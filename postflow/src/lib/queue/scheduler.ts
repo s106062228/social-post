@@ -13,6 +13,7 @@ import type { ReportScanJobData } from "./workers/report";
 import type { ReminderJobData } from "./workers/reminder";
 import type { PerformanceAlertScanJobData } from "./workers/performance-alert";
 import type { PostExpiryJobData } from "./workers/expiry";
+import type { DigestScanJobData } from "./workers/digest";
 
 // ── Queue singletons ────────────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -619,4 +620,44 @@ export async function cancelExpiry(postId: string): Promise<boolean> {
     return true;
   }
   return false;
+}
+
+// ── Notification Digest Queue ──────────────────────────────────────────────────
+
+let digestQueue: Queue<DigestScanJobData> | null = null;
+
+function getDigestQueue(): Queue<DigestScanJobData> {
+  if (!digestQueue) {
+    digestQueue = new Queue<DigestScanJobData>(QUEUE_NAMES.NOTIFICATION_DIGEST, {
+      connection: createRedisConnection(),
+      defaultJobOptions: {
+        attempts: 2,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { count: 10 },
+        removeOnFail: { count: 20 },
+      },
+    });
+  }
+  return digestQueue;
+}
+
+/**
+ * Registers (or replaces) the weekly Monday 09:00 UTC digest cron job.
+ */
+export async function scheduleDigest(): Promise<void> {
+  const queue = getDigestQueue();
+  await queue.upsertJobScheduler(
+    "notification-digest-weekly",
+    { pattern: "0 9 * * 1" },
+    {
+      name: "notification-digest-weekly",
+      data: { triggeredAt: new Date().toISOString() },
+      opts: {
+        attempts: 2,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { count: 5 },
+        removeOnFail: { count: 10 },
+      },
+    }
+  );
 }

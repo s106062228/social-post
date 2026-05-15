@@ -25,21 +25,43 @@ export interface CreateNotificationInput {
   entityType?: string;
 }
 
-export function createNotification(input: CreateNotificationInput): void {
-  prisma.notification
-    .create({
-      data: {
-        userId: input.userId,
-        type: input.type,
-        title: input.title,
-        body: input.body,
-        entityId: input.entityId ?? null,
-        entityType: input.entityType ?? null,
-      },
-    })
-    .catch((err: unknown) => {
-      logger.error({ err }, "Failed to create notification");
+async function isInAppEnabled(
+  userId: string,
+  type: NotificationType
+): Promise<boolean> {
+  try {
+    const pref = await prisma.notificationPreference.findUnique({
+      where: { userId_notificationType: { userId, notificationType: type } },
+      select: { inApp: true },
     });
+    return pref?.inApp ?? true;
+  } catch {
+    return true;
+  }
+}
+
+export function createNotification(input: CreateNotificationInput): void {
+  _createNotificationAsync(input).catch((err: unknown) => {
+    logger.error({ err }, "Failed to create notification");
+  });
+}
+
+async function _createNotificationAsync(
+  input: CreateNotificationInput
+): Promise<void> {
+  const enabled = await isInAppEnabled(input.userId, input.type);
+  if (!enabled) return;
+
+  await prisma.notification.create({
+    data: {
+      userId: input.userId,
+      type: input.type,
+      title: input.title,
+      body: input.body,
+      entityId: input.entityId ?? null,
+      entityType: input.entityType ?? null,
+    },
+  });
 }
 
 export function notifyPostOutcomeInApp(

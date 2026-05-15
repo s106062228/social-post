@@ -2,6 +2,7 @@ import nodemailer, { type Transporter } from "nodemailer";
 import { PostStatus, PublishStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { NOTIFICATION_TYPES } from "@/lib/notifications";
 
 const emailLogger = logger.child({ context: "email" });
 
@@ -181,6 +182,21 @@ export function notifyPostOutcome(
   });
 }
 
+async function isEmailPrefEnabled(
+  userId: string,
+  notificationType: string
+): Promise<boolean> {
+  try {
+    const pref = await prisma.notificationPreference.findUnique({
+      where: { userId_notificationType: { userId, notificationType } },
+      select: { email: true },
+    });
+    return pref?.email ?? true;
+  } catch {
+    return true;
+  }
+}
+
 async function _notifyPostOutcomeAsync(
   postId: string,
   finalStatus: PostStatus
@@ -188,7 +204,7 @@ async function _notifyPostOutcomeAsync(
   const post = await prisma.post.findUnique({
     where: { id: postId },
     include: {
-      user: { select: { email: true, emailNotifications: true } },
+      user: { select: { id: true, email: true, emailNotifications: true } },
       publishResults: {
         select: { status: true, error: true, platform: true },
       },
@@ -201,6 +217,17 @@ async function _notifyPostOutcomeAsync(
   }
 
   if (!post.user.emailNotifications) return;
+
+  // Check per-type email preference
+  const typeKey =
+    finalStatus === PostStatus.PUBLISHED
+      ? NOTIFICATION_TYPES.POST_PUBLISHED
+      : finalStatus === PostStatus.FAILED
+        ? NOTIFICATION_TYPES.POST_FAILED
+        : NOTIFICATION_TYPES.POST_PARTIALLY_PUBLISHED;
+
+  const emailEnabled = await isEmailPrefEnabled(post.user.id, typeKey);
+  if (!emailEnabled) return;
 
   type ResultRow = (typeof post.publishResults)[number];
 

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { SettingsForm } from "./settings-form";
 import { TwoFactorSettings } from "./two-factor-settings";
 import { PushNotificationSetup } from "@/components/push-notification-setup";
+import { NotificationPreferences } from "@/components/notification-preferences";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function SettingsPage() {
@@ -46,6 +47,7 @@ export default async function SettingsPage() {
             <PushNotificationSetup />
           </CardContent>
         </Card>
+        <NotificationPreferences />
       </div>
     </div>
   );
