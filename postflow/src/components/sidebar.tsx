@@ -44,6 +44,7 @@ import {
   Globe,
   TrendingUp,
   FolderOpen,
+  CalendarRange,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,7 @@ const navItems = [
   { href: "/search", label: "Search", icon: SearchIcon },
   { href: "/posts", label: "Posts", icon: FileText },
   { href: "/calendar", label: "Calendar", icon: Calendar },
+  { href: "/planner", label: "Planner", icon: CalendarRange },
   { href: "/accounts", label: "Accounts", icon: Users },
   { href: "/templates", label: "Templates", icon: LayoutTemplate },
   { href: "/schedules", label: "Schedules", icon: Repeat },
