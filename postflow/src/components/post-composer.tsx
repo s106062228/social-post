@@ -58,6 +58,13 @@ interface ContentSnippet {
   category: string | null;
 }
 
+interface CaptionVariable {
+  id: string;
+  key: string;
+  value: string;
+  description: string | null;
+}
+
 interface AccountGroup {
   id: string;
   name: string;
@@ -107,6 +114,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [templates, setTemplates] = useState<Template[]>([]);
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([]);
   const [snippets, setSnippets] = useState<ContentSnippet[]>([]);
+  const [captionVariables, setCaptionVariables] = useState<CaptionVariable[]>([]);
   const [accountGroups, setAccountGroups] = useState<AccountGroup[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
@@ -163,6 +171,13 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       .then((r) => r.json())
       .then((data: { snippets?: ContentSnippet[] }) => {
         if (data.snippets) setSnippets(data.snippets);
+      })
+      .catch(() => undefined);
+
+    fetch("/api/caption-variables")
+      .then((r) => r.json())
+      .then((data: { variables?: CaptionVariable[] }) => {
+        if (data.variables) setCaptionVariables(data.variables);
       })
       .catch(() => undefined);
 
@@ -673,6 +688,36 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
             {snippets.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.category ? `[${s.category}] ` : ""}{s.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Caption variable insertion */}
+      {captionVariables.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="variable-select">Insert variable</Label>
+          <select
+            id="variable-select"
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            defaultValue=""
+            onChange={(e) => {
+              const v = captionVariables.find((cv) => cv.id === e.target.value);
+              if (v) {
+                setContent((prev) =>
+                  prev.trim()
+                    ? `${prev.trimEnd()} {{${v.key}}}`
+                    : `{{${v.key}}}`
+                );
+                e.target.value = "";
+              }
+            }}
+          >
+            <option value="" disabled>Select a variable…</option>
+            {captionVariables.map((v) => (
+              <option key={v.id} value={v.id}>
+                {`{{${v.key}}}`}{v.description ? ` — ${v.description}` : ""}
               </option>
             ))}
           </select>

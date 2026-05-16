@@ -1235,3 +1235,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `AssigneeSelector` client component (`src/app/(dashboard)/posts/assignee-selector.tsx`) — compact dropdown of all users; "Assign" button per post row; calls PATCH assign endpoint; toast feedback; optimistic UI
 - [x] "Assigned to Me" filter tab in posts list page alongside existing status/starred/evergreen/archived tabs
 - [x] Unit tests for assign endpoint (auth, rate limit, ownership, set assignee, clear assignee, nonexistent assignee, notification fired, invalid body — 10 tests)
+
+### Phase 120: Dynamic Caption Variables (Merge Tags)
+- [x] `CaptionVariable` model in Prisma (id, userId, key, value, description?, createdAt, updatedAt) + `@@unique([userId, key])` + migration (`20260621000000_add_caption_variables`)
+- [x] CRUD API for caption variables (`GET /api/caption-variables`, `POST /api/caption-variables`, `PATCH /api/caption-variables/[id]`, `DELETE /api/caption-variables/[id]`) — auth + rate limit + zod validation; max 50 variables per user; key regex `[a-zA-Z0-9_]+`; 409 conflict on duplicate key
+- [x] Caption variable utility (`src/lib/caption-variables.ts`) — `substituteVariables(content, vars)` replaces all `{{key}}` placeholders; `extractPlaceholders(content)` returns unique placeholder keys found in content
+- [x] Integrate variable substitution into BullMQ publish worker — loads user's `CaptionVariable` records and calls `substituteVariables` on resolved content before publishing
+- [x] Caption variables management page in dashboard (`/caption-variables`) — card grid with `{{key}}` → value display, copy-placeholder button, inline create form (key + value + optional description), edit-in-place, delete
+- [x] "Insert Variable" dropdown in post composer — lists available variables; selecting one appends `{{key}}` to current post content
+- [x] Add "Variables" to sidebar navigation (icon: `Braces`)
+- [x] Unit tests for caption variable utility (`substituteVariables`, `extractPlaceholders` — 15 tests) and CRUD API (GET, POST, PATCH, DELETE — auth, rate limit, max-vars, key validation, duplicate conflict, ownership — 25 tests)

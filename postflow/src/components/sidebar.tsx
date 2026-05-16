@@ -45,6 +45,7 @@ import {
   TrendingUp,
   FolderOpen,
   CalendarRange,
+  Braces,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -91,6 +92,7 @@ const navItems = [
   { href: "/inspiration", label: "Inspiration", icon: Globe },
   { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/account-groups", label: "Account Groups", icon: FolderOpen },
+  { href: "/caption-variables", label: "Variables", icon: Braces },
   { href: "/api-explorer", label: "API Docs", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

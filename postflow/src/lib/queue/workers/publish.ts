@@ -29,6 +29,7 @@ import { notifyPostOutcomeInApp } from "@/lib/notifications";
 import { dispatchWebhooks, type WebhookEvent } from "@/lib/webhook-dispatch";
 import { dispatchSlackNotifications, type IntegrationEvent } from "@/lib/slack-notify";
 import { dispatchDiscordNotifications } from "@/lib/discord-notify";
+import { substituteVariables } from "@/lib/caption-variables";
 
 // ── Job payload types ──────────────────────────────────────────────────────────
 
@@ -112,8 +113,18 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<void> {
     where: { postId_platform: { postId, platform: account.platform } },
   });
 
+  // Load caption variables for dynamic placeholder substitution
+  const captionVars = await prisma.captionVariable.findMany({
+    where: { userId: post.userId },
+    select: { key: true, value: true },
+  });
+
+  const rawContent = variant?.content ?? post.content;
+  const resolvedContent =
+    captionVars.length > 0 ? substituteVariables(rawContent, captionVars) : rawContent;
+
   const postContent = {
-    content: variant?.content ?? post.content,
+    content: resolvedContent,
     mediaType: variant?.mediaType ?? post.mediaType,
     mediaUrls: variant?.mediaUrls ?? post.mediaUrls,
     scheduledAt: post.scheduledAt,

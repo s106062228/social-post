@@ -149,6 +149,7 @@ model User {
   notificationPreferences  NotificationPreference[]
   inspirationItems         InspirationItem[]
   accountGroups            AccountGroup[]
+  captionVariables         CaptionVariable[]
   assignedPosts            Post[]              @relation("PostAssignee")
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
@@ -1023,4 +1024,18 @@ model AccountGroup {
 
   @@index([userId])
   @@index([userId, createdAt(sort: Desc)])
+}
+
+model CaptionVariable {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key         String
+  value       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, key])
+  @@index([userId])
 }
