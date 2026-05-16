@@ -19,6 +19,7 @@ import { RecyclePostButton } from "./recycle-post-button";
 import { RecycleConfigButton } from "./recycle-config-button";
 import { AnalyzeSentimentButton } from "./analyze-sentiment-button";
 import { ArchivePostButton } from "./archive-post-button";
+import { AssigneeSelector } from "./assignee-selector";
 import { RepurposeDialog } from "@/components/repurpose-dialog";
 import { TranslateDialog } from "@/components/translate-dialog";
 import { computeScore, scoreLabel } from "@/lib/content-score";
@@ -57,8 +58,16 @@ export type PostListItem = {
   sentimentScore: number | null;
   archivedAt: Date | string | null;
   recycleInterval: number | null;
+  assigneeId: string | null;
+  assignee: { id: string; name: string | null; email: string } | null;
   publishResults: PublishResult[];
   tags: PostTagItem[];
+};
+
+type UserOption = {
+  id: string;
+  name: string | null;
+  email: string;
 };
 
 function ApprovalBadge({ approvalStatus }: { approvalStatus: string }) {
@@ -144,9 +153,10 @@ function StatusBadge({ status }: { status: string }) {
 
 interface PostsListClientProps {
   posts: PostListItem[];
+  users?: UserOption[];
 }
 
-export function PostsListClient({ posts }: PostsListClientProps) {
+export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
@@ -313,9 +323,21 @@ export function PostsListClient({ posts }: PostsListClientProps) {
                       {tag.name}
                     </span>
                   ))}
+                  {post.assignee && (
+                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                      → {post.assignee.name ?? post.assignee.email}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
+                {users.length > 0 && (
+                  <AssigneeSelector
+                    postId={post.id}
+                    currentAssigneeId={post.assigneeId}
+                    users={users}
+                  />
+                )}
                 <StarPostButton postId={post.id} initialStarred={post.starred} />
                 <EvergreenButton postId={post.id} initialEvergreen={post.isEvergreen} />
                 {post.isEvergreen && post.status === "PUBLISHED" && (

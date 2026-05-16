@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Archive, Download, Leaf, Plus, SmilePlus, Star } from "lucide-react";
+import { Archive, Download, Leaf, Plus, SmilePlus, Star, UserCheck } from "lucide-react";
 import { SearchInput } from "./search-input";
 import { PostsListClient } from "./posts-list-client";
 import { DateRangeFilter } from "./date-range-filter";
@@ -22,12 +22,12 @@ const PLATFORMS: Platform[] = [Platform.FACEBOOK, Platform.INSTAGRAM, Platform.T
 export default async function PostsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; page?: string; search?: string; tag?: string; from?: string; to?: string; platform?: string; starred?: string; evergreen?: string; sentiment?: string; archived?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; search?: string; tag?: string; from?: string; to?: string; platform?: string; starred?: string; evergreen?: string; sentiment?: string; archived?: string; assignee?: string }>;
 }) {
   const session = await auth();
   const userId = session!.user!.id;
 
-  const { status: statusFilter, page: pageStr, search: searchQuery, tag: tagFilter, from: fromFilter, to: toFilter, platform: platformFilter, starred: starredFilter, evergreen: evergreenFilter, sentiment: sentimentFilter, archived: archivedFilter } = await searchParams;
+  const { status: statusFilter, page: pageStr, search: searchQuery, tag: tagFilter, from: fromFilter, to: toFilter, platform: platformFilter, starred: starredFilter, evergreen: evergreenFilter, sentiment: sentimentFilter, archived: archivedFilter, assignee: assigneeFilter } = await searchParams;
   const page = Math.max(1, parseInt(pageStr ?? "1", 10));
   const limit = 20;
   const skip = (page - 1) * limit;
@@ -38,6 +38,7 @@ export default async function PostsPage({
   const onlyStarred = starredFilter === "true";
   const onlyEvergreen = evergreenFilter === "true";
   const onlyArchived = archivedFilter === "true";
+  const onlyAssigned = assigneeFilter === "me";
   const SENTIMENTS = ["POSITIVE", "NEUTRAL", "NEGATIVE"] as const;
   type SentimentValue = typeof SENTIMENTS[number];
   const sentimentEnum = SENTIMENTS.includes(sentimentFilter as SentimentValue)
@@ -48,7 +49,8 @@ export default async function PostsPage({
   const to = toFilter && !isNaN(Date.parse(toFilter)) ? new Date(toFilter) : undefined;
 
   const where = {
-    userId,
+    // When assignee=me, show posts assigned to current user (may be owned by others)
+    ...(onlyAssigned ? { assigneeId: userId } : { userId }),
     // By default show only non-archived posts; when archived=true show only archived
     ...(onlyArchived ? { archivedAt: { not: null } } : { archivedAt: null }),
     ...(statusEnum && Object.values(PostStatus).includes(statusEnum)
@@ -65,7 +67,7 @@ export default async function PostsPage({
     ...(sentimentEnum ? { sentiment: sentimentEnum } : {}),
   };
 
-  const [posts, total, userTags] = await Promise.all([
+  const [posts, total, userTags, allUsers] = await Promise.all([
     prisma.post.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -80,6 +82,7 @@ export default async function PostsPage({
             tag: { select: { id: true, name: true, color: true } },
           },
         },
+        assignee: { select: { id: true, name: true, email: true } },
       },
     }),
     prisma.post.count({ where }),
@@ -87,6 +90,10 @@ export default async function PostsPage({
       where: { userId },
       orderBy: { name: "asc" },
       select: { id: true, name: true, color: true },
+    }),
+    prisma.user.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, email: true },
     }),
   ]);
 
@@ -100,7 +107,7 @@ export default async function PostsPage({
     { value: "FAILED", label: "Failed" },
   ];
 
-  function buildHref(opts: { status?: string; page?: number; search?: string; tag?: string; platform?: string; starred?: string; evergreen?: string; sentiment?: string; archived?: string }) {
+  function buildHref(opts: { status?: string; page?: number; search?: string; tag?: string; platform?: string; starred?: string; evergreen?: string; sentiment?: string; archived?: string; assignee?: string }) {
     const params = new URLSearchParams();
     const s = opts.status ?? statusFilter ?? "";
     if (s) params.set("status", s);
@@ -118,6 +125,8 @@ export default async function PostsPage({
     if (se) params.set("sentiment", se);
     const ar = opts.archived !== undefined ? opts.archived : (archivedFilter ?? "");
     if (ar) params.set("archived", ar);
+    const as = opts.assignee !== undefined ? opts.assignee : (assigneeFilter ?? "");
+    if (as) params.set("assignee", as);
     if (fromFilter) params.set("from", fromFilter);
     if (toFilter) params.set("to", toFilter);
     const p = opts.page ?? page;
@@ -181,8 +190,8 @@ export default async function PostsPage({
       {/* Status filter tabs */}
       <div className="flex flex-wrap items-center gap-2">
         {statuses.map(({ value, label }) => {
-          const isActive = (statusFilter ?? "") === value && !onlyStarred && !onlyEvergreen && !onlyArchived;
-          const href = buildHref({ status: value, starred: "", evergreen: "", archived: "", page: 1 });
+          const isActive = (statusFilter ?? "") === value && !onlyStarred && !onlyEvergreen && !onlyArchived && !onlyAssigned;
+          const href = buildHref({ status: value, starred: "", evergreen: "", archived: "", assignee: "", page: 1 });
           return (
             <Link
               key={value}
@@ -198,7 +207,7 @@ export default async function PostsPage({
           );
         })}
         <Link
-          href={buildHref({ starred: onlyStarred ? "" : "true", status: "", evergreen: "", archived: "", page: 1 })}
+          href={buildHref({ starred: onlyStarred ? "" : "true", status: "", evergreen: "", archived: "", assignee: "", page: 1 })}
           className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
             onlyStarred
               ? "bg-yellow-400 text-white"
@@ -209,7 +218,7 @@ export default async function PostsPage({
           Starred
         </Link>
         <Link
-          href={buildHref({ evergreen: onlyEvergreen ? "" : "true", status: "", starred: "", archived: "", page: 1 })}
+          href={buildHref({ evergreen: onlyEvergreen ? "" : "true", status: "", starred: "", archived: "", assignee: "", page: 1 })}
           className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
             onlyEvergreen
               ? "bg-emerald-500 text-white"
@@ -229,7 +238,7 @@ export default async function PostsPage({
           return (
             <Link
               key={s}
-              href={buildHref({ sentiment: isActive ? "" : s, status: "", starred: "", evergreen: "", archived: "", page: 1 })}
+              href={buildHref({ sentiment: isActive ? "" : s, status: "", starred: "", evergreen: "", archived: "", assignee: "", page: 1 })}
               className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${colors[s]}`}
             >
               <SmilePlus className="h-3.5 w-3.5" />
@@ -238,7 +247,7 @@ export default async function PostsPage({
           );
         })}
         <Link
-          href={buildHref({ archived: onlyArchived ? "" : "true", status: "", starred: "", evergreen: "", sentiment: "", page: 1 })}
+          href={buildHref({ archived: onlyArchived ? "" : "true", status: "", starred: "", evergreen: "", sentiment: "", assignee: "", page: 1 })}
           className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
             onlyArchived
               ? "bg-slate-600 text-white"
@@ -247,6 +256,17 @@ export default async function PostsPage({
         >
           <Archive className="h-3.5 w-3.5" />
           Archived
+        </Link>
+        <Link
+          href={buildHref({ assignee: onlyAssigned ? "" : "me", status: "", starred: "", evergreen: "", archived: "", sentiment: "", page: 1 })}
+          className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+            onlyAssigned
+              ? "bg-blue-500 text-white"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          }`}
+        >
+          <UserCheck className="h-3.5 w-3.5" />
+          Assigned to Me
         </Link>
       </div>
 
@@ -329,12 +349,13 @@ export default async function PostsPage({
       <Card>
         <CardHeader>
           <CardTitle>{total} post{total !== 1 ? "s" : ""}</CardTitle>
-          {(statusFilter || search || tagFilter || platformEnum || fromFilter || toFilter || onlyStarred || onlyEvergreen || sentimentEnum || onlyArchived) && (
+          {(statusFilter || search || tagFilter || platformEnum || fromFilter || toFilter || onlyStarred || onlyEvergreen || sentimentEnum || onlyArchived || onlyAssigned) && (
             <CardDescription>
               {[
                 onlyStarred && "Starred only",
                 onlyEvergreen && "Evergreen only",
                 onlyArchived && "Archived only",
+                onlyAssigned && "Assigned to me",
                 sentimentEnum && `Sentiment: ${sentimentEnum.charAt(0) + sentimentEnum.slice(1).toLowerCase()}`,
                 statusFilter && `Status: ${statusFilter.toLowerCase()}`,
                 search && `Search: "${search}"`,
@@ -349,7 +370,7 @@ export default async function PostsPage({
           )}
         </CardHeader>
         <CardContent>
-          <PostsListClient posts={posts} />
+          <PostsListClient posts={posts} users={allUsers} />
         </CardContent>
       </Card>
 

@@ -149,6 +149,7 @@ model User {
   notificationPreferences  NotificationPreference[]
   inspirationItems         InspirationItem[]
   accountGroups            AccountGroup[]
+  assignedPosts            Post[]              @relation("PostAssignee")
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -224,6 +225,8 @@ model Post {
   lastRecycledAt   DateTime?
   pillarId       String?
   pillar         ContentPillar? @relation(fields: [pillarId], references: [id])
+  assigneeId     String?
+  assignee       User?          @relation("PostAssignee", fields: [assigneeId], references: [id])
   publishResults PublishResult[]
   tags           PostTag[]
   versions       PostVersion[]
@@ -246,6 +249,7 @@ model Post {
   @@index([userId, pillarId])
   @@index([expiresAt])
   @@index([isEvergreen, lastRecycledAt])
+  @@index([assigneeId])
 }
 
 model Template {

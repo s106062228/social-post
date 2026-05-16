@@ -1227,3 +1227,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `PlannerDayColumn` component (`src/components/planner-day-column.tsx`) — shows date header (Mon 16), goal progress bar (achieved/target or "No goal"), post cards with platform abbreviations and status colour chips, "+" add button linking to post composer
 - [x] Add "Planner" to sidebar navigation (icon: `CalendarRange`)
 - [x] Unit tests for planner API (auth, rate limit, defaults to 7 days, weekStart/weekEnd for known date, posts in correct day bucket, dailyGoal present, weeklyGoal present, null goals when no goals, day order Mon–Sun, invalid weekOf fallback — 10 tests)
+
+### Phase 119: Post Collaboration Assignments
+- [x] Add `assigneeId` (nullable String FK to User) to Post model + Prisma migration (`20260620000000_add_post_assignee`)
+- [x] `PATCH /api/posts/[id]/assign` endpoint — auth + rate limit + ownership check; accepts `{assigneeId: string | null}` body; validates assignee exists; updates post; creates in-app notification to assignee when set; logs activity; returns `{assigneeId}`
+- [x] Extend `GET /api/posts` to support `?assignee=me` filter — returns posts where assigneeId equals current user
+- [x] `AssigneeSelector` client component (`src/app/(dashboard)/posts/assignee-selector.tsx`) — compact dropdown of all users; "Assign" button per post row; calls PATCH assign endpoint; toast feedback; optimistic UI
+- [x] "Assigned to Me" filter tab in posts list page alongside existing status/starred/evergreen/archived tabs
+- [x] Unit tests for assign endpoint (auth, rate limit, ownership, set assignee, clear assignee, nonexistent assignee, notification fired, invalid body — 10 tests)
