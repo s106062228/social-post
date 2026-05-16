@@ -1207,3 +1207,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `RecycleConfigButton` client component (`src/app/(dashboard)/posts/recycle-config-button.tsx`) — compact interval selector (Off / 7d / 14d / 30d / 60d / 90d) shown only for evergreen posts; calls PATCH endpoint on change; toast feedback
 - [x] Integrate `RecycleConfigButton` into posts list row alongside `EvergreenButton` (visible when `isEvergreen` is true)
 - [x] Unit tests for recycle-config endpoint and evergreen recycle worker logic (auth, ownership, non-evergreen rejection, set interval, clear interval, worker due detection, worker skips recent — 14 tests)
+
+### Phase 116: Hashtag Performance Analytics
+- [x] Hashtag analytics utility (`src/lib/hashtag-analytics.ts`) — `extractHashtags(content)` returns unique lowercased hashtags; `computeEngagementScore(insights)` applies weighted formula (likes×3 + comments×5 + shares×4 + reach×1 + impressions×0.5); `computeHashtagStats(posts, limit)` returns per-hashtag stats with postCount, aggregate metrics, and avgEngagement ranked descending
+- [x] `GET /api/analytics/hashtags` endpoint — auth + rate limit + `?period=7d|30d|90d&platform=&limit=`; queries user's PUBLISHED posts with publishResults and PostInsights; returns top 30 hashtags ranked by avgEngagement with postCount and total metrics; `platform` filter scopes results to one platform
+- [x] `HashtagPerformanceCard` component (`src/components/hashtag-performance-card.tsx`) — ranked list of top 15 hashtags with engagement progress bar, post count badge, per-hashtag metric breakdown (likes/comments/shares/reach), copy-to-clipboard button, period selector (7d/30d/90d), empty state
+- [x] Integrate `HashtagPerformanceCard` into analytics dashboard page below the Word Cloud card
+- [x] Unit tests for hashtag analytics utility and endpoint (extractHashtags, computeEngagementScore, computeHashtagStats, auth, rate limit, period filter, platform filter, empty state, response shape — 28 tests)

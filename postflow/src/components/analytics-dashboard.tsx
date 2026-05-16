@@ -29,6 +29,7 @@ import { BestTimesCard } from "@/components/best-times-card";
 import { WordCloudCard } from "@/components/word-cloud-card";
 import { ConsistencyCard } from "@/components/consistency-card";
 import { SchedulingAdvisorCard } from "@/components/scheduling-advisor-card";
+import { HashtagPerformanceCard } from "@/components/hashtag-performance-card";
 
 type Period = "7d" | "30d" | "90d";
 
@@ -430,6 +431,9 @@ export function AnalyticsDashboard() {
 
       {/* Word Cloud */}
       <WordCloudCard />
+
+      {/* Hashtag Performance */}
+      <HashtagPerformanceCard />
 
       {/* Posting Consistency */}
       <ConsistencyCard />
