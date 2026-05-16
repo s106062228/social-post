@@ -413,6 +413,75 @@ export async function generateContentCalendar(
   return [];
 }
 
+export interface PlatformPrediction {
+  platform: string;
+  predictedEngagement: "HIGH" | "MEDIUM" | "LOW";
+  confidence: number;
+  reasoning: string;
+  suggestedImprovements: string[];
+}
+
+const PREDICT_PERFORMANCE_SYSTEM = `You are a social media analytics expert. Analyze post content and historical performance data to predict engagement levels.
+Always respond with valid JSON in this exact format:
+{"predictions": [{"platform": "PLATFORM_NAME", "predictedEngagement": "HIGH|MEDIUM|LOW", "confidence": 0.0-1.0, "reasoning": "brief explanation", "suggestedImprovements": ["improvement1", "improvement2"]}]}
+Guidelines:
+- predictedEngagement: HIGH = top 25% of posts, MEDIUM = average, LOW = below average
+- confidence: 0.0 = no basis, 1.0 = very confident; typical range 0.4–0.8 due to inherent uncertainty
+- reasoning: 1–2 sentences based on content quality, length, hooks, hashtags, platform fit
+- suggestedImprovements: 0–2 specific, actionable suggestions; empty array if content is already strong
+- Base predictions on the content itself and any provided historical context
+- Only include the platforms requested`;
+
+export async function predictPostPerformance(
+  content: string,
+  platforms: string[],
+  historicalSummary: string
+): Promise<PlatformPrediction[]> {
+  const client = getClient();
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 1024,
+    system: [
+      {
+        type: "text",
+        text: PREDICT_PERFORMANCE_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: `Post content:\n${content}\n\nTarget platforms: ${platforms.join(", ")}\n\n${historicalSummary ? `Historical performance context:\n${historicalSummary}` : "No historical data available — base prediction on content quality alone."}\n\nPredict engagement for each platform.`,
+      },
+    ],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as { predictions?: unknown };
+    const predictions = parsed.predictions;
+    if (
+      Array.isArray(predictions) &&
+      predictions.every(
+        (p) =>
+          typeof p === "object" &&
+          p !== null &&
+          typeof (p as Record<string, unknown>).platform === "string" &&
+          ["HIGH", "MEDIUM", "LOW"].includes((p as Record<string, unknown>).predictedEngagement as string) &&
+          typeof (p as Record<string, unknown>).confidence === "number" &&
+          typeof (p as Record<string, unknown>).reasoning === "string" &&
+          Array.isArray((p as Record<string, unknown>).suggestedImprovements)
+      )
+    ) {
+      return predictions as PlatformPrediction[];
+    }
+  } catch {
+    // fall through
+  }
+  return [];
+}
+
 const INSPIRE_SYSTEM = `You are a social media content writer. Given a URL title, description, and optional notes, create an engaging social media post inspired by that content.
 Always respond with valid JSON in this exact format: {"content": "the post content here"}
 The post should be original, engaging, and ready to publish. Do not copy the source text verbatim — write fresh content inspired by it.`;

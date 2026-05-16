@@ -1214,3 +1214,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `HashtagPerformanceCard` component (`src/components/hashtag-performance-card.tsx`) — ranked list of top 15 hashtags with engagement progress bar, post count badge, per-hashtag metric breakdown (likes/comments/shares/reach), copy-to-clipboard button, period selector (7d/30d/90d), empty state
 - [x] Integrate `HashtagPerformanceCard` into analytics dashboard page below the Word Cloud card
 - [x] Unit tests for hashtag analytics utility and endpoint (extractHashtags, computeEngagementScore, computeHashtagStats, auth, rate limit, period filter, platform filter, empty state, response shape — 28 tests)
+
+### Phase 117: Content Performance Predictions (AI)
+- [x] Add `predictPostPerformance(content, platforms, historicalSummary)` to `src/lib/ai.ts` — calls `claude-haiku-4-5` to predict per-platform engagement (HIGH/MEDIUM/LOW) with confidence score, reasoning, and suggested improvements; uses prompt caching on system block
+- [x] `POST /api/ai/predict-performance` endpoint — auth + rate limit + zod validation; queries user's recent PostInsights to build historical context summary; calls `predictPostPerformance`; returns `{predictions: PlatformPrediction[]}`; 503 when AI not configured
+- [x] `PerformancePredictionCard` component (`src/components/performance-prediction-card.tsx`) — collapsible card with per-platform prediction badges (HIGH/MEDIUM/LOW with colour coding), confidence %, reasoning text, and improvement suggestions; 800 ms debounce; integrated into post composer below BrandComplianceIndicator
+- [x] Unit tests for predict-performance API endpoint (auth, rate limit, AI disabled, missing content, empty platforms, success with no history, historical summary shape, multi-platform, AI error — 11 tests)
