@@ -20,6 +20,7 @@ import { ImageCaptionDialog } from "@/components/image-caption-dialog";
 import { BrandGuidelinesPanel } from "@/components/brand-guidelines-panel";
 import { BrandComplianceIndicator } from "@/components/brand-compliance-indicator";
 import { ContentBriefDialog } from "@/components/content-brief-dialog";
+import { SchedulePresetSelector } from "@/components/schedule-preset-selector";
 import { PerformancePredictionCard } from "@/components/performance-prediction-card";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
@@ -1106,15 +1107,19 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
             (leave empty to save as draft)
           </span>
         </Label>
-        <Input
-          id="scheduledAt"
-          type="datetime-local"
-          value={scheduledAt}
-          onChange={(e) => {
-            setScheduledAt(e.target.value);
-            if (!e.target.value) setReminderMinutes(null);
-          }}
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            id="scheduledAt"
+            type="datetime-local"
+            value={scheduledAt}
+            onChange={(e) => {
+              setScheduledAt(e.target.value);
+              if (!e.target.value) setReminderMinutes(null);
+            }}
+            className="flex-1"
+          />
+          <SchedulePresetSelector onSelect={setScheduledAt} />
+        </div>
       </div>
 
       {/* Reminder — only shown when a scheduled time is set */}

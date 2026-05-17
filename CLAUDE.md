@@ -1252,3 +1252,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `ContentBriefDialog` component (`src/components/content-brief-dialog.tsx`) — modal with topic, audience, goals inputs + platform checkboxes; calls `/api/ai/content-brief`; shows structured brief sections (key messages, tone, content structure, hashtags, CTA); "Apply to Composer" button fills post content with a draft based on the brief; copy-all button; loading/empty states
 - [x] "Brief" button in post composer — opens `ContentBriefDialog`
 - [x] Unit tests for `POST /api/ai/content-brief` (auth, rate limit, AI disabled, missing topic, empty platforms, success shape, AI error — 9 tests)
+
+### Phase 122: Schedule Time Presets
+- [x] `ScheduleTimePreset` model in Prisma (id, userId, name, hour, minute, daysOfWeek[], timezone) + migration (`20260622000000_add_schedule_time_presets`)
+- [x] CRUD API for time presets (`GET /api/schedule-presets`, `POST /api/schedule-presets`, `DELETE /api/schedule-presets/[id]`) — auth + rate limit + zod validation; max 30 presets per user
+- [x] Schedule time preset utility (`src/lib/schedule-time-presets.ts`) — `findNextOccurrence` computes next datetime ≥5 min from now matching hour/minute/daysOfWeek in timezone; `formatPresetLabel` human-readable summary; `toDatetimeLocal` formats Date for datetime-local input
+- [x] `SchedulePresetSelector` component (`src/components/schedule-preset-selector.tsx`) — dropdown button that fetches user's presets and applies selected preset to the schedule datetime input via `findNextOccurrence`
+- [x] Integrate `SchedulePresetSelector` into post composer — "Presets" dropdown button next to the datetime-local input in the Schedule section
+- [x] Schedule presets management page in dashboard (`/schedule-presets`) — list presets with time/days/timezone, inline create form (name, hour, minute selector :00/:15/:30/:45, day-of-week toggle chips, timezone dropdown), delete
+- [x] Add "Time Presets" to sidebar navigation (icon: `Clock`)
+- [x] Unit tests for presets API (GET list, POST create, DELETE — auth, rate limit, max-presets, validation, CRUD shape — 12 tests) and utility (formatPresetLabel, toDatetimeLocal, findNextOccurrence — 10 tests)

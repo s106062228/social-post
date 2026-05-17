@@ -151,6 +151,7 @@ model User {
   accountGroups            AccountGroup[]
   captionVariables         CaptionVariable[]
   assignedPosts            Post[]              @relation("PostAssignee")
+  scheduleTimePresets  ScheduleTimePreset[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1037,5 +1038,20 @@ model CaptionVariable {
   updatedAt   DateTime @updatedAt
 
   @@unique([userId, key])
+  @@index([userId])
+}
+
+model ScheduleTimePreset {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  hour       Int
+  minute     Int
+  daysOfWeek Int[]
+  timezone   String   @default("UTC")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
   @@index([userId])
 }
