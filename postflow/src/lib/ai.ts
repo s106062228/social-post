@@ -489,6 +489,87 @@ The post should be original, engaging, and ready to publish. Do not copy the sou
 /**
  * Generate a social media post inspired by a saved URL/inspiration item.
  */
+export interface ContentBrief {
+  title: string;
+  keyMessages: string[];
+  tone: string;
+  contentStructure: string[];
+  hashtagSuggestions: string[];
+  callToAction: string;
+  estimatedLength: string;
+}
+
+const CONTENT_BRIEF_SYSTEM = `You are a social media content strategist. Generate a structured content brief for a social media post based on the given topic, target audience, goals, and platforms.
+Always respond with valid JSON in this exact format:
+{"title": "catchy title for the content", "keyMessages": ["message 1", "message 2", "message 3"], "tone": "recommended tone", "contentStructure": ["section 1", "section 2", "section 3"], "hashtagSuggestions": ["#tag1", "#tag2", "#tag3"], "callToAction": "what action you want the audience to take", "estimatedLength": "e.g. 150-200 words or 280 characters"}
+Guidelines:
+- title: A clear, compelling title or hook for the content
+- keyMessages: 3–5 core points to convey; concise bullet-point style
+- tone: One or two adjectives that describe the recommended writing style
+- contentStructure: 3–5 steps or sections outlining how to write the post (e.g. "Open with a question", "Present the problem", "Share the solution")
+- hashtagSuggestions: 5–8 relevant hashtags always starting with #
+- callToAction: A specific, actionable CTA (e.g. "Click the link in bio to learn more")
+- estimatedLength: Platform-appropriate length estimate based on platforms requested`;
+
+export async function generateContentBrief(
+  topic: string,
+  audience: string,
+  goals: string,
+  platforms: string[]
+): Promise<ContentBrief | null> {
+  const client = getClient();
+
+  const contextParts = [
+    `Topic: ${topic}`,
+    audience ? `Target audience: ${audience}` : null,
+    goals ? `Goals: ${goals}` : null,
+    `Platforms: ${platforms.join(", ")}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 1024,
+    system: [
+      {
+        type: "text",
+        text: CONTENT_BRIEF_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: `Generate a content brief:\n${contextParts}`,
+      },
+    ],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as Record<string, unknown>;
+    if (
+      typeof parsed.title === "string" &&
+      Array.isArray(parsed.keyMessages) &&
+      parsed.keyMessages.every((m) => typeof m === "string") &&
+      typeof parsed.tone === "string" &&
+      Array.isArray(parsed.contentStructure) &&
+      parsed.contentStructure.every((s) => typeof s === "string") &&
+      Array.isArray(parsed.hashtagSuggestions) &&
+      parsed.hashtagSuggestions.every((h) => typeof h === "string") &&
+      typeof parsed.callToAction === "string" &&
+      typeof parsed.estimatedLength === "string"
+    ) {
+      return parsed as unknown as ContentBrief;
+    }
+  } catch {
+    // fall through
+  }
+  return null;
+}
+
 export async function generateInspiredContent(
   title: string,
   description: string,

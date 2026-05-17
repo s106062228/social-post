@@ -1245,3 +1245,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] "Insert Variable" dropdown in post composer — lists available variables; selecting one appends `{{key}}` to current post content
 - [x] Add "Variables" to sidebar navigation (icon: `Braces`)
 - [x] Unit tests for caption variable utility (`substituteVariables`, `extractPlaceholders` — 15 tests) and CRUD API (GET, POST, PATCH, DELETE — auth, rate limit, max-vars, key validation, duplicate conflict, ownership — 25 tests)
+
+### Phase 121: AI-Powered Content Brief Generator
+- [x] Add `generateContentBrief(topic, audience, goals, platforms)` to `src/lib/ai.ts` — calls `claude-haiku-4-5` with prompt caching on system block; returns `{title, keyMessages: string[], tone, contentStructure: string[], hashtagSuggestions: string[], callToAction, estimatedLength: string}`
+- [x] `POST /api/ai/content-brief` endpoint — auth + rate limit + zod validation; accepts `{topic: string, audience?: string, goals?: string, platforms: Platform[]}`; calls `generateContentBrief`; returns `{brief}`; 503 when AI not configured
+- [x] `ContentBriefDialog` component (`src/components/content-brief-dialog.tsx`) — modal with topic, audience, goals inputs + platform checkboxes; calls `/api/ai/content-brief`; shows structured brief sections (key messages, tone, content structure, hashtags, CTA); "Apply to Composer" button fills post content with a draft based on the brief; copy-all button; loading/empty states
+- [x] "Brief" button in post composer — opens `ContentBriefDialog`
+- [x] Unit tests for `POST /api/ai/content-brief` (auth, rate limit, AI disabled, missing topic, empty platforms, success shape, AI error — 9 tests)

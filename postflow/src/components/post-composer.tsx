@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -19,6 +19,7 @@ import { AutosaveIndicator } from "@/components/autosave-indicator";
 import { ImageCaptionDialog } from "@/components/image-caption-dialog";
 import { BrandGuidelinesPanel } from "@/components/brand-guidelines-panel";
 import { BrandComplianceIndicator } from "@/components/brand-compliance-indicator";
+import { ContentBriefDialog } from "@/components/content-brief-dialog";
 import { PerformancePredictionCard } from "@/components/performance-prediction-card";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
@@ -151,6 +152,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [mediaUrlInput, setMediaUrlInput] = useState("");
   const [showCaptionDialog, setShowCaptionDialog] = useState(false);
+
+  // Content brief dialog state
+  const [showBriefDialog, setShowBriefDialog] = useState(false);
 
   useEffect(() => {
     fetch("/api/templates?limit=50")
@@ -745,6 +749,14 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
             </button>
             <button
               type="button"
+              onClick={() => setShowBriefDialog(true)}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <FileText className="h-3 w-3" />
+              Brief
+            </button>
+            <button
+              type="button"
               onClick={fetchHashtagSuggestions}
               disabled={hashtagsLoading || !content.trim()}
               className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:pointer-events-none disabled:opacity-50"
@@ -870,6 +882,14 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           onUseCaption={(caption) => setContent(caption)}
         />
       )}
+
+      {/* Content Brief Dialog */}
+      <ContentBriefDialog
+        open={showBriefDialog}
+        onOpenChange={setShowBriefDialog}
+        platforms={selectedPlatforms}
+        onApply={(draft) => setContent(draft)}
+      />
 
       {/* First comment — shown when Facebook or Instagram accounts are selected */}
       {selectedPlatforms.some((p) => p === "FACEBOOK" || p === "INSTAGRAM") && (
