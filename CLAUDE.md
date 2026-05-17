@@ -1285,3 +1285,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Extend `POST /api/posts` and `PATCH /api/posts/[id]` zod schemas to accept optional `altTexts: string[]` (max 2200 chars per item, array length capped at 10)
 - [x] `AltTextInput` component (`src/components/alt-text-input.tsx`) — one labelled textarea per media URL with character counter (max 2200 chars); compact, collapsible; integrated into post composer media section below the media URL list
 - [x] Unit tests for alt text in posts API (POST create with altTexts saved, PATCH update altTexts, altTexts validation — 8 tests)
+
+### Phase 126: AI-Generated Image Alt Text
+- [x] Add `generateImageAltText(imageUrl, context?)` to `src/lib/ai.ts` — calls Claude AI (`claude-haiku-4-5`) vision feature to analyze the image and generate descriptive alt text (under 125 words); uses prompt caching on system block; returns `{altText: string}`
+- [x] `POST /api/ai/alt-text` endpoint — auth + rate limit + AI check + zod validation (`imageUrl: string url`, `context?: string max 500 chars`); calls `generateImageAltText`; returns `{altText: string}`; returns 503 when AI not configured
+- [x] Update `AltTextInput` component — add "Auto-generate" sparkle button per image field; calls `/api/ai/alt-text`; fills field on success; shows loading state; shows error toast on failure
+- [x] Unit tests for alt-text endpoint (auth, rate limit, AI disabled, invalid JSON, missing imageUrl, invalid URL, success with altText, context forwarded, AI error — 8 tests)

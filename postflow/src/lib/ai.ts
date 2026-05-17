@@ -570,6 +570,67 @@ export async function generateContentBrief(
   return null;
 }
 
+const ALT_TEXT_SYSTEM = `You are an accessibility expert who writes descriptive alt text for images used on social media.
+Generate a single concise, descriptive alt text for the provided image. The alt text should:
+- Describe the visual content accurately and objectively
+- Be meaningful to a screen reader user who cannot see the image
+- Be under 125 words (ideally 1–2 sentences)
+- Not start with "Image of" or "Photo of" (screen readers already announce "image")
+- Include relevant details like colors, actions, expressions, setting, and any text visible in the image
+Always respond with valid JSON in this exact format: {"altText": "the descriptive alt text here"}`;
+
+export async function generateImageAltText(
+  imageUrl: string,
+  context?: string
+): Promise<string> {
+  const client = getClient();
+  const userMessage = context
+    ? `Generate alt text for this image. Context: ${context}`
+    : "Generate descriptive alt text for this image.";
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 256,
+    system: [
+      {
+        type: "text",
+        text: ALT_TEXT_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "image",
+            source: {
+              type: "url",
+              url: imageUrl,
+            },
+          },
+          {
+            type: "text",
+            text: userMessage,
+          },
+        ],
+      },
+    ],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as { altText?: unknown };
+    if (typeof parsed.altText === "string" && parsed.altText.length > 0) {
+      return parsed.altText;
+    }
+  } catch {
+    // fall through
+  }
+  return "";
+}
+
 export async function generateInspiredContent(
   title: string,
   description: string,

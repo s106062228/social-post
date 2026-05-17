@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp, ImageIcon } from "lucide-react";
+import { ChevronDown, ChevronUp, ImageIcon, Sparkles } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface AltTextInputProps {
   mediaUrls: string[];
@@ -16,6 +17,7 @@ const MAX_ALT_LENGTH = 2200;
 
 export function AltTextInput({ mediaUrls, altTexts, onChange }: AltTextInputProps) {
   const [expanded, setExpanded] = useState(false);
+  const [generating, setGenerating] = useState<Record<number, boolean>>({});
 
   if (mediaUrls.length === 0) return null;
 
@@ -27,6 +29,37 @@ export function AltTextInput({ mediaUrls, altTexts, onChange }: AltTextInputProp
 
   const getValue = (index: number) => altTexts[index] ?? "";
   const hasAnyAlt = altTexts.some((t) => t && t.trim().length > 0);
+
+  const handleAutoGenerate = async (index: number) => {
+    const url = mediaUrls[index];
+    if (!url) return;
+    setGenerating((prev) => ({ ...prev, [index]: true }));
+    try {
+      const res = await fetch("/api/ai/alt-text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl: url }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        if (res.status === 503) {
+          toast.error("AI features are not configured");
+        } else {
+          toast.error(data.error ?? "Failed to generate alt text");
+        }
+        return;
+      }
+      const data = (await res.json()) as { altText: string };
+      if (data.altText) {
+        handleChange(index, data.altText);
+        toast.success("Alt text generated");
+      }
+    } catch {
+      toast.error("Failed to generate alt text");
+    } finally {
+      setGenerating((prev) => ({ ...prev, [index]: false }));
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -58,16 +91,30 @@ export function AltTextInput({ mediaUrls, altTexts, onChange }: AltTextInputProp
           </p>
           {mediaUrls.map((url, i) => {
             const val = getValue(i);
+            const isGenerating = generating[i] ?? false;
             return (
               <div key={i} className="flex flex-col gap-1.5">
-                <Label htmlFor={`alt-text-${i}`} className="text-xs text-muted-foreground">
-                  Image {i + 1}
-                  {url && (
-                    <span className="ml-1 font-normal truncate max-w-[180px] inline-block align-bottom">
-                      — {url.split("/").pop()}
-                    </span>
-                  )}
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor={`alt-text-${i}`} className="text-xs text-muted-foreground">
+                    Image {i + 1}
+                    {url && (
+                      <span className="ml-1 font-normal truncate max-w-[180px] inline-block align-bottom">
+                        — {url.split("/").pop()}
+                      </span>
+                    )}
+                  </Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={isGenerating || !url}
+                    onClick={() => handleAutoGenerate(i)}
+                    className="h-6 gap-1 px-2 text-[10px] text-muted-foreground hover:text-foreground"
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    {isGenerating ? "Generating…" : "Auto-generate"}
+                  </Button>
+                </div>
                 <Textarea
                   id={`alt-text-${i}`}
                   placeholder={`Describe image ${i + 1}…`}
