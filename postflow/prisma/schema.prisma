@@ -221,6 +221,7 @@ model Post {
   sentimentScore Float?
   firstComment   String?
   language       String?
+  altTexts       String[]
   archivedAt       DateTime?
   expiresAt        DateTime?
   recycleInterval  Int?

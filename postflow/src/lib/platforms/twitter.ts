@@ -130,6 +130,10 @@ export class TwitterAdapter implements PlatformAdapter {
 
     if (post.mediaType === MediaType.IMAGE && post.mediaUrls.length > 0) {
       mediaId = await this.uploadMedia(token, post.mediaUrls[0]);
+      const altText = post.altTexts?.[0];
+      if (altText && mediaId) {
+        await this.setMediaAltText(token, mediaId, altText);
+      }
     }
 
     const body: Record<string, unknown> = { text };
@@ -297,6 +301,32 @@ export class TwitterAdapter implements PlatformAdapter {
     }
 
     return parsed.data.media_id_string;
+  }
+
+  private async setMediaAltText(
+    token: string,
+    mediaId: string,
+    altText: string
+  ): Promise<void> {
+    const TWITTER_METADATA_URL =
+      "https://upload.twitter.com/1.1/media/metadata/create.json";
+
+    const response = await fetch(TWITTER_METADATA_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        media_id: mediaId,
+        alt_text: { text: altText.slice(0, 1000) },
+      }),
+    });
+
+    // 204 No Content is success; non-2xx is a warning (do not fail the publish)
+    if (!response.ok && response.status !== 204) {
+      console.warn(`Twitter alt text upload failed (${response.status})`);
+    }
   }
 }
 

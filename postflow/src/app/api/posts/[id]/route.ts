@@ -20,6 +20,7 @@ const updatePostSchema = z
       .optional(),
     firstComment: z.string().max(2200).nullable().optional(),
     language: z.string().min(2).max(5).nullable().optional(),
+    altTexts: z.array(z.string().max(2200)).max(10).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field must be provided",
@@ -130,7 +131,7 @@ export async function PATCH(
       );
     }
 
-    const { content, mediaType, mediaUrls, scheduledAt, status, firstComment, language } = parsed.data;
+    const { content, mediaType, mediaUrls, scheduledAt, status, firstComment, language, altTexts } = parsed.data;
 
     // Derive status from scheduledAt if status not explicitly provided
     let newStatus: PostStatus | undefined = status;
@@ -158,6 +159,7 @@ export async function PATCH(
         ...(newStatus !== undefined && { status: newStatus }),
         ...(firstComment !== undefined && { firstComment: firstComment ?? null }),
         ...(language !== undefined && { language: language ?? null }),
+        ...(altTexts !== undefined && { altTexts }),
       },
       include: { publishResults: true },
     });

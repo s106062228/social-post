@@ -19,6 +19,7 @@ import { AutosaveIndicator } from "@/components/autosave-indicator";
 import { ImageCaptionDialog } from "@/components/image-caption-dialog";
 import { BrandGuidelinesPanel } from "@/components/brand-guidelines-panel";
 import { BrandComplianceIndicator } from "@/components/brand-compliance-indicator";
+import { AltTextInput } from "@/components/alt-text-input";
 import { ContentBriefDialog } from "@/components/content-brief-dialog";
 import { SchedulePresetSelector } from "@/components/schedule-preset-selector";
 import { PerformancePredictionCard } from "@/components/performance-prediction-card";
@@ -152,6 +153,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   // Media URLs state
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [mediaUrlInput, setMediaUrlInput] = useState("");
+  const [altTexts, setAltTexts] = useState<string[]>([]);
   const [showCaptionDialog, setShowCaptionDialog] = useState(false);
 
   // Content brief dialog state
@@ -318,6 +320,10 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       }
       if (language) {
         body.language = language;
+      }
+      const trimmedAltTexts = altTexts.map((t) => t ?? "");
+      if (trimmedAltTexts.some((t) => t.trim())) {
+        body.altTexts = trimmedAltTexts;
       }
 
       const res = await fetch("/api/posts", {
@@ -853,7 +859,10 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
                 <span className="flex-1 truncate text-foreground">{url}</span>
                 <button
                   type="button"
-                  onClick={() => setMediaUrls((prev) => prev.filter((_, j) => j !== i))}
+                  onClick={() => {
+                    setMediaUrls((prev) => prev.filter((_, j) => j !== i));
+                    setAltTexts((prev) => prev.filter((_, j) => j !== i));
+                  }}
                   className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
                 >
                   ×
@@ -872,6 +881,13 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           </div>
         )}
       </div>
+
+      {/* Alt text inputs for media accessibility */}
+      <AltTextInput
+        mediaUrls={mediaUrls}
+        altTexts={altTexts}
+        onChange={setAltTexts}
+      />
 
       {/* AI Caption Dialog */}
       {mediaUrls.length > 0 && (

@@ -9,6 +9,8 @@ export interface PostContent {
   mediaType: MediaType;
   /** Publicly accessible URLs for each media item */
   mediaUrls: string[];
+  /** Alt text for each media item (index-aligned with mediaUrls) */
+  altTexts?: string[];
   /** If set, the post will be scheduled for this time */
   scheduledAt?: Date | null;
 }

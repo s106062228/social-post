@@ -156,7 +156,8 @@ export class InstagramAdapter implements PlatformAdapter {
             igUserId,
             token,
             post.mediaUrls[0],
-            post.content
+            post.content,
+            post.altTexts?.[0]
           );
         } else {
           mediaId = await this.publishCarousel(
@@ -312,7 +313,8 @@ export class InstagramAdapter implements PlatformAdapter {
     token: string,
     imageUrl: string,
     caption: string,
-    isCarouselItem = false
+    isCarouselItem = false,
+    altText?: string
   ): Promise<string> {
     const body: Record<string, string | boolean> = {
       image_url: imageUrl,
@@ -320,6 +322,9 @@ export class InstagramAdapter implements PlatformAdapter {
     };
     if (isCarouselItem) {
       body.is_carousel_item = true;
+    }
+    if (altText) {
+      body.alt_text = altText;
     }
 
     const data = await igPost(
@@ -368,13 +373,16 @@ export class InstagramAdapter implements PlatformAdapter {
     igUserId: string,
     token: string,
     imageUrl: string,
-    caption: string
+    caption: string,
+    altText?: string
   ): Promise<string> {
     const containerId = await this.createImageContainer(
       igUserId,
       token,
       imageUrl,
-      caption
+      caption,
+      false,
+      altText
     );
     return this.publishContainer(igUserId, token, containerId);
   }

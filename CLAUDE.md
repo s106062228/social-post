@@ -1275,3 +1275,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Account health page in dashboard (`/account-health`) — full-page view showing `AccountHealthCard`; summary banner with fleet-wide average health score
 - [x] Add "Account Health" to sidebar navigation (icon: `HeartPulse`)
 - [x] Unit tests for account-health API (auth, rate limit, no accounts, postsPublished30d count, avgEngagementRate calculation, followerGrowth with data, followerGrowth no data, healthScore bounds, healthLabel mapping, full response shape — 10 tests)
+
+### Phase 125: Post Media Alt Text & Accessibility
+- [x] Add `altTexts` (String[], default []) to Post model + Prisma migration (`20260623000000_add_post_alt_texts`)
+- [x] Extend `PostContent` interface (`src/lib/platforms/types.ts`) to include `altTexts?: string[]`
+- [x] Update Facebook adapter — pass `alt_text` field when uploading a single photo via `/{pageId}/photos`
+- [x] Update Instagram adapter — pass `alt_text` field in single-image container creation params
+- [x] Update Twitter adapter — call `POST /1.1/media/metadata/create` with `alt_text` after media upload when alt text is provided
+- [x] Extend `POST /api/posts` and `PATCH /api/posts/[id]` zod schemas to accept optional `altTexts: string[]` (max 2200 chars per item, array length capped at 10)
+- [x] `AltTextInput` component (`src/components/alt-text-input.tsx`) — one labelled textarea per media URL with character counter (max 2200 chars); compact, collapsible; integrated into post composer media section below the media URL list
+- [x] Unit tests for alt text in posts API (POST create with altTexts saved, PATCH update altTexts, altTexts validation — 8 tests)

@@ -127,6 +127,7 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<void> {
     content: resolvedContent,
     mediaType: variant?.mediaType ?? post.mediaType,
     mediaUrls: variant?.mediaUrls ?? post.mediaUrls,
+    altTexts: post.altTexts,
     scheduledAt: post.scheduledAt,
   };
 

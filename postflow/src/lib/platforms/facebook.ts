@@ -137,7 +137,8 @@ export class FacebookAdapter implements PlatformAdapter {
             token,
             post.mediaUrls[0],
             post.content,
-            scheduledTimestamp
+            scheduledTimestamp,
+            post.altTexts?.[0]
           );
         } else {
           // Multiple images → carousel
@@ -284,12 +285,17 @@ export class FacebookAdapter implements PlatformAdapter {
     token: string,
     imageUrl: string,
     caption: string,
-    scheduledTimestamp?: number
+    scheduledTimestamp?: number,
+    altText?: string
   ): Promise<string> {
     const body: Record<string, string | number | boolean> = {
       url: imageUrl,
       caption,
     };
+
+    if (altText) {
+      body.alt_text = altText;
+    }
 
     if (scheduledTimestamp !== undefined) {
       body.published = false;

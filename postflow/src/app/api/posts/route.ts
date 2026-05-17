@@ -20,6 +20,7 @@ const createPostSchema = z.object({
   reminderMinutes: z.number().int().min(1).max(10080).nullable().optional(),
   firstComment: z.string().max(2200).nullable().optional(),
   language: z.string().min(2).max(5).nullable().optional(),
+  altTexts: z.array(z.string().max(2200)).max(10).default([]),
 });
 
 const listPostsSchema = z.object({
@@ -179,7 +180,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { mediaType, mediaUrls, scheduledAt, tagIds, reminderMinutes, firstComment, language } = parsed.data;
+    const { mediaType, mediaUrls, scheduledAt, tagIds, reminderMinutes, firstComment, language, altTexts } = parsed.data;
     const content = sanitizePostContent(parsed.data.content);
 
     if (content.length === 0) {
@@ -215,6 +216,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         reminderMinutes: reminderMinutes ?? null,
         firstComment: firstComment ?? null,
         language: language ?? null,
+        altTexts,
         tags: validTagIds.length > 0
           ? { create: validTagIds.map((tagId) => ({ tagId })) }
           : undefined,
