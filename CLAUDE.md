@@ -1268,3 +1268,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `PostingHeatmapCard` component (`src/components/posting-heatmap-card.tsx`) — GitHub-contribution-style 52-week × 7-day grid; colour intensity proportional to post count (0=muted, 4 shades of green); month labels above columns; day-of-week labels on left; hover tooltip with date + count; year prev/next navigation; total posts count; legend
 - [x] Integrate `PostingHeatmapCard` into analytics dashboard page below the Scheduling Advisor card
 - [x] Unit tests for the heatmap API endpoint (auth, rate limit, invalid year, 365 days for non-leap year, 366 days for leap year, zero counts, published/scheduled date bucketing, day range boundaries — 9 tests)
+
+### Phase 124: Social Account Health Dashboard
+- [x] `GET /api/analytics/account-health` endpoint — auth + rate limit; for each of the user's active SocialAccounts computes: postsPublished30d, avgEngagementRate (avg (likes+comments+shares)/reach across PostInsights), followerGrowth30d (latest minus 30d-ago AudienceMetric followersCount), lastPublishedAt, daysSinceLastPost, healthScore (0–100: activity 0–50 + engagement 0–30 + recency 0–20); returns `{accounts: [{accountId, accountName, platform, isActive, healthScore, healthLabel, metrics}]}`
+- [x] `AccountHealthCard` component (`src/components/account-health-card.tsx`) — grid of per-account cards, each showing: platform icon badge, account name, colour-coded health score circle (green ≥70 / yellow ≥40 / red <40), health label (Healthy/Fair/Needs Attention), metric chips (posts/30d, avg engagement %, follower growth, days since last post); empty state when no accounts connected
+- [x] Account health page in dashboard (`/account-health`) — full-page view showing `AccountHealthCard`; summary banner with fleet-wide average health score
+- [x] Add "Account Health" to sidebar navigation (icon: `HeartPulse`)
+- [x] Unit tests for account-health API (auth, rate limit, no accounts, postsPublished30d count, avgEngagementRate calculation, followerGrowth with data, followerGrowth no data, healthScore bounds, healthLabel mapping, full response shape — 10 tests)
