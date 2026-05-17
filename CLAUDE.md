@@ -1262,3 +1262,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Schedule presets management page in dashboard (`/schedule-presets`) — list presets with time/days/timezone, inline create form (name, hour, minute selector :00/:15/:30/:45, day-of-week toggle chips, timezone dropdown), delete
 - [x] Add "Time Presets" to sidebar navigation (icon: `Clock`)
 - [x] Unit tests for presets API (GET list, POST create, DELETE — auth, rate limit, max-presets, validation, CRUD shape — 12 tests) and utility (formatPresetLabel, toDatetimeLocal, findNextOccurrence — 10 tests)
+
+### Phase 123: Content Calendar Year View & Heatmap
+- [x] `GET /api/analytics/heatmap` endpoint — auth + rate limit + `?year=YYYY` param (defaults to current year); returns `{year, totalPosts, maxDay, days: [{date, count}]}` with a full 365/366-day array of post counts (PUBLISHED by updatedAt, SCHEDULED by scheduledAt)
+- [x] `PostingHeatmapCard` component (`src/components/posting-heatmap-card.tsx`) — GitHub-contribution-style 52-week × 7-day grid; colour intensity proportional to post count (0=muted, 4 shades of green); month labels above columns; day-of-week labels on left; hover tooltip with date + count; year prev/next navigation; total posts count; legend
+- [x] Integrate `PostingHeatmapCard` into analytics dashboard page below the Scheduling Advisor card
+- [x] Unit tests for the heatmap API endpoint (auth, rate limit, invalid year, 365 days for non-leap year, 366 days for leap year, zero counts, published/scheduled date bucketing, day range boundaries — 9 tests)

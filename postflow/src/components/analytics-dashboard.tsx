@@ -30,6 +30,7 @@ import { WordCloudCard } from "@/components/word-cloud-card";
 import { ConsistencyCard } from "@/components/consistency-card";
 import { SchedulingAdvisorCard } from "@/components/scheduling-advisor-card";
 import { HashtagPerformanceCard } from "@/components/hashtag-performance-card";
+import { PostingHeatmapCard } from "@/components/posting-heatmap-card";
 
 type Period = "7d" | "30d" | "90d";
 
@@ -440,6 +441,9 @@ export function AnalyticsDashboard() {
 
       {/* AI Scheduling Advisor */}
       <SchedulingAdvisorCard />
+
+      {/* Year Heatmap */}
+      <PostingHeatmapCard />
     </div>
   );
 }
