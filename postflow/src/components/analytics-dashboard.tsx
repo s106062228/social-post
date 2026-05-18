@@ -31,6 +31,7 @@ import { ConsistencyCard } from "@/components/consistency-card";
 import { SchedulingAdvisorCard } from "@/components/scheduling-advisor-card";
 import { HashtagPerformanceCard } from "@/components/hashtag-performance-card";
 import { PostingHeatmapCard } from "@/components/posting-heatmap-card";
+import { ContentMixCard } from "@/components/content-mix-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -505,6 +506,9 @@ export function AnalyticsDashboard() {
 
       {/* Year Heatmap */}
       {isVisible("year_heatmap") && <PostingHeatmapCard />}
+
+      {/* Content Mix Analysis */}
+      {isVisible("content_mix") && <ContentMixCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}

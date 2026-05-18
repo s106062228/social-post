@@ -1322,3 +1322,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] "Save View" button in analytics dashboard header — opens name dialog, captures current period as config, POSTs to saved-views endpoint
 - [x] Saved views dropdown in analytics dashboard — lists saved views; applying one restores the saved period setting
 - [x] Unit tests for saved analytics views API (GET list, POST create, POST max-limit, DELETE auth, DELETE not-found, DELETE ownership, DELETE success — 10 tests)
+
+### Phase 131: Content Mix Analysis & Post Categorization
+- [x] `ContentCategory` enum in Prisma (EDUCATIONAL, PROMOTIONAL, ENTERTAINING, ENGAGING, INSPIRING, NEWS, BEHIND_THE_SCENES, USER_GENERATED) + `contentCategory ContentCategory?` on Post model + migration (`20260628000000_add_content_category`)
+- [x] Extend `POST /api/posts` and `PATCH /api/posts/[id]` zod schemas to accept optional `contentCategory` field
+- [x] `GET /api/analytics/content-mix` endpoint — auth + rate limit + `?period=7d|30d|90d`; groups PUBLISHED posts by contentCategory (null → UNCATEGORIZED), returns count, percentage, avgEngagement (likes+comments+shares) sorted by count desc
+- [x] `ContentMixCard` component (`src/components/content-mix-card.tsx`) — Recharts PieChart of category distribution, table with count/percentage/avgEngagement per category, period selector, "No data yet" empty state
+- [x] Integrate `ContentMixCard` into analytics dashboard; add `"content_mix"` widget key to dashboard widget customization
+- [x] Category selector in post composer — `<select>` below language selector with all 8 enum values; submitted with post creation body
+- [x] Unit tests for content-mix endpoint (auth, rate limit, period validation, response shape, sort order, null→UNCATEGORIZED, avgEngagement calculation — 9 tests)

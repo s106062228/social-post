@@ -17,6 +17,7 @@ export const WIDGET_KEYS = [
   "consistency",
   "scheduling_advisor",
   "year_heatmap",
+  "content_mix",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -40,6 +41,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   consistency: "Posting Consistency Score",
   scheduling_advisor: "AI Scheduling Advisor",
   year_heatmap: "Year Activity Heatmap",
+  content_mix: "Content Mix Analysis",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {

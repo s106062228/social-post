@@ -115,6 +115,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [reminderMinutes, setReminderMinutes] = useState<number | null>(null);
   const [firstComment, setFirstComment] = useState("");
   const [language, setLanguage] = useState<string>("");
+  const [contentCategory, setContentCategory] = useState<string>("");
   const [templates, setTemplates] = useState<Template[]>([]);
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([]);
   const [snippets, setSnippets] = useState<ContentSnippet[]>([]);
@@ -321,6 +322,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       }
       if (language) {
         body.language = language;
+      }
+      if (contentCategory) {
+        body.contentCategory = contentCategory;
       }
       const trimmedAltTexts = altTexts.map((t) => t ?? "");
       if (trimmedAltTexts.some((t) => t.trim())) {
@@ -955,6 +959,27 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           <option value="ar">Arabic (ar)</option>
           <option value="ko">Korean (ko)</option>
           <option value="it">Italian (it)</option>
+        </select>
+      </div>
+
+      {/* Content category */}
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="content-category-select">Content category</Label>
+        <select
+          id="content-category-select"
+          value={contentCategory}
+          onChange={(e) => setContentCategory(e.target.value)}
+          className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="">None (unspecified)</option>
+          <option value="EDUCATIONAL">Educational</option>
+          <option value="PROMOTIONAL">Promotional</option>
+          <option value="ENTERTAINING">Entertaining</option>
+          <option value="ENGAGING">Engaging</option>
+          <option value="INSPIRING">Inspiring</option>
+          <option value="NEWS">News</option>
+          <option value="BEHIND_THE_SCENES">Behind the Scenes</option>
+          <option value="USER_GENERATED">User Generated</option>
         </select>
       </div>
 
