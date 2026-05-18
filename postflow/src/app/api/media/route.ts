@@ -25,6 +25,8 @@ const ALLOWED_MIME_TYPES = new Set([
 const listSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
+  tag: z.string().optional(),
+  search: z.string().optional(),
 });
 
 // ── GET /api/media ────────────────────────────────────────────────────────────
@@ -54,17 +56,30 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { page, limit } = parsed.data;
+    const { page, limit, tag, search } = parsed.data;
     const skip = (page - 1) * limit;
+
+    const where = {
+      userId: session.user.id,
+      ...(tag ? { tags: { has: tag } } : {}),
+      ...(search
+        ? {
+            OR: [
+              { filename: { contains: search, mode: "insensitive" as const } },
+              { description: { contains: search, mode: "insensitive" as const } },
+            ],
+          }
+        : {}),
+    };
 
     const [assets, total] = await Promise.all([
       prisma.mediaAsset.findMany({
-        where: { userId: session.user.id },
+        where,
         orderBy: { createdAt: "desc" },
         skip,
         take: limit,
       }),
-      prisma.mediaAsset.count({ where: { userId: session.user.id } }),
+      prisma.mediaAsset.count({ where }),
     ]);
 
     return NextResponse.json({

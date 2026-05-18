@@ -677,3 +677,58 @@ export async function generateInspiredContent(
   }
   return title;
 }
+
+// ── Media tag generation ───────────────────────────────────────────────────────
+
+const MEDIA_TAGS_SYSTEM = `You are an expert image tagging assistant. Analyze images and return up to 10 concise, descriptive single-word or short-phrase tags that best describe the image content, subjects, style, mood, and context.
+Always respond with valid JSON in this exact format: {"tags": ["tag1", "tag2", "tag3"]}
+Tags should be lowercase, specific, and useful for searching.`;
+
+export async function generateMediaTags(imageUrl: string): Promise<string[]> {
+  const client = getClient();
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 256,
+    system: [
+      {
+        type: "text",
+        text: MEDIA_TAGS_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "image",
+            source: {
+              type: "url",
+              url: imageUrl,
+            },
+          },
+          {
+            type: "text",
+            text: "Generate up to 10 descriptive tags for this image.",
+          },
+        ],
+      },
+    ],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as { tags?: unknown };
+    if (
+      Array.isArray(parsed.tags) &&
+      parsed.tags.every((t) => typeof t === "string")
+    ) {
+      return (parsed.tags as string[]).slice(0, 10);
+    }
+  } catch {
+    // fall through
+  }
+  return [];
+}

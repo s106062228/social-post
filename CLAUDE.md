@@ -1291,3 +1291,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `POST /api/ai/alt-text` endpoint — auth + rate limit + AI check + zod validation (`imageUrl: string url`, `context?: string max 500 chars`); calls `generateImageAltText`; returns `{altText: string}`; returns 503 when AI not configured
 - [x] Update `AltTextInput` component — add "Auto-generate" sparkle button per image field; calls `/api/ai/alt-text`; fills field on success; shows loading state; shows error toast on failure
 - [x] Unit tests for alt-text endpoint (auth, rate limit, AI disabled, invalid JSON, missing imageUrl, invalid URL, success with altText, context forwarded, AI error — 8 tests)
+
+### Phase 127: Media Asset Organization & Smart Tagging
+- [x] Add `tags` (String[], default []) + `description` (nullable String) to MediaAsset model + Prisma migration (`20260624000000_add_media_asset_tags`)
+- [x] Add `generateMediaTags(imageUrl)` to `src/lib/ai.ts` — calls `claude-haiku-4-5` to analyze image content and return up to 10 descriptive tags; uses prompt caching on system block; returns `{tags: string[]}`
+- [x] `POST /api/media/[id]/tags` endpoint — auto-generate and save AI tags for a media asset; auth + rate limit + ownership check; returns `{tags: string[]}`; 503 when AI not configured
+- [x] `PATCH /api/media/[id]` endpoint — update description and/or tags for a media asset; auth + rate limit + ownership check; zod validation; returns updated asset
+- [x] Extend `GET /api/media` to support `?tag=` filter (match assets containing that tag) and `?search=` filter (match filename or description)
+- [x] Media library UI updates — show tag chips on asset cards; tag filter input; description field in asset detail hover/modal; "Auto-tag" button per image asset
+- [x] Unit tests for media tags and PATCH endpoint (auth, rate limit, AI disabled, not-found, ownership, success shape, search filter, tag filter — 14 tests)

@@ -327,15 +327,17 @@ model PublishResult {
 }
 
 model MediaAsset {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  filename  String
-  mimeType  String
-  size      Int
-  r2Key     String
-  publicUrl String
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  filename    String
+  mimeType    String
+  size        Int
+  r2Key       String
+  publicUrl   String
+  description String?
+  tags        String[] @default([])
+  createdAt   DateTime @default(now())
 
   @@index([userId, createdAt(sort: Desc)])
 }
