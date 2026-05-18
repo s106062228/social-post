@@ -152,6 +152,7 @@ model User {
   captionVariables         CaptionVariable[]
   assignedPosts            Post[]              @relation("PostAssignee")
   scheduleTimePresets  ScheduleTimePreset[]
+  dashboardWidgets     DashboardWidget[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1056,5 +1057,19 @@ model ScheduleTimePreset {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  @@index([userId])
+}
+
+model DashboardWidget {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  widgetKey String
+  visible   Boolean  @default(true)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, widgetKey])
   @@index([userId])
 }

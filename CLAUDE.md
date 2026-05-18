@@ -1300,3 +1300,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Extend `GET /api/media` to support `?tag=` filter (match assets containing that tag) and `?search=` filter (match filename or description)
 - [x] Media library UI updates — show tag chips on asset cards; tag filter input; description field in asset detail hover/modal; "Auto-tag" button per image asset
 - [x] Unit tests for media tags and PATCH endpoint (auth, rate limit, AI disabled, not-found, ownership, success shape, search filter, tag filter — 14 tests)
+
+### Phase 128: Dashboard Widget Customization
+- [x] `DashboardWidget` model in Prisma (id, userId, widgetKey String, visible Boolean default true, position Int, createdAt, updatedAt) + `@@unique([userId, widgetKey])` + migration (`20260625000000_add_dashboard_widgets`)
+- [x] `GET /api/dashboard-widgets` endpoint — returns per-user widget config; fills in defaults (all visible, sorted by position) when no rows exist; auth + rate limit
+- [x] `PATCH /api/dashboard-widgets` endpoint — accepts `{widgets: [{widgetKey, visible, position}][]}`, upserts all rows in a transaction; returns updated config; auth + rate limit + zod validation
+- [x] `DashboardCustomizeDialog` component (`src/components/dashboard-customize-dialog.tsx`) — modal with toggle-switch list for all 11 widget slots, "Show all" shortcut, calls PATCH on save
+- [x] Update analytics dashboard — fetch widget config on mount via `useWidgetConfig` hook; wrap each section in `isVisible(key)` guard; add "Customize" button in header that opens `DashboardCustomizeDialog`
+- [x] Unit tests for dashboard widgets API (GET returns defaults, GET returns stored values, GET all keys present, PATCH auth, PATCH rate limit, PATCH invalid key, PATCH saves config, PATCH visible:false — 10 tests)
