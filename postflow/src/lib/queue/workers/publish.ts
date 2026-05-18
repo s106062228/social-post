@@ -75,13 +75,55 @@ function backoffDelay(attemptNumber: number): number {
 
 // ── Worker processor ───────────────────────────────────────────────────────────
 
+/** Maximum total delay (in ms) before a paused job is failed permanently. */
+const MAX_PAUSE_DELAY_MS = 48 * 60 * 60 * 1000; // 48 hours
+/** Re-queue delay when publishing is paused (30 minutes). */
+const PAUSE_RETRY_DELAY_MS = 30 * 60 * 1000;
+
 async function processPublishJob(job: Job<PublishJobData>): Promise<void> {
   const { postId, accountId, publishResultId } = job.data;
 
   // Fetch the post
-  const post = await prisma.post.findUnique({ where: { id: postId } });
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    select: {
+      id: true,
+      userId: true,
+      content: true,
+      mediaType: true,
+      mediaUrls: true,
+      altTexts: true,
+      scheduledAt: true,
+      firstComment: true,
+    },
+  });
   if (!post) {
     throw new Error(`Post not found: ${postId}`);
+  }
+
+  // Check publishing pause state BEFORE doing any work
+  const userPauseState = await prisma.user.findUnique({
+    where: { id: post.userId },
+    select: { publishingPaused: true },
+  });
+
+  if (userPauseState?.publishingPaused) {
+    const jobAgeMs = Date.now() - job.timestamp;
+
+    if (jobAgeMs >= MAX_PAUSE_DELAY_MS) {
+      publishLogger.warn(
+        { postId, accountId, jobAgeMs },
+        "Publishing paused for too long — failing job permanently"
+      );
+      throw new Error("Publishing paused for too long");
+    }
+
+    publishLogger.warn(
+      { postId, accountId, jobAgeMs },
+      "Publishing is paused — re-queuing job with 30-minute delay"
+    );
+    await job.moveToDelayed(Date.now() + PAUSE_RETRY_DELAY_MS);
+    return;
   }
 
   // Fetch the social account

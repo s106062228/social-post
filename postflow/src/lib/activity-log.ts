@@ -22,7 +22,9 @@ export type ActivityAction =
   | "post.imported"
   | "post.archived"
   | "post.unarchived"
-  | "post.expired";
+  | "post.expired"
+  | "publishing.paused"
+  | "publishing.resumed";
 
 export interface LogActivityOptions {
   userId: string;

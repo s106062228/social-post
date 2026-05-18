@@ -1331,3 +1331,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Integrate `ContentMixCard` into analytics dashboard; add `"content_mix"` widget key to dashboard widget customization
 - [x] Category selector in post composer — `<select>` below language selector with all 8 enum values; submitted with post creation body
 - [x] Unit tests for content-mix endpoint (auth, rate limit, period validation, response shape, sort order, null→UNCATEGORIZED, avgEngagement calculation — 9 tests)
+
+### Phase 132: Emergency Publishing Pause & Global Controls
+- [x] Add `publishingPaused` (Boolean, default false) + `publishingPausedReason` (nullable String) + `publishingPausedAt` (nullable DateTime) to User model + Prisma migration (`20260629000000_add_publishing_pause`)
+- [x] `GET /api/settings/publishing-pause` endpoint — returns `{paused, reason, pausedAt}`; auth + rate limit
+- [x] `PATCH /api/settings/publishing-pause` endpoint — toggle or set pause state with optional reason (max 500 chars); auth + rate limit + zod validation; logs activity (publishing.paused / publishing.resumed); returns `{paused, reason, pausedAt}`
+- [x] Update BullMQ publish worker — before publishing any post, check the user's `publishingPaused` flag; if true, re-queue the job with a 30-minute delay (up to 48h total); log warning
+- [x] `PublishingPauseBanner` component (`src/components/publishing-pause-banner.tsx`) — red alert banner shown at the top of all dashboard pages when publishing is paused; displays reason + time paused; "Resume Publishing" button calls PATCH endpoint; fetched on mount
+- [x] Integrate `PublishingPauseBanner` into dashboard layout
+- [x] `PublishingControls` component (`src/app/(dashboard)/settings/publishing-controls.tsx`) — toggle switch + reason textarea card; integrated into Settings page
+- [x] Unit tests for publishing pause API (GET default state, GET paused state, GET 404, PATCH pause with reason, PATCH pause without reason, PATCH resume clears fields, PATCH logs activity, PATCH invalid body, auth, rate limit — 12 tests)

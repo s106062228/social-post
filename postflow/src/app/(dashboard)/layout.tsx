@@ -3,6 +3,7 @@ import { NotificationBell } from "@/components/notification-bell";
 import { CommandPalette } from "@/components/command-palette";
 import { ShortcutHelp } from "@/components/shortcut-help";
 import { GlobalShortcuts } from "@/components/global-shortcuts";
+import { PublishingPauseBanner } from "@/components/publishing-pause-banner";
 
 export default function DashboardLayout({
   children,
@@ -13,6 +14,8 @@ export default function DashboardLayout({
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Publishing pause warning banner */}
+        <PublishingPauseBanner />
         {/* Top bar */}
         <header className="flex h-14 shrink-0 items-center justify-end border-b bg-card px-6">
           <NotificationBell />

@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { SettingsForm } from "./settings-form";
 import { TwoFactorSettings } from "./two-factor-settings";
+import { PublishingControls } from "./publishing-controls";
 import { PushNotificationSetup } from "@/components/push-notification-setup";
 import { NotificationPreferences } from "@/components/notification-preferences";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +21,9 @@ export default async function SettingsPage() {
       emailNotifications: true,
       theme: true,
       totpEnabled: true,
+      publishingPaused: true,
+      publishingPausedReason: true,
+      publishingPausedAt: true,
     },
   });
 
@@ -48,6 +52,11 @@ export default async function SettingsPage() {
           </CardContent>
         </Card>
         <NotificationPreferences />
+        <PublishingControls
+          initialPaused={user.publishingPaused}
+          initialReason={user.publishingPausedReason ?? null}
+          initialPausedAt={user.publishingPausedAt ?? null}
+        />
       </div>
     </div>
   );
