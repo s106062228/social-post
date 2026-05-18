@@ -32,6 +32,7 @@ import { SchedulingAdvisorCard } from "@/components/scheduling-advisor-card";
 import { HashtagPerformanceCard } from "@/components/hashtag-performance-card";
 import { PostingHeatmapCard } from "@/components/posting-heatmap-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
+import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
 
 type Period = "7d" | "30d" | "90d";
@@ -145,6 +146,15 @@ export function AnalyticsDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <SavedAnalyticsViews
+            currentPeriod={period}
+            onApply={(config) => {
+              const p = config.period as Period | undefined;
+              if (p && ["7d", "30d", "90d"].includes(p)) {
+                handlePeriodChange(p);
+              }
+            }}
+          />
           <Button
             variant="outline"
             size="sm"
@@ -155,7 +165,7 @@ export function AnalyticsDashboard() {
             Customize
           </Button>
           {/* Period selector */}
-          <div className="flex gap-1 rounded-lg border bg-white p-1">
+          <div className="flex gap-1 rounded-lg border bg-card p-1">
             {(["7d", "30d", "90d"] as Period[]).map((p) => (
               <Button
                 key={p}

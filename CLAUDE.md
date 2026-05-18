@@ -1315,3 +1315,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `SmartScheduleSuggestions` component (`src/components/smart-schedule-suggestions.tsx`) — collapsible "Suggested times" panel; lazy-loads on demand when user clicks "Suggest time" button; shows up to 3 datetime chips (day + time + reason tooltip); clicking a chip sets the parent scheduledAt; shows loading spinner; shows "No data yet" when suggestions is empty
 - [x] Integrate `SmartScheduleSuggestions` into post composer — rendered below the datetime-local input row when at least one account is selected; passes `selectedPlatforms` and calls `setScheduledAt` on chip click
 - [x] Unit tests for smart schedule utility and endpoint (empty history returns empty, top slot returned first, occupied slot skipped, blackout period skipped, auth required, rate limit enforced — 10 tests)
+
+### Phase 130: Saved Analytics Views
+- [x] `SavedAnalyticsView` model in Prisma (id, userId, name, reportType String, config Json, createdAt, updatedAt) + migration (`20260627000000_add_saved_analytics_views`)
+- [x] CRUD API for saved analytics views (`GET /api/analytics/saved-views`, `POST /api/analytics/saved-views`, `DELETE /api/analytics/saved-views/[id]`) — auth + rate limit + zod validation; max 20 saved views per user
+- [x] "Save View" button in analytics dashboard header — opens name dialog, captures current period as config, POSTs to saved-views endpoint
+- [x] Saved views dropdown in analytics dashboard — lists saved views; applying one restores the saved period setting
+- [x] Unit tests for saved analytics views API (GET list, POST create, POST max-limit, DELETE auth, DELETE not-found, DELETE ownership, DELETE success — 10 tests)

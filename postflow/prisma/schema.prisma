@@ -153,6 +153,7 @@ model User {
   assignedPosts            Post[]              @relation("PostAssignee")
   scheduleTimePresets  ScheduleTimePreset[]
   dashboardWidgets     DashboardWidget[]
+  savedAnalyticsViews  SavedAnalyticsView[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1072,4 +1073,18 @@ model DashboardWidget {
 
   @@unique([userId, widgetKey])
   @@index([userId])
+}
+
+model SavedAnalyticsView {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  reportType String
+  config     Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, reportType])
 }
