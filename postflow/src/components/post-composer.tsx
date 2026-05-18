@@ -23,6 +23,7 @@ import { AltTextInput } from "@/components/alt-text-input";
 import { ContentBriefDialog } from "@/components/content-brief-dialog";
 import { SchedulePresetSelector } from "@/components/schedule-preset-selector";
 import { PerformancePredictionCard } from "@/components/performance-prediction-card";
+import { SmartScheduleSuggestions } from "@/components/smart-schedule-suggestions";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
 import {
@@ -1136,6 +1137,12 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           />
           <SchedulePresetSelector onSelect={setScheduledAt} />
         </div>
+        {selectedAccountIds.size > 0 && (
+          <SmartScheduleSuggestions
+            selectedPlatforms={selectedPlatforms}
+            onSelect={setScheduledAt}
+          />
+        )}
       </div>
 
       {/* Reminder — only shown when a scheduled time is set */}
