@@ -1,0 +1,5 @@
+-- CreateEnum
+CREATE TYPE "ContentCategory" AS ENUM ('EDUCATIONAL', 'PROMOTIONAL', 'ENTERTAINING', 'ENGAGING', 'INSPIRING', 'NEWS', 'BEHIND_THE_SCENES', 'USER_GENERATED');
+
+-- AlterTable
+ALTER TABLE "Post" ADD COLUMN "contentCategory" "ContentCategory";

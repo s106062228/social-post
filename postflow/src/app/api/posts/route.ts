@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { MediaType, Platform, PostStatus } from "@prisma/client";
+import { ContentCategory, MediaType, Platform, PostStatus } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { handleRouteError } from "@/lib/errors";
@@ -20,6 +20,7 @@ const createPostSchema = z.object({
   reminderMinutes: z.number().int().min(1).max(10080).nullable().optional(),
   firstComment: z.string().max(2200).nullable().optional(),
   language: z.string().min(2).max(5).nullable().optional(),
+  contentCategory: z.nativeEnum(ContentCategory).nullable().optional(),
   altTexts: z.array(z.string().max(2200)).max(10).default([]),
 });
 
@@ -180,7 +181,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { mediaType, mediaUrls, scheduledAt, tagIds, reminderMinutes, firstComment, language, altTexts } = parsed.data;
+    const { mediaType, mediaUrls, scheduledAt, tagIds, reminderMinutes, firstComment, language, contentCategory, altTexts } = parsed.data;
     const content = sanitizePostContent(parsed.data.content);
 
     if (content.length === 0) {
@@ -216,6 +217,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         reminderMinutes: reminderMinutes ?? null,
         firstComment: firstComment ?? null,
         language: language ?? null,
+        contentCategory: contentCategory ?? null,
         altTexts,
         tags: validTagIds.length > 0
           ? { create: validTagIds.map((tagId) => ({ tagId })) }

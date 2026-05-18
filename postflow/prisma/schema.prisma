@@ -94,6 +94,17 @@ enum AlertOperator {
   BELOW
 }
 
+enum ContentCategory {
+  EDUCATIONAL
+  PROMOTIONAL
+  ENTERTAINING
+  ENGAGING
+  INSPIRING
+  NEWS
+  BEHIND_THE_SCENES
+  USER_GENERATED
+}
+
 model User {
   id                 String              @id @default(cuid())
   email              String              @unique
@@ -223,6 +234,7 @@ model Post {
   sentimentScore Float?
   firstComment   String?
   language       String?
+  contentCategory ContentCategory?
   altTexts       String[]
   archivedAt       DateTime?
   expiresAt        DateTime?

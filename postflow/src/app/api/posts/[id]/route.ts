@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { MediaType, PostStatus } from "@prisma/client";
+import { ContentCategory, MediaType, PostStatus } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { handleRouteError } from "@/lib/errors";
@@ -20,6 +20,7 @@ const updatePostSchema = z
       .optional(),
     firstComment: z.string().max(2200).nullable().optional(),
     language: z.string().min(2).max(5).nullable().optional(),
+    contentCategory: z.nativeEnum(ContentCategory).nullable().optional(),
     altTexts: z.array(z.string().max(2200)).max(10).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
