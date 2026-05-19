@@ -11,6 +11,7 @@ import { RetryPostButton } from "./retry-post-button";
 import { DuplicatePostButton } from "./duplicate-post-button";
 import { SaveAsTemplateButton } from "./save-as-template-button";
 import { BulkRescheduleButton } from "./bulk-reschedule-button";
+import { BatchScheduleButton } from "./batch-schedule-button";
 import { BulkTagButton } from "./bulk-tag-button";
 import { BulkCategorizeButton } from "./bulk-categorize-button";
 import { RequestApprovalButton } from "./request-approval-button";
@@ -255,6 +256,12 @@ export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
         </label>
         {selected.size > 0 && (
           <div className="ml-auto flex flex-wrap items-center gap-2">
+            <BatchScheduleButton
+              selectedIds={Array.from(selected).filter(
+                (id) => posts.find((p) => p.id === id)?.status === "DRAFT"
+              )}
+              onDone={() => { setSelected(new Set()); router.refresh(); }}
+            />
             <BulkRescheduleButton
               selectedIds={Array.from(selected).filter(
                 (id) => posts.find((p) => p.id === id)?.status === "SCHEDULED"
