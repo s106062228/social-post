@@ -732,3 +732,99 @@ export async function generateMediaTags(imageUrl: string): Promise<string[]> {
   }
   return [];
 }
+
+// ── Content Moderation ─────────────────────────────────────────────────────────
+
+export interface ModerationIssue {
+  type: string;
+  severity: "low" | "medium" | "high";
+  description: string;
+}
+
+export interface ModerationResult {
+  safe: boolean;
+  issues: ModerationIssue[];
+  score: number;
+  reason?: string;
+}
+
+const MODERATION_SYSTEM = `You are a social media content moderation assistant. Analyze post content for policy violations, spam, toxicity, misinformation, and quality issues.
+
+Always respond with valid JSON in this exact format:
+{
+  "safe": true/false,
+  "score": 0-100,
+  "issues": [
+    {
+      "type": "spam|toxicity|misinformation|offensive|low_quality|policy_violation",
+      "severity": "low|medium|high",
+      "description": "brief explanation"
+    }
+  ],
+  "reason": "brief overall assessment (omit if safe)"
+}
+
+score 100 = perfectly safe, score 0 = completely unsafe. Only include issues array when problems exist.`;
+
+export async function moderateContent(
+  content: string
+): Promise<ModerationResult> {
+  const client = getClient();
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 512,
+    system: [
+      {
+        type: "text",
+        text: MODERATION_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: `Moderate this social media post content:\n\n${content}`,
+      },
+    ],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as {
+      safe?: unknown;
+      score?: unknown;
+      issues?: unknown;
+      reason?: unknown;
+    };
+    const safe = typeof parsed.safe === "boolean" ? parsed.safe : true;
+    const score =
+      typeof parsed.score === "number"
+        ? Math.max(0, Math.min(100, parsed.score))
+        : 100;
+    const issues: ModerationIssue[] = [];
+    if (Array.isArray(parsed.issues)) {
+      for (const issue of parsed.issues) {
+        if (
+          issue &&
+          typeof issue.type === "string" &&
+          typeof issue.severity === "string" &&
+          typeof issue.description === "string"
+        ) {
+          issues.push({
+            type: issue.type,
+            severity: issue.severity as ModerationIssue["severity"],
+            description: issue.description,
+          });
+        }
+      }
+    }
+    const reason =
+      typeof parsed.reason === "string" ? parsed.reason : undefined;
+    return { safe, score, issues, reason };
+  } catch {
+    // fall through to safe default
+  }
+  return { safe: true, score: 100, issues: [] };
+}

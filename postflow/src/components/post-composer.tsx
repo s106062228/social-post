@@ -19,6 +19,7 @@ import { AutosaveIndicator } from "@/components/autosave-indicator";
 import { ImageCaptionDialog } from "@/components/image-caption-dialog";
 import { BrandGuidelinesPanel } from "@/components/brand-guidelines-panel";
 import { BrandComplianceIndicator } from "@/components/brand-compliance-indicator";
+import { ContentModerationBadge } from "@/components/content-moderation-badge";
 import { AltTextInput } from "@/components/alt-text-input";
 import { ContentBriefDialog } from "@/components/content-brief-dialog";
 import { SchedulePresetSelector } from "@/components/schedule-preset-selector";
@@ -812,6 +813,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         </div>
         <DuplicateWarning content={content} />
         <BrandComplianceIndicator content={content} />
+        <ContentModerationBadge content={content} />
         <PerformancePredictionCard content={content} platforms={selectedPlatforms} />
         <LinkPreviewCard content={content} />
         <BrandGuidelinesPanel />
