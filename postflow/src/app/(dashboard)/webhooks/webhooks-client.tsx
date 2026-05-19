@@ -11,6 +11,8 @@ import {
   ChevronDown,
   ChevronUp,
   Activity,
+  Zap,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-type WebhookEvent = "post.published" | "post.failed" | "post.partially_published";
+type WebhookEvent = "post.published" | "post.failed" | "post.partially_published" | "ping";
 
 interface WebhookConfig {
   id: string;
@@ -51,6 +53,7 @@ const EVENT_LABELS: Record<WebhookEvent, string> = {
   "post.published": "Published",
   "post.failed": "Failed",
   "post.partially_published": "Partially published",
+  ping: "Test ping",
 };
 
 export function WebhooksClient({ initialConfigs }: Props) {
@@ -64,6 +67,8 @@ export function WebhooksClient({ initialConfigs }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deliveries, setDeliveries] = useState<Record<string, Delivery[]>>({});
   const [loadingDeliveries, setLoadingDeliveries] = useState<string | null>(null);
+  const [pingingId, setPingingId] = useState<string | null>(null);
+  const [retryingId, setRetryingId] = useState<string | null>(null);
 
   function toggleEventSelection(event: WebhookEvent) {
     setSelectedEvents((prev: Set<WebhookEvent>) => {
@@ -157,6 +162,76 @@ export function WebhooksClient({ initialConfigs }: Props) {
     await navigator.clipboard.writeText(webhookUrl).catch(() => null);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  async function handlePing(id: string) {
+    setPingingId(id);
+    try {
+      const res = await fetch(`/api/webhook-configs/${id}/ping`, { method: "POST" });
+      if (!res.ok) {
+        toast({ title: "Ping failed to send", variant: "destructive" });
+        return;
+      }
+      const data = (await res.json()) as { success: boolean; statusCode?: number; durationMs: number };
+      if (data.success) {
+        toast({ title: `Ping delivered (${data.statusCode ?? "—"}) in ${data.durationMs}ms` });
+      } else {
+        toast({
+          title: `Ping failed (HTTP ${data.statusCode ?? "no response"})`,
+          variant: "destructive",
+        });
+      }
+      // Refresh delivery log if open
+      if (expandedId === id) {
+        setDeliveries((prev) => {
+          const updated = { ...prev };
+          delete updated[id];
+          return updated;
+        });
+        const delRes = await fetch(`/api/webhook-configs/${id}/deliveries`);
+        if (delRes.ok) {
+          const delData = (await delRes.json()) as { deliveries: Delivery[] };
+          setDeliveries((prev) => ({ ...prev, [id]: delData.deliveries }));
+        }
+      }
+    } catch {
+      toast({ title: "Network error", variant: "destructive" });
+    } finally {
+      setPingingId(null);
+    }
+  }
+
+  async function handleRetry(configId: string, deliveryId: string) {
+    setRetryingId(deliveryId);
+    try {
+      const res = await fetch(
+        `/api/webhook-configs/${configId}/deliveries/${deliveryId}/retry`,
+        { method: "POST" }
+      );
+      if (!res.ok) {
+        toast({ title: "Retry failed", variant: "destructive" });
+        return;
+      }
+      const data = (await res.json()) as { success: boolean; statusCode?: number; durationMs: number };
+      if (data.success) {
+        toast({ title: `Retry delivered (${data.statusCode ?? "—"}) in ${data.durationMs}ms` });
+      } else {
+        toast({
+          title: `Retry failed (HTTP ${data.statusCode ?? "no response"})`,
+          variant: "destructive",
+        });
+      }
+      // Refresh delivery log
+      const delRes = await fetch(`/api/webhook-configs/${configId}/deliveries`);
+      if (delRes.ok) {
+        const delData = (await delRes.json()) as { deliveries: Delivery[] };
+        setDeliveries((prev) => ({ ...prev, [configId]: delData.deliveries }));
+      }
+    } catch {
+      toast({ title: "Network error", variant: "destructive" });
+    } finally {
+      setRetryingId(null);
+    }
   }
 
   async function toggleDeliveries(id: string) {
@@ -276,6 +351,15 @@ export function WebhooksClient({ initialConfigs }: Props) {
                   <Button
                     variant="ghost"
                     size="icon"
+                    onClick={() => handlePing(config.id)}
+                    disabled={pingingId === config.id}
+                    title="Send test ping"
+                  >
+                    <Zap className={cn("h-4 w-4", pingingId === config.id && "animate-pulse text-yellow-500")} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => toggleDeliveries(config.id)}
                     title="View delivery log"
                     className={cn(expandedId === config.id && "text-primary")}
@@ -347,6 +431,17 @@ export function WebhooksClient({ initialConfigs }: Props) {
                           <span className="text-muted-foreground ml-auto shrink-0">
                             {new Date(d.attemptedAt).toLocaleString()}
                           </span>
+                          {!d.success && (
+                            <button
+                              type="button"
+                              onClick={() => handleRetry(config.id, d.id)}
+                              disabled={retryingId === d.id}
+                              title="Retry delivery"
+                              className="shrink-0 text-muted-foreground hover:text-foreground disabled:opacity-50"
+                            >
+                              <RefreshCw className={cn("h-3 w-3", retryingId === d.id && "animate-spin")} />
+                            </button>
+                          )}
                         </div>
                       ))}
                     </div>

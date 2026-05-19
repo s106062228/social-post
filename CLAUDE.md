@@ -1354,3 +1354,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `POST /api/ai/moderate` endpoint — auth + rate limit + AI check + zod validation (`content: string min 1 max 10000`); calls `moderateContent`; returns moderation result; returns 503 when AI not configured
 - [x] `ContentModerationBadge` component (`src/components/content-moderation-badge.tsx`) — compact badge (green "Safe" / severity-coloured "N issues") with expandable issue list showing severity dots, type labels, and overall reason; 800 ms debounce on content changes; loading "Checking…" state; hidden when content < 10 chars; integrated into post composer below BrandComplianceIndicator
 - [x] Unit tests for content moderation endpoint (auth, rate limit, AI disabled, invalid JSON, missing content, safe result, flagged result with issues, AI error — 8 tests)
+
+### Phase 135: Webhook Ping & Delivery Retry
+- [x] Export `deliverWebhook` from `src/lib/webhook-dispatch.ts`; change return type to `Promise<{success, statusCode?, durationMs}>`; add `"ping"` to `WebhookEvent` union
+- [x] `POST /api/webhook-configs/[id]/ping` endpoint — auth + rate limit + ownership check; sends a test `ping` event payload to the webhook URL; records a WebhookDelivery row; returns `{success, statusCode?, durationMs}`
+- [x] `POST /api/webhook-configs/[id]/deliveries/[deliveryId]/retry` endpoint — auth + rate limit + ownership check via configId; looks up original delivery event; re-dispatches with `{_retried_from: deliveryId}` data; records a new WebhookDelivery row; returns `{success, statusCode?, durationMs}`
+- [x] "Send Test Ping" button (⚡) per webhook config in webhooks page UI — shows animated state while pending; toasts delivery result (status code + duration)
+- [x] "Retry" button per failed delivery row in delivery log — shows spinner while pending; toasts result; refreshes log after completion; hidden for successful deliveries
+- [x] Add `"ping"` to `EVENT_LABELS` in webhooks-client component
+- [x] Unit tests for ping endpoint and retry endpoint (auth, ownership, success, HTTP error, not found, mismatched config — 15 tests)

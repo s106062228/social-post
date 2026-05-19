@@ -5,7 +5,8 @@ import { logger } from "@/lib/logger";
 export type WebhookEvent =
   | "post.published"
   | "post.failed"
-  | "post.partially_published";
+  | "post.partially_published"
+  | "ping";
 
 export interface WebhookPayload {
   event: WebhookEvent;
@@ -17,17 +18,23 @@ function signPayload(secret: string, body: string): string {
   return crypto.createHmac("sha256", secret).update(body).digest("hex");
 }
 
-async function deliverWebhook(
+export interface DeliveryResult {
+  success: boolean;
+  statusCode?: number;
+  durationMs: number;
+}
+
+export async function deliverWebhook(
   configId: string,
   url: string,
   secret: string,
   payload: WebhookPayload
-): Promise<void> {
+): Promise<DeliveryResult> {
   const body = JSON.stringify(payload);
   const signature = signPayload(secret, body);
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10_000);
+  const timeoutHandle = setTimeout(() => controller.abort(), 10_000);
   const startMs = Date.now();
 
   let statusCode: number | undefined;
@@ -56,25 +63,27 @@ async function deliverWebhook(
     }
   } catch (err) {
     logger.error({ err, url, event: payload.event }, "Webhook delivery failed");
-  } finally {
-    clearTimeout(timeout);
-    const durationMs = Date.now() - startMs;
-
-    // Fire-and-forget delivery log — never throw
-    prisma.webhookDelivery
-      .create({
-        data: {
-          configId,
-          event: payload.event,
-          statusCode: statusCode ?? null,
-          success,
-          durationMs,
-        },
-      })
-      .catch((err: unknown) => {
-        logger.error({ err, configId, event: payload.event }, "Failed to log webhook delivery");
-      });
   }
+
+  clearTimeout(timeoutHandle);
+  const durationMs = Date.now() - startMs;
+
+  // Fire-and-forget delivery log — never throw
+  prisma.webhookDelivery
+    .create({
+      data: {
+        configId,
+        event: payload.event,
+        statusCode: statusCode ?? null,
+        success,
+        durationMs,
+      },
+    })
+    .catch((err: unknown) => {
+      logger.error({ err, configId, event: payload.event }, "Failed to log webhook delivery");
+    });
+
+  return { success, statusCode, durationMs };
 }
 
 export async function dispatchWebhooks(
