@@ -1341,3 +1341,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Integrate `PublishingPauseBanner` into dashboard layout
 - [x] `PublishingControls` component (`src/app/(dashboard)/settings/publishing-controls.tsx`) — toggle switch + reason textarea card; integrated into Settings page
 - [x] Unit tests for publishing pause API (GET default state, GET paused state, GET 404, PATCH pause with reason, PATCH pause without reason, PATCH resume clears fields, PATCH logs activity, PATCH invalid body, auth, rate limit — 12 tests)
+
+### Phase 133: Bulk Tag Operations & Post Categorization Tools
+- [x] `POST /api/posts/bulk-tag` endpoint — accepts `{postIds[], tagIds[], action: "add"|"remove"}`; auth + rate limit + zod validation; verifies tag ownership; skips PUBLISHING posts; upserts or removes PostTag rows; returns `{updated, skipped}`
+- [x] `POST /api/posts/bulk-categorize` endpoint — accepts `{postIds[], contentCategory: ContentCategory | null}`; auth + rate limit + zod validation; updates contentCategory for all owned posts; returns `{updated}`
+- [x] `BulkTagButton` client component (`src/app/(dashboard)/posts/bulk-tag-button.tsx`) — dialog with Add/Remove toggle, tag chip selector, calls bulk-tag endpoint; integrated into posts list bulk action bar
+- [x] `BulkCategorizeButton` client component (`src/app/(dashboard)/posts/bulk-categorize-button.tsx`) — dialog with category list selector, calls bulk-categorize endpoint; integrated into posts list bulk action bar
+- [x] Unit tests for bulk-tag endpoint (auth, rate limit, invalid JSON, missing action, tag not found, add tags + skip PUBLISHING, remove tags, all-PUBLISHING returns updated=0, multi-post multi-tag — 9 tests) and bulk-categorize endpoint (auth, rate limit, invalid JSON, invalid category, set category, clear category null, empty postIds, all valid categories — 8 tests)

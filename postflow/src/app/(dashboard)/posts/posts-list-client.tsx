@@ -11,6 +11,8 @@ import { RetryPostButton } from "./retry-post-button";
 import { DuplicatePostButton } from "./duplicate-post-button";
 import { SaveAsTemplateButton } from "./save-as-template-button";
 import { BulkRescheduleButton } from "./bulk-reschedule-button";
+import { BulkTagButton } from "./bulk-tag-button";
+import { BulkCategorizeButton } from "./bulk-categorize-button";
 import { RequestApprovalButton } from "./request-approval-button";
 import { SharePostButton } from "./share-post-button";
 import { StarPostButton } from "./star-post-button";
@@ -258,6 +260,14 @@ export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
                 (id) => posts.find((p) => p.id === id)?.status === "SCHEDULED"
               )}
               onDone={() => setSelected(new Set())}
+            />
+            <BulkTagButton
+              selectedIds={Array.from(selected)}
+              onDone={() => { setSelected(new Set()); router.refresh(); }}
+            />
+            <BulkCategorizeButton
+              selectedIds={Array.from(selected)}
+              onDone={() => { setSelected(new Set()); router.refresh(); }}
             />
             <Button
               variant="destructive"
