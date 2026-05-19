@@ -10,10 +10,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, Clock, RotateCcw, Loader2 } from "lucide-react";
+import { ArrowLeft, Clock, RotateCcw, Loader2, GitCompare } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { PostComments } from "@/components/post-comments";
 import { PostInsightsPanel } from "@/components/post-insights-panel";
+import { VersionDiffViewer } from "@/components/version-diff-viewer";
 
 interface PostVersion {
   id: string;
@@ -32,6 +33,9 @@ export default function PostVersionsPage() {
   const [loading, setLoading] = useState(true);
   const [restoringId, setRestoringId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Diff state: when set, show the diff viewer for the selected version vs current
+  const [diffVersionId, setDiffVersionId] = useState<string | null>(null);
 
   const fetchVersions = useCallback(async () => {
     setLoading(true);
@@ -70,6 +74,7 @@ export default function PostVersionsPage() {
         throw new Error(data.error ?? "Failed to restore version");
       }
       toast({ title: "Version restored", variant: "success" });
+      setDiffVersionId(null);
       void fetchVersions();
     } catch (err) {
       toast({
@@ -82,6 +87,17 @@ export default function PostVersionsPage() {
     }
   }
 
+  function formatVersionLabel(version: PostVersion, index: number): string {
+    const d = new Date(version.createdAt);
+    const dateStr = d.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return index === 0 ? `${dateStr} (most recent)` : dateStr;
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3">
@@ -92,7 +108,7 @@ export default function PostVersionsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Version History</h1>
           <p className="text-sm text-muted-foreground">
-            View and restore previous versions of this post.
+            View, compare, and restore previous versions of this post.
           </p>
         </div>
       </div>
@@ -117,12 +133,27 @@ export default function PostVersionsPage() {
         </Card>
       ) : (
         <div className="flex flex-col gap-3">
+          {diffVersionId && (
+            <VersionDiffViewer
+              postId={postId}
+              fromVersionId={diffVersionId}
+              toVersionId="current"
+              fromLabel={(() => {
+                const idx = versions.findIndex((v) => v.id === diffVersionId);
+                return idx >= 0 ? formatVersionLabel(versions[idx], idx) : diffVersionId;
+              })()}
+              toLabel="Current version"
+              onClose={() => setDiffVersionId(null)}
+            />
+          )}
+
           {versions.map((version, index) => {
             const isExpanded = expandedId === version.id;
             const isRestoring = restoringId === version.id;
+            const isComparing = diffVersionId === version.id;
             const date = new Date(version.createdAt);
             return (
-              <Card key={version.id}>
+              <Card key={version.id} className={isComparing ? "ring-2 ring-primary/40" : ""}>
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -151,6 +182,18 @@ export default function PostVersionsPage() {
                         className="h-7 text-xs"
                       >
                         {isExpanded ? "Hide" : "Preview"}
+                      </Button>
+                      <Button
+                        variant={isComparing ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() =>
+                          setDiffVersionId(isComparing ? null : version.id)
+                        }
+                        className="h-7 text-xs"
+                        title="Compare this version to current"
+                      >
+                        <GitCompare className="h-3 w-3 mr-1" />
+                        {isComparing ? "Comparing" : "Diff"}
                       </Button>
                       <Button
                         variant="outline"

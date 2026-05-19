@@ -1363,3 +1363,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] "Retry" button per failed delivery row in delivery log — shows spinner while pending; toasts result; refreshes log after completion; hidden for successful deliveries
 - [x] Add `"ping"` to `EVENT_LABELS` in webhooks-client component
 - [x] Unit tests for ping endpoint and retry endpoint (auth, ownership, success, HTTP error, not found, mismatched config — 15 tests)
+
+### Phase 136: Post Content Diff Viewer
+- [x] Text diff utility (`src/lib/text-diff.ts`) — LCS-based word-level diff between two strings; exports `computeDiff(before, after): DiffChunk[]` and `diffStats(chunks)` returning `{added, removed, unchanged}` word counts
+- [x] `GET /api/posts/[id]/versions/diff` endpoint — auth + rate limit + ownership; accepts `?from=versionId&to=versionId|"current"`; returns `{diff, stats, fromVersion, toVersion}`; 400 when params missing or invalid; 404 when version not found
+- [x] `VersionDiffViewer` component (`src/components/version-diff-viewer.tsx`) — inline diff panel with green additions, red-strikethrough removals, grey unchanged; `+N / -N` stats badge in header; close button; integrated into post versions page
+- [x] Update post versions page — add "Diff" button per version row comparing it to the current version; highlighted ring on the selected comparison version; diff viewer appears above the version list
+- [x] Unit tests for text diff utility (empty strings, all-added, all-removed, identical, word substitution, appended/removed word, multiline, reconstruction invariant, diffStats — 16 tests) and diff endpoint (auth, rate limit, not-found, missing/invalid params, two-version diff, current target, reconstruction — 12 tests)
