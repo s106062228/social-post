@@ -22,6 +22,7 @@ import { BrandComplianceIndicator } from "@/components/brand-compliance-indicato
 import { ContentModerationBadge } from "@/components/content-moderation-badge";
 import { AltTextInput } from "@/components/alt-text-input";
 import { ContentBriefDialog } from "@/components/content-brief-dialog";
+import { GrammarCheckButton } from "@/components/grammar-check-button";
 import { SchedulePresetSelector } from "@/components/schedule-preset-selector";
 import { PerformancePredictionCard } from "@/components/performance-prediction-card";
 import { SmartScheduleSuggestions } from "@/components/smart-schedule-suggestions";
@@ -789,6 +790,10 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
               <FileText className="h-3 w-3" />
               Brief
             </button>
+            <GrammarCheckButton
+              content={content}
+              onApply={(newContent) => setContent(newContent)}
+            />
             <button
               type="button"
               onClick={fetchHashtagSuggestions}

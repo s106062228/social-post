@@ -1407,3 +1407,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Integrate `ThreadBuilder` into post composer — shown below first-comment section when Twitter is in selected platforms; saves thread items via `PUT /api/posts/[id]/threads` after post creation
 - [x] Update BullMQ publish worker — loads `ThreadPost` records for Twitter platform and passes them as `threadItems` in `PostContent`
 - [x] Unit tests for thread API (GET list, POST create with auto-order, POST with explicit order, PUT bulk-replace, PUT max-items, PATCH update content, PATCH no-fields, PATCH ownership, DELETE success, DELETE ownership, auth + rate limit — 20 tests) and Twitter adapter thread publishing (thread reply chain, solo publish without items — 2 tests)
+
+### Phase 142: AI Spell Check & Grammar Suggestions
+- [x] Add `checkGrammar(content)` to `src/lib/ai.ts` — calls `claude-haiku-4-5` to check spelling and grammar; returns `{correctedContent: string, suggestions: {original: string, replacement: string, explanation: string}[], issueCount: number}`; uses prompt caching on system block; returns original content unchanged when AI not configured
+- [x] `POST /api/ai/grammar-check` endpoint — auth + rate limit + AI check + zod validation (`content: string min 1 max 10000`); calls `checkGrammar`; returns grammar check result; returns 503 when AI not configured
+- [x] `GrammarCheckButton` component (`src/components/grammar-check-button.tsx`) — button with spellcheck icon in post composer toolbar; calls `/api/ai/grammar-check` with current content; shows loading state; on result, opens `GrammarSuggestionsDialog`
+- [x] `GrammarSuggestionsDialog` component (`src/components/grammar-suggestions-dialog.tsx`) — modal showing: corrected content preview, list of individual suggestions (original → replacement + explanation), "Apply All Corrections" button that replaces content with correctedContent, individual "Apply" buttons per suggestion, close button
+- [x] Unit tests for grammar-check endpoint (auth, rate limit, AI disabled, invalid JSON, missing content, content too long, success with suggestions, success with no issues, AI error — 9 tests)

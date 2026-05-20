@@ -828,3 +828,85 @@ export async function moderateContent(
   }
   return { safe: true, score: 100, issues: [] };
 }
+
+// ── Grammar Check ──────────────────────────────────────────────────────────────
+
+export interface GrammarSuggestion {
+  original: string;
+  replacement: string;
+  explanation: string;
+}
+
+export interface GrammarCheckResult {
+  correctedContent: string;
+  suggestions: GrammarSuggestion[];
+  issueCount: number;
+}
+
+const GRAMMAR_SYSTEM = `You are a professional editor specializing in social media content. Check the provided post content for spelling mistakes, grammatical errors, and awkward phrasing.
+Always respond with valid JSON in this exact format:
+{"correctedContent": "full corrected text", "suggestions": [{"original": "original phrase", "replacement": "corrected phrase", "explanation": "brief reason"}]}
+Rules:
+- correctedContent must be the full content with ALL corrections applied
+- suggestions lists individual changes (not more than 10)
+- If the content is already correct, return suggestions as an empty array and correctedContent as the original
+- Preserve all hashtags, mentions, URLs, and emojis exactly as-is
+- Do not change meaning or tone; only fix errors`;
+
+export async function checkGrammar(
+  content: string
+): Promise<GrammarCheckResult> {
+  const client = getClient();
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 1024,
+    system: [
+      {
+        type: "text",
+        text: GRAMMAR_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: `Check grammar and spelling in this social media post:\n\n${content}`,
+      },
+    ],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as {
+      correctedContent?: unknown;
+      suggestions?: unknown;
+    };
+    const correctedContent =
+      typeof parsed.correctedContent === "string"
+        ? parsed.correctedContent
+        : content;
+    const suggestions: GrammarSuggestion[] = [];
+    if (Array.isArray(parsed.suggestions)) {
+      for (const s of parsed.suggestions) {
+        if (
+          s &&
+          typeof s.original === "string" &&
+          typeof s.replacement === "string" &&
+          typeof s.explanation === "string"
+        ) {
+          suggestions.push({
+            original: s.original,
+            replacement: s.replacement,
+            explanation: s.explanation,
+          });
+        }
+      }
+    }
+    return { correctedContent, suggestions, issueCount: suggestions.length };
+  } catch {
+    // fall through
+  }
+  return { correctedContent: content, suggestions: [], issueCount: 0 };
+}
