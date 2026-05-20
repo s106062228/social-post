@@ -165,12 +165,24 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<void> {
   const resolvedContent =
     captionVars.length > 0 ? substituteVariables(rawContent, captionVars) : rawContent;
 
+  // Load thread items for Twitter threads
+  let threadItems: { content: string; mediaUrls: string[]; mediaType: import("@prisma/client").MediaType }[] = [];
+  if (account.platform === Platform.TWITTER) {
+    const dbThreads = await prisma.threadPost.findMany({
+      where: { postId },
+      orderBy: { order: "asc" },
+      select: { content: true, mediaUrls: true, mediaType: true },
+    });
+    threadItems = dbThreads;
+  }
+
   const postContent = {
     content: resolvedContent,
     mediaType: variant?.mediaType ?? post.mediaType,
     mediaUrls: variant?.mediaUrls ?? post.mediaUrls,
     altTexts: post.altTexts,
     scheduledAt: post.scheduledAt,
+    threadItems: threadItems.length > 0 ? threadItems : undefined,
   };
 
   const result = await adapter.publish(

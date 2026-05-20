@@ -1397,3 +1397,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `GET /api/posts/[id]/seo` endpoint — auth + rate limit + ownership check; calls `analyzeSeo` on post content; returns `{score, label, checks}`
 - [x] `SeoAnalysisCard` component (`src/components/seo-analysis-card.tsx`) — shows animated score ring (green/yellow/orange/red), score label, passed/total summary; expandable checklist with green checkmarks for passed checks and red × with hint text for failed checks; integrated into post versions page below insights panel
 - [x] Unit tests for SEO analysis utility (empty content, min_length, hashtags_present, hashtags_not_excessive, has_link, readable_sentences, engagement_trigger, score 100, Excellent label, proportional score, seoScoreColor — 21 tests) and API endpoint (auth, rate limit, invalid ID, not-found, wrong user, success shape, content forwarded to utility, 500 on DB error — 8 tests)
+
+### Phase 141: Multi-Platform Thread & Carousel Post Builder
+- [x] `ThreadPost` model in Prisma (id, postId, order, content, mediaUrls[], mediaType) + migration (`20260630000000_add_thread_posts`) — stores individual follow-up items for multi-part posts
+- [x] CRUD API for thread items (`GET /api/posts/[id]/threads`, `POST /api/posts/[id]/threads`, `PUT /api/posts/[id]/threads` bulk-replace, `PATCH /api/posts/[id]/threads/[threadId]`, `DELETE /api/posts/[id]/threads/[threadId]`) — auth + rate limit + zod validation; max 25 items per PUT
+- [x] Extend `PostContent` interface (`src/lib/platforms/types.ts`) to include optional `threadItems?: ThreadItem[]` field
+- [x] Update Twitter adapter — `publishSingleTweet` private helper; `publishThread` chains reply tweets; main `publish` method publishes first tweet then replies for each `threadItems` entry
+- [x] `ThreadBuilder` component (`src/components/thread-builder.tsx`) — collapsible multi-item editor with per-item textarea, character counter (per `charLimit`), order controls (move up/down), add/remove items; shown in post composer when Twitter/X is selected
+- [x] Integrate `ThreadBuilder` into post composer — shown below first-comment section when Twitter is in selected platforms; saves thread items via `PUT /api/posts/[id]/threads` after post creation
+- [x] Update BullMQ publish worker — loads `ThreadPost` records for Twitter platform and passes them as `threadItems` in `PostContent`
+- [x] Unit tests for thread API (GET list, POST create with auto-order, POST with explicit order, PUT bulk-replace, PUT max-items, PATCH update content, PATCH no-fields, PATCH ownership, DELETE success, DELETE ownership, auth + rate limit — 20 tests) and Twitter adapter thread publishing (thread reply chain, solo publish without items — 2 tests)

@@ -396,4 +396,68 @@ describe("TwitterAdapter", () => {
       expect(body.text.length).toBe(280);
     });
   });
+
+  // ── publish – thread ───────────────────────────────────────────────────────
+
+  describe("publish – thread", () => {
+    it("publishes first tweet then reply-chain thread items", async () => {
+      // First tweet
+      mockFetch.mockReturnValueOnce(ok({ data: { id: "tweet_1", text: "First tweet" } }));
+      // Thread item 1 (reply)
+      mockFetch.mockReturnValueOnce(ok({ data: { id: "tweet_2", text: "Thread item 1" } }));
+      // Thread item 2 (reply to tweet_2)
+      mockFetch.mockReturnValueOnce(ok({ data: { id: "tweet_3", text: "Thread item 2" } }));
+
+      const result = await adapter.publish(
+        {
+          content: "First tweet",
+          mediaType: MediaType.NONE,
+          mediaUrls: [],
+          threadItems: [
+            { content: "Thread item 1", mediaUrls: [], mediaType: MediaType.NONE },
+            { content: "Thread item 2", mediaUrls: [], mediaType: MediaType.NONE },
+          ],
+        },
+        ACCOUNT_ID,
+        TOKEN
+      );
+
+      expect(result.platformPostId).toBe("tweet_1");
+      expect(mockFetch).toHaveBeenCalledTimes(3);
+
+      // Second call should reply to tweet_1
+      const [, secondOptions] = mockFetch.mock.calls[1] as [string, RequestInit];
+      const secondBody = JSON.parse(secondOptions.body as string) as {
+        text: string;
+        reply: { in_reply_to_tweet_id: string };
+      };
+      expect(secondBody.reply.in_reply_to_tweet_id).toBe("tweet_1");
+
+      // Third call should reply to tweet_2
+      const [, thirdOptions] = mockFetch.mock.calls[2] as [string, RequestInit];
+      const thirdBody = JSON.parse(thirdOptions.body as string) as {
+        text: string;
+        reply: { in_reply_to_tweet_id: string };
+      };
+      expect(thirdBody.reply.in_reply_to_tweet_id).toBe("tweet_2");
+    });
+
+    it("publishes normally without thread items", async () => {
+      mockFetch.mockReturnValueOnce(ok({ data: { id: TWEET_ID, text: "Solo tweet" } }));
+
+      const result = await adapter.publish(
+        {
+          content: "Solo tweet",
+          mediaType: MediaType.NONE,
+          mediaUrls: [],
+          threadItems: [],
+        },
+        ACCOUNT_ID,
+        TOKEN
+      );
+
+      expect(result.platformPostId).toBe(TWEET_ID);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+  });
 });

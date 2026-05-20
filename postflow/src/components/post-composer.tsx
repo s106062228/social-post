@@ -25,6 +25,7 @@ import { ContentBriefDialog } from "@/components/content-brief-dialog";
 import { SchedulePresetSelector } from "@/components/schedule-preset-selector";
 import { PerformancePredictionCard } from "@/components/performance-prediction-card";
 import { SmartScheduleSuggestions } from "@/components/smart-schedule-suggestions";
+import { ThreadBuilder, type ThreadItem } from "@/components/thread-builder";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
 import {
@@ -158,6 +159,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [mediaUrlInput, setMediaUrlInput] = useState("");
   const [altTexts, setAltTexts] = useState<string[]>([]);
   const [showCaptionDialog, setShowCaptionDialog] = useState(false);
+  const [threadItems, setThreadItems] = useState<ThreadItem[]>([]);
 
   // Content brief dialog state
   const [showBriefDialog, setShowBriefDialog] = useState(false);
@@ -344,6 +346,25 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       }
 
       const post = (await res.json()) as { id: string };
+
+      // Save thread items if any are present and Twitter is selected
+      const hasTwitter = selectedPlatforms.includes("TWITTER" as Platform);
+      if (hasTwitter && threadItems.length > 0) {
+        const nonEmptyItems = threadItems.filter((item) => item.content.trim());
+        if (nonEmptyItems.length > 0) {
+          await fetch(`/api/posts/${post.id}/threads`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              threads: nonEmptyItems.map((item) => ({
+                content: item.content,
+                mediaUrls: item.mediaUrls,
+                mediaType: item.mediaUrls.length > 0 ? "IMAGE" : "NONE",
+              })),
+            }),
+          });
+        }
+      }
 
       // Save platform-specific variants if any are enabled
       const enabledVariants = platformVariants.filter((v) => v.enabled && v.content.trim());
@@ -938,6 +959,25 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
               {firstComment.length}/2200
             </p>
           )}
+        </div>
+      )}
+
+      {/* Thread builder — shown when Twitter/X is selected */}
+      {selectedPlatforms.includes("TWITTER" as Platform) && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-1.5">
+            <ListOrdered className="h-4 w-4 text-muted-foreground" />
+            <Label>Twitter/X Thread</Label>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Add follow-up tweets to publish as a thread. The main post content becomes tweet #1.
+          </p>
+          <ThreadBuilder
+            items={threadItems}
+            onChange={setThreadItems}
+            maxItems={24}
+            charLimit={280}
+          />
         </div>
       )}
 

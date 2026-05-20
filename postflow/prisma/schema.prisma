@@ -257,6 +257,7 @@ model Post {
   rssItems       RssItem[]
   abTestsAsA     PostABTest[]   @relation("ABTestVariantA")
   abTestsAsB     PostABTest[]   @relation("ABTestVariantB")
+  threadPosts    ThreadPost[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -270,6 +271,21 @@ model Post {
   @@index([expiresAt])
   @@index([isEvergreen, lastRecycledAt])
   @@index([assigneeId])
+}
+
+model ThreadPost {
+  id        String    @id @default(cuid())
+  postId    String
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  order     Int
+  content   String
+  mediaUrls String[]
+  mediaType MediaType @default(NONE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([postId])
+  @@index([postId, order])
 }
 
 model Template {

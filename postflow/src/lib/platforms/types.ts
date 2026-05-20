@@ -1,5 +1,12 @@
 import { MediaType } from "@prisma/client";
 
+/** A single item in a thread or carousel sequence */
+export interface ThreadItem {
+  content: string;
+  mediaUrls: string[];
+  mediaType: MediaType;
+}
+
 /**
  * Minimal post data passed to platform adapters.
  * Media URLs must already be publicly accessible (e.g. uploaded to R2).
@@ -13,6 +20,12 @@ export interface PostContent {
   altTexts?: string[];
   /** If set, the post will be scheduled for this time */
   scheduledAt?: Date | null;
+  /**
+   * Optional follow-up thread items. Supported by Twitter (reply chain)
+   * and Instagram (carousel via separate container).
+   * When present, the main post content becomes item 0.
+   */
+  threadItems?: ThreadItem[];
 }
 
 export interface PublishResult {

@@ -6,6 +6,7 @@ import {
   PostStatus,
   Insights,
   PlatformAdapter,
+  ThreadItem,
 } from "./types";
 
 const TWITTER_API_BASE = "https://api.twitter.com/2";
@@ -106,8 +107,9 @@ async function twitterApiFetch<T>(
 
 export class TwitterAdapter implements PlatformAdapter {
   /**
-   * Publish a tweet to Twitter/X via the Twitter API v2.
+   * Publish a tweet (or thread) to Twitter/X via the Twitter API v2.
    * Supports NONE (text-only) and IMAGE (single image) posts.
+   * When post.threadItems is set, publishes a reply-chain thread.
    */
   async publish(
     post: PostContent,
@@ -123,14 +125,42 @@ export class TwitterAdapter implements PlatformAdapter {
       );
     }
 
-    // Trim to Twitter's 280-character limit
-    const text = post.content.slice(0, 280);
+    // Publish first tweet
+    const firstTweetId = await this.publishSingleTweet(
+      post.content,
+      post.mediaType,
+      post.mediaUrls,
+      post.altTexts,
+      token
+    );
 
+    // If thread items exist, publish them as a reply chain
+    if (post.threadItems && post.threadItems.length > 0) {
+      await this.publishThread(post.threadItems, firstTweetId, token);
+    }
+
+    return {
+      platformPostId: firstTweetId,
+      publishedAt: new Date(),
+      publishedUrl: `https://twitter.com/i/web/status/${firstTweetId}`,
+    };
+  }
+
+  /** Publish a single tweet and return its ID */
+  private async publishSingleTweet(
+    content: string,
+    mediaType: MediaType,
+    mediaUrls: string[],
+    altTexts: string[] | undefined,
+    token: string,
+    replyToTweetId?: string
+  ): Promise<string> {
+    const text = content.slice(0, 280);
     let mediaId: string | undefined;
 
-    if (post.mediaType === MediaType.IMAGE && post.mediaUrls.length > 0) {
-      mediaId = await this.uploadMedia(token, post.mediaUrls[0]);
-      const altText = post.altTexts?.[0];
+    if (mediaType === MediaType.IMAGE && mediaUrls.length > 0) {
+      mediaId = await this.uploadMedia(token, mediaUrls[0]);
+      const altText = altTexts?.[0];
       if (altText && mediaId) {
         await this.setMediaAltText(token, mediaId, altText);
       }
@@ -140,6 +170,9 @@ export class TwitterAdapter implements PlatformAdapter {
     if (mediaId) {
       body.media = { media_ids: [mediaId] };
     }
+    if (replyToTweetId) {
+      body.reply = { in_reply_to_tweet_id: replyToTweetId };
+    }
 
     const result = await twitterApiFetch(
       `${TWITTER_API_BASE}/tweets`,
@@ -148,13 +181,26 @@ export class TwitterAdapter implements PlatformAdapter {
       { method: "POST", body: JSON.stringify(body) }
     );
 
-    const tweetId = result.data.id;
+    return result.data.id;
+  }
 
-    return {
-      platformPostId: tweetId,
-      publishedAt: new Date(),
-      publishedUrl: `https://twitter.com/i/web/status/${tweetId}`,
-    };
+  /** Publish a sequence of tweets as replies to form a thread */
+  private async publishThread(
+    items: ThreadItem[],
+    firstTweetId: string,
+    token: string
+  ): Promise<void> {
+    let prevTweetId = firstTweetId;
+    for (const item of items) {
+      prevTweetId = await this.publishSingleTweet(
+        item.content,
+        item.mediaType,
+        item.mediaUrls,
+        undefined,
+        token,
+        prevTweetId
+      );
+    }
   }
 
   async getStatus(platformPostId: string, token: string): Promise<PostStatus> {
