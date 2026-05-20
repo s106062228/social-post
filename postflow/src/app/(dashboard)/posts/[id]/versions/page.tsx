@@ -15,6 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { PostComments } from "@/components/post-comments";
 import { PostInsightsPanel } from "@/components/post-insights-panel";
 import { VersionDiffViewer } from "@/components/version-diff-viewer";
+import { SeoAnalysisCard } from "@/components/seo-analysis-card";
 
 interface PostVersion {
   id: string;
@@ -114,6 +115,8 @@ export default function PostVersionsPage() {
       </div>
 
       <PostInsightsPanel postId={postId} />
+
+      <SeoAnalysisCard postId={postId} />
 
       <PostComments postId={postId} />
 

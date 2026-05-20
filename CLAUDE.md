@@ -1391,3 +1391,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `ComparePostsButton` client component (`src/app/(dashboard)/posts/compare-posts-button.tsx`) — renders in the bulk action bar when 2–5 posts are selected; opens `PostComparisonDialog` with selected post IDs
 - [x] Integrate `ComparePostsButton` into `PostsListClient` bulk action bar
 - [x] Unit tests for compare endpoint (auth, rate limit, too few/many/no postIds, ownership filter, comparison shape, winnerId determination, winnerId null when all zero, per-platform breakdown — 10 tests)
+
+### Phase 140: Post Content SEO Score & Optimization Hints
+- [x] SEO analysis utility (`src/lib/seo-analysis.ts`) — checks post content against 6 optimization signals: content length (≥50 words), hashtag presence, hashtag count not excessive (≤10), link inclusion, avg sentence length (≤20 words), engagement trigger (question or CTA keyword); computes a 0–100 score; exports `analyzeSeo(content): SeoResult` and `seoScoreColor(score): string`
+- [x] `GET /api/posts/[id]/seo` endpoint — auth + rate limit + ownership check; calls `analyzeSeo` on post content; returns `{score, label, checks}`
+- [x] `SeoAnalysisCard` component (`src/components/seo-analysis-card.tsx`) — shows animated score ring (green/yellow/orange/red), score label, passed/total summary; expandable checklist with green checkmarks for passed checks and red × with hint text for failed checks; integrated into post versions page below insights panel
+- [x] Unit tests for SEO analysis utility (empty content, min_length, hashtags_present, hashtags_not_excessive, has_link, readable_sentences, engagement_trigger, score 100, Excellent label, proportional score, seoScoreColor — 21 tests) and API endpoint (auth, rate limit, invalid ID, not-found, wrong user, success shape, content forwarded to utility, 500 on DB error — 8 tests)
