@@ -1384,3 +1384,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `BatchScheduleButton` client component (`src/app/(dashboard)/posts/batch-schedule-button.tsx`) — renders in the bulk action bar when ≥2 DRAFT posts are selected; opens `BatchScheduleDialog` with the selected post IDs
 - [x] Integrate `BatchScheduleButton` into `PostsListClient` bulk action bar alongside existing `BulkRescheduleButton` and `BulkDeleteButton`
 - [x] Unit tests for batch-schedule endpoint (auth, rate limit, invalid JSON, empty postIds, non-draft rejection, non-owned rejection, success with smart-schedule mock, fallback when no history, partial success — 10 tests)
+
+### Phase 139: Cross-Post Analytics Comparison
+- [x] `GET /api/analytics/compare` endpoint — auth + rate limit + `?postId[]=` query params (2–5 post IDs); verifies ownership via userId in where clause; returns per-post engagement data with per-platform breakdown and aggregate totals; computes `winnerId` as the post with the highest engagement score (null when tied or all scores zero)
+- [x] `PostComparisonDialog` component (`src/components/post-comparison-dialog.tsx`) — modal with side-by-side comparison table (Total Score, Impressions, Reach, Likes, Comments, Shares per post column); winner column highlighted with amber "Winner 🏆" badge; per-platform breakdown section; loading/error states; "No insights data" message when all metrics are zero
+- [x] `ComparePostsButton` client component (`src/app/(dashboard)/posts/compare-posts-button.tsx`) — renders in the bulk action bar when 2–5 posts are selected; opens `PostComparisonDialog` with selected post IDs
+- [x] Integrate `ComparePostsButton` into `PostsListClient` bulk action bar
+- [x] Unit tests for compare endpoint (auth, rate limit, too few/many/no postIds, ownership filter, comparison shape, winnerId determination, winnerId null when all zero, per-platform breakdown — 10 tests)

@@ -25,6 +25,7 @@ import { ArchivePostButton } from "./archive-post-button";
 import { AssigneeSelector } from "./assignee-selector";
 import { RepurposeDialog } from "@/components/repurpose-dialog";
 import { TranslateDialog } from "@/components/translate-dialog";
+import { ComparePostsButton } from "./compare-posts-button";
 import { computeScore, scoreLabel } from "@/lib/content-score";
 
 type PublishResultInsights = {
@@ -256,6 +257,7 @@ export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
         </label>
         {selected.size > 0 && (
           <div className="ml-auto flex flex-wrap items-center gap-2">
+            <ComparePostsButton selectedIds={Array.from(selected)} />
             <BatchScheduleButton
               selectedIds={Array.from(selected).filter(
                 (id) => posts.find((p) => p.id === id)?.status === "DRAFT"
