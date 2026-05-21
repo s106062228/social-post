@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -27,6 +27,7 @@ import { SchedulePresetSelector } from "@/components/schedule-preset-selector";
 import { PerformancePredictionCard } from "@/components/performance-prediction-card";
 import { SmartScheduleSuggestions } from "@/components/smart-schedule-suggestions";
 import { ThreadBuilder, type ThreadItem } from "@/components/thread-builder";
+import { HashtagResearchDialog } from "@/components/hashtag-research-dialog";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
 import {
@@ -164,6 +165,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
   // Content brief dialog state
   const [showBriefDialog, setShowBriefDialog] = useState(false);
+
+  // Hashtag research dialog state
+  const [showHashtagResearch, setShowHashtagResearch] = useState(false);
 
   useEffect(() => {
     fetch("/api/templates?limit=50")
@@ -809,6 +813,14 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
             </button>
             <button
               type="button"
+              onClick={() => setShowHashtagResearch(true)}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <Search className="h-3 w-3" />
+              Research Hashtags
+            </button>
+            <button
+              type="button"
               onClick={tagUrlsWithUtm}
               disabled={utmLoading || !content.trim()}
               className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:pointer-events-none disabled:opacity-50"
@@ -939,6 +951,20 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         onOpenChange={setShowBriefDialog}
         platforms={selectedPlatforms}
         onApply={(draft) => setContent(draft)}
+      />
+
+      {/* Hashtag Research Dialog */}
+      <HashtagResearchDialog
+        open={showHashtagResearch}
+        onClose={() => setShowHashtagResearch(false)}
+        onInsert={(tags) => {
+          setContent((prev) =>
+            prev.trim()
+              ? `${prev.trimEnd()}\n\n${tags.join(" ")}`
+              : tags.join(" ")
+          );
+        }}
+        selectedPlatforms={selectedPlatforms}
       />
 
       {/* First comment — shown when Facebook or Instagram accounts are selected */}
