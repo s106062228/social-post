@@ -151,6 +151,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [aiVariants, setAiVariants] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [hashtagsLoading, setHashtagsLoading] = useState(false);
+  const [aiPersonaId, setAiPersonaId] = useState<string>("");
+  const [aiPersonas, setAiPersonas] = useState<{ id: string; name: string; tone: string }[]>([]);
+  const [personasLoaded, setPersonasLoaded] = useState(false);
 
   // UTM tagging state
   const [utmLoading, setUtmLoading] = useState(false);
@@ -487,6 +490,20 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
     }
   }
 
+  async function loadAiPersonas() {
+    if (personasLoaded) return;
+    try {
+      const res = await fetch("/api/ai-personas");
+      const data = (await res.json()) as {
+        personas?: { id: string; name: string; tone: string }[];
+      };
+      setAiPersonas(data.personas ?? []);
+      setPersonasLoaded(true);
+    } catch {
+      // non-critical — personas are optional
+    }
+  }
+
   async function fetchAiVariants() {
     if (!aiTopic.trim()) {
       toast({ title: "Enter a topic first.", variant: "destructive" });
@@ -502,6 +519,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           topic: aiTopic,
           tone: aiTone,
           platforms: selectedPlatforms.length > 0 ? selectedPlatforms : ["FACEBOOK"],
+          personaId: aiPersonaId || null,
         }),
       });
       if (!res.ok) {
@@ -780,7 +798,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setShowAiDialog(true)}
+              onClick={() => { setShowAiDialog(true); void loadAiPersonas(); }}
               className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
               <Sparkles className="h-3 w-3" />
@@ -1132,6 +1150,28 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-2">
+            {aiPersonas.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="ai-persona">Writing Persona</Label>
+                <select
+                  id="ai-persona"
+                  className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  value={aiPersonaId}
+                  onChange={(e) => {
+                    setAiPersonaId(e.target.value);
+                    const selected = aiPersonas.find((p) => p.id === e.target.value);
+                    if (selected) setAiTone(selected.tone);
+                  }}
+                >
+                  <option value="">— No persona (use tone below) —</option>
+                  {aiPersonas.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({p.tone})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="ai-topic">Topic</Label>
               <Input
@@ -1158,6 +1198,8 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
                 <option value="humorous">Humorous</option>
                 <option value="informative">Informative</option>
                 <option value="inspirational">Inspirational</option>
+                <option value="authoritative">Authoritative</option>
+                <option value="empathetic">Empathetic</option>
               </select>
             </div>
             <Button

@@ -14,12 +14,35 @@ const HASHTAG_SYSTEM = `You are a social media hashtag expert. Suggest relevant,
 Always respond with valid JSON in this exact format: {"hashtags": ["#tag1", "#tag2", "#tag3"]}
 Suggest 5–10 relevant hashtags. Always include the # prefix. Avoid overly generic tags.`;
 
+export interface AiPersonaContext {
+  name: string;
+  writingStyle: string;
+  tone: string;
+  audienceDescription?: string | null;
+  exampleContent?: string | null;
+}
+
 export async function generateContentVariants(
   topic: string,
   tone: string,
-  platforms: string[]
+  platforms: string[],
+  persona?: AiPersonaContext | null
 ): Promise<string[]> {
   const client = getClient();
+  let userContent = `Topic: ${topic}\nTone: ${tone}\nPlatforms: ${platforms.join(", ")}`;
+  if (persona) {
+    userContent += `\n\nWriting Persona: ${persona.name}`;
+    userContent += `\nWriting Style: ${persona.writingStyle}`;
+    if (persona.audienceDescription) {
+      userContent += `\nTarget Audience: ${persona.audienceDescription}`;
+    }
+    if (persona.exampleContent) {
+      userContent += `\nExample Content Style:\n${persona.exampleContent}`;
+    }
+    userContent += `\n\nGenerate 3 post content variants that match this persona's voice and style.`;
+  } else {
+    userContent += `\n\nGenerate 3 post content variants.`;
+  }
   const response = await client.messages.create({
     model: MODEL,
     max_tokens: 1024,
@@ -33,7 +56,7 @@ export async function generateContentVariants(
     messages: [
       {
         role: "user",
-        content: `Topic: ${topic}\nTone: ${tone}\nPlatforms: ${platforms.join(", ")}\n\nGenerate 3 post content variants.`,
+        content: userContent,
       },
     ],
   });

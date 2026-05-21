@@ -1421,3 +1421,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `HashtagResearchDialog` component (`src/components/hashtag-research-dialog.tsx`) — modal with topic input, platform multi-select chips, count slider (5–50); calls `/api/ai/research-hashtags`; shows results grouped by category (Popular / Medium / Niche) with reach badge; per-hashtag copy button and "Add to Post" checkbox; "Insert Selected" button appends checked hashtags to post content; "Save as Group" button creates a new HashtagGroup via `POST /api/hashtags`
 - [x] "Research Hashtags" button (search + hash icon) in post composer hashtag section — opens `HashtagResearchDialog` with current platforms pre-selected
 - [x] Unit tests for `POST /api/ai/research-hashtags` (auth, rate limit, AI disabled, missing topic, empty platforms, count out of range, success shape with categories, AI error — 12 tests)
+
+### Phase 144: AI Writing Personas
+- [x] `AiPersona` model in Prisma (id, userId, name, description?, writingStyle, tone, audienceDescription?, exampleContent?, createdAt, updatedAt) + migration (`20260701000000_add_ai_personas`) — stores reusable writing style profiles per user
+- [x] CRUD API for AI personas (`GET /api/ai-personas`, `POST /api/ai-personas`, `PATCH /api/ai-personas/[id]`, `DELETE /api/ai-personas/[id]`) — auth + rate limit + zod validation; max 10 personas per user
+- [x] Extend `generateContentVariants` in `src/lib/ai.ts` to accept optional `AiPersonaContext` — when persona provided, injects writing style, audience, and example content into the prompt
+- [x] Update `POST /api/ai/suggest` to accept optional `personaId` — loads persona from DB and passes to `generateContentVariants`
+- [x] AI Personas management page in dashboard (`/ai-personas`) — list personas with tone badge, writing style preview, expandable example content, inline create/edit (name, description, writing style, tone, audience, example) + delete
+- [x] Persona selector in post composer AI Suggest dialog — dropdown of user's personas; selecting one auto-sets the tone field; persona context is sent with content generation request
+- [x] Add "AI Personas" to sidebar navigation (icon: `Bot`)
+- [x] Unit tests for AI personas API (GET list, POST create, POST max-limit, POST invalid body, PATCH update, PATCH not-found, DELETE success, DELETE not-found, DELETE ownership, auth, rate limit — 19 tests)
