@@ -28,6 +28,8 @@ import { AssigneeSelector } from "./assignee-selector";
 import { RepurposeDialog } from "@/components/repurpose-dialog";
 import { TranslateDialog } from "@/components/translate-dialog";
 import { ComparePostsButton } from "./compare-posts-button";
+import { AutoTagButton } from "./auto-tag-button";
+import { BulkAutoTagButton } from "./bulk-auto-tag-button";
 import { computeScore, scoreLabel } from "@/lib/content-score";
 
 type PublishResultInsights = {
@@ -282,6 +284,10 @@ export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
               selectedIds={Array.from(selected)}
               onDone={() => { setSelected(new Set()); router.refresh(); }}
             />
+            <BulkAutoTagButton
+              selectedIds={Array.from(selected)}
+              onDone={() => setSelected(new Set())}
+            />
             <Button
               variant="destructive"
               size="sm"
@@ -376,6 +382,7 @@ export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
                 />
                 <AnalyzeSentimentButton postId={post.id} />
                 <AnalyzeToneButton postId={post.id} />
+                <AutoTagButton postId={post.id} />
                 <RepurposeDialog postId={post.id} />
                 <TranslateDialog postId={post.id} />
                 {post.status === "PUBLISHED" && (

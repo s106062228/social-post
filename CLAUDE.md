@@ -1450,3 +1450,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `ToneBadge` component in posts list row — coloured chip showing detected tone when `post.tone` is set
 - [x] Add `"tone_consistency"` widget key to dashboard widget customization
 - [x] Unit tests for analyze-tone endpoint (auth, rate limit, AI disabled, not-found, ownership, success shape, error — 8 tests) and tone-consistency endpoint (auth, rate limit, period validation, empty state, distribution shape, consistency calculation — 8 tests)
+
+### Phase 147: AI Auto-Tagging & Smart Tag Suggestions
+- [x] Add `suggestTagsForContent(content, existingTags)` to `src/lib/ai.ts` — calls `claude-haiku-4-5` to match post content against user's existing tag names and suggest the most relevant ones (up to 5); also returns new tag name suggestions when no existing tags match well; uses prompt caching on system block; returns `{suggestions: {tagId?: string, name: string, reason: string, isNew: boolean}[]}`
+- [x] `POST /api/posts/[id]/suggest-tags` endpoint — auth + rate limit + ownership check; loads user's existing tags; calls `suggestTagsForContent`; returns `{suggestions}`; 503 when AI not configured
+- [x] `POST /api/posts/bulk-auto-tag` endpoint — auth + rate limit + zod validation; accepts `{postIds: string[], applyTopN?: number default 3}`; for each owned post calls `suggestTagsForContent`, creates missing tags, applies top N tag suggestions as PostTag records; returns `{tagged, created, skipped}`
+- [x] `AutoTagButton` client component (`src/app/(dashboard)/posts/auto-tag-button.tsx`) — button per post row that calls suggest-tags endpoint, shows suggestions dialog with checkboxes, applies selected tags via existing `POST /api/posts/[id]` PATCH or tag endpoints; toast feedback; optimistic UI
+- [x] "Auto-tag All" bulk action in posts list — appears in bulk action bar when posts are selected; calls bulk-auto-tag endpoint; shows result toast with counts
+- [x] Unit tests for suggest-tags endpoint (auth, rate limit, AI disabled, not-found, ownership, success shape, empty tags list, new tag suggestions — 10 tests) and bulk-auto-tag endpoint (auth, rate limit, invalid JSON, empty postIds, ownership filter, applyTopN, tag creation, skips publishing posts — 10 tests)

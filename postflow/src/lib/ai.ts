@@ -1167,3 +1167,73 @@ export async function analyzeTone(content: string): Promise<ToneResult> {
 
   return { tone: "professional", confidence: 0.5, traits: [] };
 }
+
+// ── Auto-Tag Suggestions ──────────────────────────────────────────────────────
+
+export interface TagSuggestion {
+  tagId?: string;
+  name: string;
+  reason: string;
+  isNew: boolean;
+}
+
+const AUTO_TAG_SYSTEM = `You are a social media content tagger. Analyze post content and suggest the most relevant tags.
+Given a list of existing tags, match the content to those tags. If no existing tags match well, suggest new concise tag names.
+Always respond with valid JSON in this exact format:
+{"suggestions": [{"tagId": "id_or_null", "name": "tag name", "reason": "brief reason", "isNew": false}]}
+Return up to 5 suggestions. Prefer existing tags over creating new ones. New tag names must be short (1-3 words).`;
+
+export async function suggestTagsForContent(
+  content: string,
+  existingTags: { id: string; name: string }[]
+): Promise<TagSuggestion[]> {
+  if (!process.env.ANTHROPIC_API_KEY) return [];
+
+  const client = getClient();
+  const tagList =
+    existingTags.length > 0
+      ? existingTags.map((t) => `${t.id}: ${t.name}`).join("\n")
+      : "No existing tags.";
+
+  const prompt = `Post content:\n${content.slice(0, 1000)}\n\nExisting tags (id: name):\n${tagList}\n\nSuggest up to 5 relevant tags for this post. For existing tag matches, use the exact id and name. For new tags, set isNew to true and tagId to null.`;
+
+  try {
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 512,
+      system: [
+        {
+          type: "text",
+          text: AUTO_TAG_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const text =
+      response.content[0]?.type === "text" ? response.content[0].text : "";
+    const parsed = JSON.parse(text) as { suggestions?: unknown };
+    const suggestions = parsed?.suggestions;
+    if (!Array.isArray(suggestions)) return [];
+
+    return suggestions
+      .filter(
+        (s): s is TagSuggestion =>
+          typeof s === "object" &&
+          s !== null &&
+          typeof (s as Record<string, unknown>).name === "string" &&
+          typeof (s as Record<string, unknown>).reason === "string" &&
+          typeof (s as Record<string, unknown>).isNew === "boolean"
+      )
+      .slice(0, 5)
+      .map((s) => ({
+        tagId: s.isNew ? undefined : (s.tagId ?? undefined),
+        name: s.name,
+        reason: s.reason,
+        isNew: s.isNew,
+      }));
+  } catch {
+    return [];
+  }
+}
