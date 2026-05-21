@@ -1000,3 +1000,70 @@ export async function researchHashtags(
   }
   return [];
 }
+
+// ─── Content Gap Analysis ──────────────────────────────────────────────────
+
+const CONTENT_GAPS_SYSTEM = `You are a social media content strategist. Analyze the topics a user has already covered and suggest underexplored content areas that would complement their existing strategy.
+Always respond with valid JSON in this exact format:
+{"suggestions": [{"topic": "Topic Name", "reason": "Why this fills a gap", "priority": "high|medium|low", "contentIdea": "A specific post idea for this topic"}]}
+Provide 5 suggestions. Prioritize gaps that would generate high engagement and align with the user's existing content style.`;
+
+export interface ContentGapSuggestion {
+  topic: string;
+  reason: string;
+  priority: "high" | "medium" | "low";
+  contentIdea: string;
+}
+
+export async function suggestContentGaps(
+  coveredTopics: string[],
+  platforms: string[],
+  brandKitContext?: string
+): Promise<ContentGapSuggestion[]> {
+  const client = getClient();
+  let userContent = `Covered topics (${coveredTopics.length} total): ${coveredTopics.slice(0, 30).join(", ") || "none yet"}\n`;
+  userContent += `Target platforms: ${platforms.join(", ") || "general"}\n`;
+  if (brandKitContext) {
+    userContent += `Brand context: ${brandKitContext}\n`;
+  }
+  userContent += `\nSuggest 5 content topics this creator hasn't covered yet that would complement their strategy.`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 1024,
+    system: [
+      {
+        type: "text",
+        text: CONTENT_GAPS_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [{ role: "user", content: userContent }],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as { suggestions?: unknown };
+    const suggestions = parsed.suggestions;
+    if (
+      Array.isArray(suggestions) &&
+      suggestions.every(
+        (s) =>
+          typeof s === "object" &&
+          s !== null &&
+          typeof (s as Record<string, unknown>).topic === "string" &&
+          typeof (s as Record<string, unknown>).reason === "string" &&
+          ["high", "medium", "low"].includes(
+            (s as Record<string, unknown>).priority as string
+          ) &&
+          typeof (s as Record<string, unknown>).contentIdea === "string"
+      )
+    ) {
+      return suggestions as ContentGapSuggestion[];
+    }
+  } catch {
+    // fall through
+  }
+  return [];
+}

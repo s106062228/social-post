@@ -19,6 +19,7 @@ export const WIDGET_KEYS = [
   "year_heatmap",
   "content_mix",
   "benchmarks",
+  "content_gaps",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -44,6 +45,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   year_heatmap: "Year Activity Heatmap",
   content_mix: "Content Mix Analysis",
   benchmarks: "Engagement Benchmarks",
+  content_gaps: "Content Gap Analysis",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {

@@ -1431,3 +1431,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Persona selector in post composer AI Suggest dialog — dropdown of user's personas; selecting one auto-sets the tone field; persona context is sent with content generation request
 - [x] Add "AI Personas" to sidebar navigation (icon: `Bot`)
 - [x] Unit tests for AI personas API (GET list, POST create, POST max-limit, POST invalid body, PATCH update, PATCH not-found, DELETE success, DELETE not-found, DELETE ownership, auth, rate limit — 19 tests)
+
+### Phase 145: Content Gap Analysis & AI Topic Suggestions
+- [x] Add `suggestContentGaps(coveredTopics, platforms, brandKitContext?)` to `src/lib/ai.ts` — calls `claude-haiku-4-5` to suggest underexplored content topics based on what the user has already posted; uses prompt caching on system block; returns `{suggestions: {topic, reason, priority: "high"|"medium"|"low", contentIdea}[]}`
+- [x] `POST /api/ai/content-gaps` endpoint — auth + rate limit + AI check; queries user's last 90 days of PUBLISHED posts, extracts top topics via word-frequency utility, fetches optional brand kit context; calls `suggestContentGaps`; returns `{suggestions, coveredTopicsCount}`; 503 when AI not configured
+- [x] `ContentGapCard` component (`src/components/content-gap-card.tsx`) — shows covered topics count, AI-suggested topics as priority-badged cards with topic name, reason, and content idea; "Create Post" link per suggestion; "Refresh" button; loading/empty states
+- [x] Integrate `ContentGapCard` into analytics dashboard below `BenchmarkCard`; add `"content_gaps"` widget key to dashboard widget customization
+- [x] Unit tests for content gaps endpoint (auth, rate limit, AI disabled, success shape, empty suggestions, coveredTopicsCount 0, topics extracted from posts, brand kit context passed, brand kit absent, DB error — 10 tests)
