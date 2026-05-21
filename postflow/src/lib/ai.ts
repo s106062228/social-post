@@ -910,3 +910,70 @@ export async function checkGrammar(
   }
   return { correctedContent: content, suggestions: [], issueCount: 0 };
 }
+
+export interface HashtagResearchResult {
+  tag: string;
+  category: "niche" | "medium" | "popular";
+  estimatedReach: "low" | "medium" | "high";
+  relevanceScore: number;
+}
+
+const RESEARCH_HASHTAGS_SYSTEM = `You are a social media hashtag research expert. Research and suggest relevant hashtags for a given topic and platforms.
+Always respond with valid JSON in this exact format: {"hashtags": [{"tag": "#hashtag", "category": "popular|medium|niche", "estimatedReach": "high|medium|low", "relevanceScore": 0.95}]}
+Categories: popular = >1M posts, medium = 100K–1M posts, niche = <100K posts.
+Reach: high = broad audience, medium = moderate, low = targeted.
+relevanceScore: 0.0–1.0 measuring how relevant the hashtag is to the topic.
+Always include the # prefix. Return exactly the requested count of hashtags. Mix categories for a balanced strategy.`;
+
+export async function researchHashtags(
+  topic: string,
+  platforms: string[],
+  count: number = 20
+): Promise<HashtagResearchResult[]> {
+  const client = getClient();
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 2048,
+    system: [
+      {
+        type: "text",
+        text: RESEARCH_HASHTAGS_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: `Topic: ${topic}\nPlatforms: ${platforms.join(", ")}\nRequested count: ${count}\n\nResearch and suggest ${count} relevant hashtags for this topic.`,
+      },
+    ],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as { hashtags?: unknown };
+    const hashtags = parsed.hashtags;
+    if (
+      Array.isArray(hashtags) &&
+      hashtags.every(
+        (h) =>
+          typeof h === "object" &&
+          h !== null &&
+          typeof (h as Record<string, unknown>).tag === "string" &&
+          ["niche", "medium", "popular"].includes(
+            (h as Record<string, unknown>).category as string
+          ) &&
+          ["low", "medium", "high"].includes(
+            (h as Record<string, unknown>).estimatedReach as string
+          ) &&
+          typeof (h as Record<string, unknown>).relevanceScore === "number"
+      )
+    ) {
+      return hashtags as HashtagResearchResult[];
+    }
+  } catch {
+    // fall through
+  }
+  return [];
+}
