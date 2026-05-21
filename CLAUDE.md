@@ -1438,3 +1438,15 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `ContentGapCard` component (`src/components/content-gap-card.tsx`) — shows covered topics count, AI-suggested topics as priority-badged cards with topic name, reason, and content idea; "Create Post" link per suggestion; "Refresh" button; loading/empty states
 - [x] Integrate `ContentGapCard` into analytics dashboard below `BenchmarkCard`; add `"content_gaps"` widget key to dashboard widget customization
 - [x] Unit tests for content gaps endpoint (auth, rate limit, AI disabled, success shape, empty suggestions, coveredTopicsCount 0, topics extracted from posts, brand kit context passed, brand kit absent, DB error — 10 tests)
+
+### Phase 146: AI Content Tone Analyzer & Brand Voice Consistency
+- [x] Add `tone` (nullable String) + `toneTraits` (String[], default []) to Post model + Prisma migration (`20260703000000_add_post_tone`)
+- [x] Add `analyzeTone(content)` to `src/lib/ai.ts` — calls `claude-haiku-4-5` to identify tone (professional/casual/humorous/inspirational/educational/urgent/friendly/authoritative) with confidence score and key traits; uses prompt caching on system block; returns `{tone: string, confidence: number, traits: string[]}`
+- [x] `POST /api/posts/[id]/analyze-tone` endpoint — auth + rate limit + ownership check; calls AI service; persists `tone` + `toneTraits`; returns `{tone, toneTraits}`; returns 503 when AI not configured
+- [x] Extend `GET /api/posts` to support `?tone=` filter (exact match on stored tone field)
+- [x] `GET /api/analytics/tone-consistency` endpoint — auth + rate limit + `?period=7d|30d|90d`; reads stored tone data from PUBLISHED posts in period; computes consistency score (% posts matching dominant tone), dominant tone, and tone distribution; returns `{consistency, dominantTone, toneDistribution, analyzedPosts, totalPosts}`
+- [x] `ToneConsistencyCard` component (`src/components/tone-consistency-card.tsx`) — consistency score progress bar, dominant tone badge, distribution bar chart using Recharts, period selector, "No data" empty state; integrated into analytics dashboard
+- [x] `AnalyzeToneButton` client component in posts list row — calls `POST /api/posts/[id]/analyze-tone`, toasts result, refreshes; visible on all posts
+- [x] `ToneBadge` component in posts list row — coloured chip showing detected tone when `post.tone` is set
+- [x] Add `"tone_consistency"` widget key to dashboard widget customization
+- [x] Unit tests for analyze-tone endpoint (auth, rate limit, AI disabled, not-found, ownership, success shape, error — 8 tests) and tone-consistency endpoint (auth, rate limit, period validation, empty state, distribution shape, consistency calculation — 8 tests)

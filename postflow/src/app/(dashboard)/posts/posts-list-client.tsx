@@ -21,6 +21,8 @@ import { EvergreenButton } from "./evergreen-button";
 import { RecyclePostButton } from "./recycle-post-button";
 import { RecycleConfigButton } from "./recycle-config-button";
 import { AnalyzeSentimentButton } from "./analyze-sentiment-button";
+import { AnalyzeToneButton } from "./analyze-tone-button";
+import { ToneBadge } from "./tone-badge";
 import { ArchivePostButton } from "./archive-post-button";
 import { AssigneeSelector } from "./assignee-selector";
 import { RepurposeDialog } from "@/components/repurpose-dialog";
@@ -60,6 +62,8 @@ export type PostListItem = {
   approverNote: string | null;
   sentiment: string | null;
   sentimentScore: number | null;
+  tone: string | null;
+  toneTraits: string[];
   archivedAt: Date | string | null;
   recycleInterval: number | null;
   assigneeId: string | null;
@@ -321,6 +325,7 @@ export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
                   <ApprovalBadge approvalStatus={post.approvalStatus} />
                   <ScoreBadge publishResults={post.publishResults} />
                   <SentimentBadge sentiment={post.sentiment} />
+                  {post.tone && <ToneBadge tone={post.tone} />}
                   {post.scheduledAt && (
                     <span className="text-xs text-muted-foreground">
                       {post.status === "SCHEDULED"
@@ -370,6 +375,7 @@ export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
                   initialArchivedAt={post.archivedAt ? String(post.archivedAt) : null}
                 />
                 <AnalyzeSentimentButton postId={post.id} />
+                <AnalyzeToneButton postId={post.id} />
                 <RepurposeDialog postId={post.id} />
                 <TranslateDialog postId={post.id} />
                 {post.status === "PUBLISHED" && (

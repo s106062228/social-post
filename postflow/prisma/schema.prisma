@@ -236,6 +236,8 @@ model Post {
   approverNote   String?
   sentiment      String?
   sentimentScore Float?
+  tone           String?
+  toneTraits     String[]
   firstComment   String?
   language       String?
   contentCategory ContentCategory?
@@ -272,6 +274,7 @@ model Post {
   @@index([expiresAt])
   @@index([isEvergreen, lastRecycledAt])
   @@index([assigneeId])
+  @@index([userId, tone])
 }
 
 model ThreadPost {

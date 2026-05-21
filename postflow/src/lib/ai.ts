@@ -1067,3 +1067,103 @@ export async function suggestContentGaps(
   }
   return [];
 }
+
+// ── Tone Analysis ─────────────────────────────────────────────────────────────
+
+export type ToneType =
+  | "professional"
+  | "casual"
+  | "humorous"
+  | "inspirational"
+  | "educational"
+  | "urgent"
+  | "friendly"
+  | "authoritative";
+
+export interface ToneResult {
+  tone: ToneType;
+  confidence: number;
+  traits: string[];
+}
+
+const TONE_SYSTEM = `You are a social media content tone analyzer.
+Classify the tone of the given post content as one of: professional, casual, humorous, inspirational, educational, urgent, friendly, authoritative.
+Also provide a confidence score from 0.0 to 1.0 and up to 4 key tone traits (short descriptive words or phrases).
+Always respond with valid JSON in this exact format:
+{"tone": "professional", "confidence": 0.88, "traits": ["formal", "data-driven", "concise"]}
+Tone definitions:
+- professional: formal, business-oriented, polished
+- casual: relaxed, conversational, informal, everyday language
+- humorous: funny, playful, witty, light-hearted
+- inspirational: uplifting, motivational, encouraging
+- educational: informative, teaches something, explains concepts
+- urgent: calls to immediate action, time-sensitive
+- friendly: warm, approachable, personal, relationship-building
+- authoritative: expert, commanding, decisive`;
+
+export async function analyzeTone(content: string): Promise<ToneResult> {
+  const client = getClient();
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 256,
+    system: [
+      {
+        type: "text",
+        text: TONE_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: `Analyze the tone of this social media post:\n\n${content}`,
+      },
+    ],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+
+  const validTones: ToneType[] = [
+    "professional",
+    "casual",
+    "humorous",
+    "inspirational",
+    "educational",
+    "urgent",
+    "friendly",
+    "authoritative",
+  ];
+
+  try {
+    const parsed = JSON.parse(text) as {
+      tone?: unknown;
+      confidence?: unknown;
+      traits?: unknown;
+    };
+    const tone = parsed.tone;
+    const confidence = parsed.confidence;
+    const traits = parsed.traits;
+
+    if (
+      typeof tone === "string" &&
+      (validTones as string[]).includes(tone) &&
+      typeof confidence === "number" &&
+      confidence >= 0 &&
+      confidence <= 1 &&
+      Array.isArray(traits) &&
+      traits.every((t) => typeof t === "string")
+    ) {
+      return {
+        tone: tone as ToneType,
+        confidence,
+        traits: traits.slice(0, 4) as string[],
+      };
+    }
+  } catch {
+    // fall through to default
+  }
+
+  return { tone: "professional", confidence: 0.5, traits: [] };
+}

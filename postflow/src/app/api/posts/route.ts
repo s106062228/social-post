@@ -34,6 +34,7 @@ const listPostsSchema = z.object({
   starred: z.enum(["true", "false"]).optional(),
   evergreen: z.enum(["true", "false"]).optional(),
   sentiment: z.enum(["POSITIVE", "NEUTRAL", "NEGATIVE"]).optional(),
+  tone: z.enum(["professional", "casual", "humorous", "inspirational", "educational", "urgent", "friendly", "authoritative"]).optional(),
   archived: z.enum(["true", "false"]).optional(),
   assignee: z.enum(["me"]).optional(),
   page: z.coerce.number().int().min(1).default(1),
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { status, search, tag, from, to, platform, starred, evergreen, sentiment, archived, assignee, page, limit } = parsed.data;
+    const { status, search, tag, from, to, platform, starred, evergreen, sentiment, tone, archived, assignee, page, limit } = parsed.data;
     const skip = (page - 1) * limit;
 
     const where = {
@@ -95,6 +96,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ...(starred === "true" ? { starred: true } : {}),
       ...(evergreen === "true" ? { isEvergreen: true } : {}),
       ...(sentiment ? { sentiment } : {}),
+      ...(tone ? { tone } : {}),
     };
 
     const [posts, total] = await Promise.all([

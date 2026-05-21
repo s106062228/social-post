@@ -34,6 +34,7 @@ import { PostingHeatmapCard } from "@/components/posting-heatmap-card";
 import { ContentMixCard } from "@/components/content-mix-card";
 import { BenchmarkCard } from "@/components/benchmark-card";
 import { ContentGapCard } from "@/components/content-gap-card";
+import { ToneConsistencyCard } from "@/components/tone-consistency-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -517,6 +518,9 @@ export function AnalyticsDashboard() {
 
       {/* Content Gap Analysis */}
       {isVisible("content_gaps") && <ContentGapCard />}
+
+      {/* Tone Consistency */}
+      {isVisible("tone_consistency") && <ToneConsistencyCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
