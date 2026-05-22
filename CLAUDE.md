@@ -1481,3 +1481,14 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `ProductTour` component (`src/components/product-tour.tsx`) — fixed bottom-right floating card showing current step title/description, step N/M counter, prev/next/skip/finish buttons; step progress dots; uses `useTour` hook
 - [x] "Take Tour" button in dashboard header (next to notification bell) — starts tour; hidden when tour dismissed; shows completed badge when all steps done
 - [x] Unit tests for tour API (GET defaults for new user, GET with progress, PATCH complete step appends to array, PATCH dismiss sets flag, PATCH invalid body, auth, rate limit — 10 tests)
+
+### Phase 151: Social Media Poll Builder & Interactive Content
+- [ ] `PostPoll` model in Prisma (id, postId unique, question, options String[], durationHours Int default 24, createdAt) + migration (`20260705000000_add_post_poll`) — one poll per post
+- [ ] Extend `PostContent` interface (`src/lib/platforms/types.ts`) to include optional `poll?: { question: string; options: string[]; durationHours: number }`
+- [ ] Update Twitter adapter — when `post.poll` is present, include `poll: { options, duration_minutes }` field in tweet creation body; throw error when poll has <2 or >4 options; falls back to regular tweet when no poll
+- [ ] Update LinkedIn adapter — when `post.poll` is present, include `specificContent.com.linkedin.ugc.ShareContent.media` poll block via LinkedIn Poll API; falls back to regular post when no poll
+- [ ] `PollBuilder` component (`src/components/poll-builder.tsx`) — collapsible section in post composer shown when Twitter or LinkedIn accounts are selected; question input (max 140 chars); 2–4 dynamic option inputs (add/remove, max 25 chars each); duration selector (1h / 6h / 24h / 72h / 168h); minimum 2 options enforced
+- [ ] Extend `POST /api/posts` and `PATCH /api/posts/[id]` zod schemas to accept optional `poll: { question, options: string[] (2–4), durationHours }` field; persist as `PostPoll` record
+- [ ] CRUD API for post polls (`GET /api/posts/[id]/poll`, `PUT /api/posts/[id]/poll`, `DELETE /api/posts/[id]/poll`) — auth + rate limit + ownership check; PUT upserts poll; returns poll data
+- [ ] Update BullMQ publish worker — loads `PostPoll` record and passes as `poll` field in `PostContent` for each platform
+- [ ] Unit tests for poll CRUD API (GET, PUT create, PUT update, DELETE — auth, rate limit, not-found, ownership, option count validation — 10 tests) and adapter poll tests (Twitter with poll, Twitter poll option limits, LinkedIn with poll, LinkedIn fallback without poll — 8 tests)

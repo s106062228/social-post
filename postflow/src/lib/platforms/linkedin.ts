@@ -98,6 +98,7 @@ export class LinkedInAdapter implements PlatformAdapter {
    * Publish a post to a LinkedIn personal profile.
    * Supports text (NONE) and single-image (IMAGE) posts.
    * VIDEO and CAROUSEL are not yet supported.
+   * When post.poll is present on a NONE post, a LinkedIn poll is created instead.
    */
   async publish(
     post: PostContent,
@@ -111,7 +112,8 @@ export class LinkedInAdapter implements PlatformAdapter {
         platformPostId = await this.publishTextPost(
           authorUrn,
           token,
-          post.content
+          post.content,
+          post.poll
         );
         break;
 
@@ -207,15 +209,27 @@ export class LinkedInAdapter implements PlatformAdapter {
 
   // ── Private helpers ─────────────────────────────────────────────────────────
 
+  /** Maps poll durationHours to LinkedIn duration enum value */
+  private mapPollDuration(
+    hours: number
+  ): "ONE_DAY" | "THREE_DAYS" | "ONE_WEEK" {
+    if (hours <= 24) return "ONE_DAY";
+    if (hours <= 72) return "THREE_DAYS";
+    if (hours <= 168) return "ONE_WEEK";
+    return "ONE_DAY";
+  }
+
   private async publishTextPost(
     authorUrn: string,
     token: string,
-    text: string
+    text: string,
+    poll?: { question: string; options: string[]; durationHours: number }
   ): Promise<string> {
     const url = `${LINKEDIN_API_BASE}/posts`;
-    const body = {
+
+    const baseBody: Record<string, unknown> = {
       author: authorUrn,
-      commentary: text,
+      commentary: poll ? poll.question : text,
       visibility: "PUBLIC",
       distribution: {
         feedDistribution: "MAIN_FEED",
@@ -226,10 +240,22 @@ export class LinkedInAdapter implements PlatformAdapter {
       isReshareDisabledByAuthor: false,
     };
 
+    if (poll) {
+      baseBody.content = {
+        poll: {
+          question: poll.question,
+          options: poll.options.map((o) => ({ text: o })),
+          settings: {
+            duration: this.mapPollDuration(poll.durationHours),
+          },
+        },
+      };
+    }
+
     const data = await liLinkedInFetch(url, createPostResponseSchema, token, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(baseBody),
     });
 
     return data.id;

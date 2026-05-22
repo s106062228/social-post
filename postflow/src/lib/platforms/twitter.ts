@@ -131,7 +131,9 @@ export class TwitterAdapter implements PlatformAdapter {
       post.mediaType,
       post.mediaUrls,
       post.altTexts,
-      token
+      token,
+      undefined,
+      post.poll
     );
 
     // If thread items exist, publish them as a reply chain
@@ -146,19 +148,26 @@ export class TwitterAdapter implements PlatformAdapter {
     };
   }
 
-  /** Publish a single tweet and return its ID */
+  /**
+   * Publish a single tweet and return its ID.
+   * When post.poll is provided, a Twitter poll is attached.
+   * Note: polls cannot be combined with media — media upload is skipped
+   * when a poll is present.
+   */
   private async publishSingleTweet(
     content: string,
     mediaType: MediaType,
     mediaUrls: string[],
     altTexts: string[] | undefined,
     token: string,
-    replyToTweetId?: string
+    replyToTweetId?: string,
+    poll?: { question: string; options: string[]; durationHours: number }
   ): Promise<string> {
     const text = content.slice(0, 280);
     let mediaId: string | undefined;
 
-    if (mediaType === MediaType.IMAGE && mediaUrls.length > 0) {
+    // Polls and media are mutually exclusive on Twitter
+    if (!poll && mediaType === MediaType.IMAGE && mediaUrls.length > 0) {
       mediaId = await this.uploadMedia(token, mediaUrls[0]);
       const altText = altTexts?.[0];
       if (altText && mediaId) {
@@ -172,6 +181,19 @@ export class TwitterAdapter implements PlatformAdapter {
     }
     if (replyToTweetId) {
       body.reply = { in_reply_to_tweet_id: replyToTweetId };
+    }
+    if (poll) {
+      if (poll.options.length < 2) {
+        throw new Error("Twitter polls require at least 2 options");
+      }
+      if (poll.options.length > 4) {
+        throw new Error("Twitter polls support a maximum of 4 options");
+      }
+      const durationMinutes = poll.durationHours * 60;
+      body.poll = {
+        options: poll.options.map((o) => ({ label: o })),
+        duration_minutes: durationMinutes,
+      };
     }
 
     const result = await twitterApiFetch(

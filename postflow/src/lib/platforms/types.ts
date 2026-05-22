@@ -26,6 +26,15 @@ export interface PostContent {
    * When present, the main post content becomes item 0.
    */
   threadItems?: ThreadItem[];
+  /**
+   * Optional poll to attach to the post.
+   * Supported by Twitter and LinkedIn.
+   */
+  poll?: {
+    question: string;
+    options: string[];
+    durationHours: number;
+  };
 }
 
 export interface PublishResult {

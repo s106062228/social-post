@@ -262,6 +262,7 @@ model Post {
   abTestsAsA     PostABTest[]   @relation("ABTestVariantA")
   abTestsAsB     PostABTest[]   @relation("ABTestVariantB")
   threadPosts    ThreadPost[]
+  poll           PostPoll?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -1150,4 +1151,14 @@ model TourProgress {
   dismissed      Boolean  @default(false)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model PostPoll {
+  id            String   @id @default(cuid())
+  postId        String   @unique
+  post          Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  question      String
+  options       String[]
+  durationHours Int      @default(24)
+  createdAt     DateTime @default(now())
 }
