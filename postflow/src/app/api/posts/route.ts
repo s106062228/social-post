@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { ContentCategory, MediaType, Platform, PostStatus } from "@prisma/client";
+import { ContentCategory, MediaType, Platform, PostStatus, Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { handleRouteError } from "@/lib/errors";
@@ -10,6 +10,21 @@ import { logActivity } from "@/lib/activity-log";
 import { scheduleReminder } from "@/lib/queue/scheduler";
 
 // ── Zod Schemas ───────────────────────────────────────────────────────────────
+
+const pollSchema = z.object({
+  question: z.string().min(1).max(140),
+  options: z
+    .array(z.string().min(1).max(25))
+    .min(2, "At least 2 options are required")
+    .max(4, "At most 4 options are allowed"),
+  durationHours: z
+    .number()
+    .int()
+    .refine((v: number) => [1, 6, 24, 72, 168].includes(v), {
+      message: "durationHours must be one of 1, 6, 24, 72, or 168",
+    })
+    .default(24),
+});
 
 const createPostSchema = z.object({
   content: z.string().min(1).max(63206),
@@ -22,6 +37,7 @@ const createPostSchema = z.object({
   language: z.string().min(2).max(5).nullable().optional(),
   contentCategory: z.nativeEnum(ContentCategory).nullable().optional(),
   altTexts: z.array(z.string().max(2200)).max(10).default([]),
+  poll: pollSchema.nullable().optional(),
 });
 
 const listPostsSchema = z.object({
@@ -183,7 +199,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { mediaType, mediaUrls, scheduledAt, tagIds, reminderMinutes, firstComment, language, contentCategory, altTexts } = parsed.data;
+    const { mediaType, mediaUrls, scheduledAt, tagIds, reminderMinutes, firstComment, language, contentCategory, altTexts, poll } = parsed.data;
     const content = sanitizePostContent(parsed.data.content);
 
     if (content.length === 0) {
@@ -208,27 +224,52 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const scheduledDate = scheduledAt ? new Date(scheduledAt) : null;
 
-    const post = await prisma.post.create({
-      data: {
-        userId: session.user.id,
-        content,
-        mediaType,
-        mediaUrls,
-        scheduledAt: scheduledDate,
-        status,
-        reminderMinutes: reminderMinutes ?? null,
-        firstComment: firstComment ?? null,
-        language: language ?? null,
-        contentCategory: contentCategory ?? null,
-        altTexts,
-        tags: validTagIds.length > 0
-          ? { create: validTagIds.map((tagId) => ({ tagId })) }
-          : undefined,
-      },
-      include: {
-        publishResults: true,
-        tags: { select: { tag: { select: { id: true, name: true, color: true } } } },
-      },
+    const post = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const created = await tx.post.create({
+        data: {
+          userId: session.user.id,
+          content,
+          mediaType,
+          mediaUrls,
+          scheduledAt: scheduledDate,
+          status,
+          reminderMinutes: reminderMinutes ?? null,
+          firstComment: firstComment ?? null,
+          language: language ?? null,
+          contentCategory: contentCategory ?? null,
+          altTexts,
+          tags: validTagIds.length > 0
+            ? { create: validTagIds.map((tagId) => ({ tagId })) }
+            : undefined,
+        },
+        include: {
+          publishResults: true,
+          tags: { select: { tag: { select: { id: true, name: true, color: true } } } },
+          poll: true,
+        },
+      });
+
+      if (poll) {
+        await tx.postPoll.create({
+          data: {
+            postId: created.id,
+            question: poll.question,
+            options: poll.options,
+            durationHours: poll.durationHours,
+          },
+        });
+        // Re-fetch with poll included
+        return tx.post.findUniqueOrThrow({
+          where: { id: created.id },
+          include: {
+            publishResults: true,
+            tags: { select: { tag: { select: { id: true, name: true, color: true } } } },
+            poll: true,
+          },
+        });
+      }
+
+      return created;
     });
 
     // Schedule reminder if post is SCHEDULED and reminderMinutes is set

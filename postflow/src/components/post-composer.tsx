@@ -27,6 +27,7 @@ import { SchedulePresetSelector } from "@/components/schedule-preset-selector";
 import { PerformancePredictionCard } from "@/components/performance-prediction-card";
 import { SmartScheduleSuggestions } from "@/components/smart-schedule-suggestions";
 import { ThreadBuilder, type ThreadItem } from "@/components/thread-builder";
+import { PollBuilder, type PollData } from "@/components/poll-builder";
 import { HashtagResearchDialog } from "@/components/hashtag-research-dialog";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
@@ -165,6 +166,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [altTexts, setAltTexts] = useState<string[]>([]);
   const [showCaptionDialog, setShowCaptionDialog] = useState(false);
   const [threadItems, setThreadItems] = useState<ThreadItem[]>([]);
+  const [poll, setPoll] = useState<PollData | null>(null);
 
   // Content brief dialog state
   const [showBriefDialog, setShowBriefDialog] = useState(false);
@@ -340,6 +342,13 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       const trimmedAltTexts = altTexts.map((t) => t ?? "");
       if (trimmedAltTexts.some((t) => t.trim())) {
         body.altTexts = trimmedAltTexts;
+      }
+      if (poll && poll.question.trim() && poll.options.filter((o) => o.trim()).length >= 2) {
+        body.poll = {
+          question: poll.question.trim(),
+          options: poll.options.filter((o) => o.trim()),
+          durationHours: poll.durationHours,
+        };
       }
 
       const res = await fetch("/api/posts", {
@@ -1029,6 +1038,13 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           />
         </div>
       )}
+
+      {/* Poll builder — shown when Twitter or LinkedIn is selected */}
+      <PollBuilder
+        poll={poll}
+        onChange={setPoll}
+        selectedPlatforms={selectedPlatforms as string[]}
+      />
 
       {/* Post language */}
       <div className="flex flex-col gap-2">

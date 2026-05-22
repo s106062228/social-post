@@ -9,6 +9,21 @@ import { scheduleReminder, cancelReminder } from "@/lib/queue/scheduler";
 
 // ── Zod Schemas ───────────────────────────────────────────────────────────────
 
+const pollUpdateSchema = z.object({
+  question: z.string().min(1).max(140),
+  options: z
+    .array(z.string().min(1).max(25))
+    .min(2, "At least 2 options are required")
+    .max(4, "At most 4 options are allowed"),
+  durationHours: z
+    .number()
+    .int()
+    .refine((v: number) => [1, 6, 24, 72, 168].includes(v), {
+      message: "durationHours must be one of 1, 6, 24, 72, or 168",
+    })
+    .default(24),
+});
+
 const updatePostSchema = z
   .object({
     content: z.string().min(1).max(63206).optional(),
@@ -22,6 +37,7 @@ const updatePostSchema = z
     language: z.string().min(2).max(5).nullable().optional(),
     contentCategory: z.nativeEnum(ContentCategory).nullable().optional(),
     altTexts: z.array(z.string().max(2200)).max(10).optional(),
+    poll: pollUpdateSchema.nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field must be provided",
@@ -71,6 +87,7 @@ export async function GET(
             retryCount: true,
           },
         },
+        poll: true,
       },
     });
 
@@ -132,7 +149,7 @@ export async function PATCH(
       );
     }
 
-    const { content, mediaType, mediaUrls, scheduledAt, status, firstComment, language, altTexts } = parsed.data;
+    const { content, mediaType, mediaUrls, scheduledAt, status, firstComment, language, altTexts, poll } = parsed.data;
 
     // Derive status from scheduledAt if status not explicitly provided
     let newStatus: PostStatus | undefined = status;
@@ -162,7 +179,7 @@ export async function PATCH(
         ...(language !== undefined && { language: language ?? null }),
         ...(altTexts !== undefined && { altTexts }),
       },
-      include: { publishResults: true },
+      include: { publishResults: true, poll: true },
     });
 
     let updated: Awaited<typeof updateOp>;
@@ -182,6 +199,56 @@ export async function PATCH(
       updated = postResult;
     } else {
       updated = await updateOp;
+    }
+
+    // Handle poll upsert / delete when poll field was provided in the request
+    if (poll !== undefined) {
+      if (poll === null) {
+        // Delete existing poll if present
+        await prisma.postPoll.deleteMany({ where: { postId: id } });
+      } else {
+        // Upsert poll
+        await prisma.postPoll.upsert({
+          where: { postId: id },
+          create: {
+            postId: id,
+            question: poll.question,
+            options: poll.options,
+            durationHours: poll.durationHours,
+          },
+          update: {
+            question: poll.question,
+            options: poll.options,
+            durationHours: poll.durationHours,
+          },
+        });
+      }
+      // Re-fetch with updated poll
+      const withPoll = await prisma.post.findUniqueOrThrow({
+        where: { id },
+        include: { publishResults: true, poll: true },
+      });
+      // Reschedule reminder when scheduledAt changes on a post with reminderMinutes set
+      if (scheduledAt !== undefined && withPoll.reminderMinutes) {
+        if (withPoll.scheduledAt) {
+          scheduleReminder(
+            id,
+            session.user.id,
+            withPoll.scheduledAt,
+            withPoll.reminderMinutes
+          ).catch(() => { /* fire-and-forget */ });
+        } else {
+          cancelReminder(id).catch(() => { /* fire-and-forget */ });
+        }
+      }
+      logActivity({
+        userId: session.user.id,
+        action: "post.updated",
+        entityId: id,
+        entityType: "post",
+        metadata: { fields: Object.keys(parsed.data) },
+      });
+      return NextResponse.json(withPoll);
     }
 
     // Reschedule reminder when scheduledAt changes on a post with reminderMinutes set

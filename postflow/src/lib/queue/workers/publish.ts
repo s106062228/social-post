@@ -95,6 +95,7 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<void> {
       altTexts: true,
       scheduledAt: true,
       firstComment: true,
+      poll: true,
     },
   });
   if (!post) {
@@ -183,6 +184,13 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<void> {
     altTexts: post.altTexts,
     scheduledAt: post.scheduledAt,
     threadItems: threadItems.length > 0 ? threadItems : undefined,
+    poll: post.poll
+      ? {
+          question: post.poll.question,
+          options: post.poll.options,
+          durationHours: post.poll.durationHours,
+        }
+      : undefined,
   };
 
   const result = await adapter.publish(
