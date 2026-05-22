@@ -16,6 +16,7 @@ import { PostComments } from "@/components/post-comments";
 import { PostInsightsPanel } from "@/components/post-insights-panel";
 import { VersionDiffViewer } from "@/components/version-diff-viewer";
 import { SeoAnalysisCard } from "@/components/seo-analysis-card";
+import { QualityDashboard } from "@/components/quality-dashboard";
 
 interface PostVersion {
   id: string;
@@ -117,6 +118,8 @@ export default function PostVersionsPage() {
       <PostInsightsPanel postId={postId} />
 
       <SeoAnalysisCard postId={postId} />
+
+      <QualityDashboard postId={postId} />
 
       <PostComments postId={postId} />
 

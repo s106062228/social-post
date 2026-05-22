@@ -31,6 +31,7 @@ import { ComparePostsButton } from "./compare-posts-button";
 import { AutoTagButton } from "./auto-tag-button";
 import { BulkAutoTagButton } from "./bulk-auto-tag-button";
 import { computeScore, scoreLabel } from "@/lib/content-score";
+import { QualityScoreBadge } from "@/components/quality-score-badge";
 
 type PublishResultInsights = {
   impressions: number | null;
@@ -330,6 +331,7 @@ export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
                   <StatusBadge status={post.status} />
                   <ApprovalBadge approvalStatus={post.approvalStatus} />
                   <ScoreBadge publishResults={post.publishResults} />
+                  <QualityScoreBadge postId={post.id} />
                   <SentimentBadge sentiment={post.sentiment} />
                   {post.tone && <ToneBadge tone={post.tone} />}
                   {post.scheduledAt && (
