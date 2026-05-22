@@ -1465,3 +1465,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `QualityScoreBadge` component (`src/components/quality-score-badge.tsx`) — compact coloured pill (green ≥80 / yellow ≥60 / orange ≥40 / red <40) showing aggregate quality score; shown per post row in posts list when quality data is available; fetches lazily on hover
 - [x] `QualityDashboard` component (`src/components/quality-dashboard.tsx`) — expandable panel showing all four quality signal breakdowns with score bars and labels; "Refresh" button re-fetches; integrated into post versions page below SeoAnalysisCard
 - [x] Unit tests for quality score utility and API endpoint (score calculation, label boundaries, null signals normalised, auth, rate limit, ownership, response shape, all signals present — 12 tests)
+
+### Phase 149: Drag-and-Drop Calendar Rescheduling
+- [x] Install `@dnd-kit/core` package for drag-and-drop primitives
+- [x] `useCalendarReschedule` hook (`src/hooks/use-calendar-reschedule.ts`) — manages local post state, exposes `handleDrop(postId, year, month, day)` which calls `PATCH /api/posts/[id]` with updated `scheduledAt` (preserving original time-of-day), performs optimistic update with rollback on error; `isDraggable(postId)` returns true only for DRAFT and SCHEDULED posts
+- [x] Update `CalendarView` component — wrap in `DndContext`; post cards become draggable via `useDraggable` (cursor-grab, opacity-50 when dragging, disabled for non-reschedulable statuses); day cells become droppable via `useDroppable` (highlight with blue tint on hover); `DragOverlay` shows a ghost card while dragging; on drag end calls `handleDrop` and shows toast feedback
+- [x] Unit tests for `useCalendarReschedule` hook (initial state, successful drop updates scheduledAt, failed API call rolls back, fetch exception rolls back, unknown postId is no-op, preserves time-of-day, isDraggable true for DRAFT/SCHEDULED, isDraggable false for PUBLISHED — 8 tests)
