@@ -4,6 +4,8 @@ import { CommandPalette } from "@/components/command-palette";
 import { ShortcutHelp } from "@/components/shortcut-help";
 import { GlobalShortcuts } from "@/components/global-shortcuts";
 import { PublishingPauseBanner } from "@/components/publishing-pause-banner";
+import { TourButton } from "@/components/tour-button";
+import { ProductTour } from "@/components/product-tour";
 
 export default function DashboardLayout({
   children,
@@ -17,7 +19,8 @@ export default function DashboardLayout({
         {/* Publishing pause warning banner */}
         <PublishingPauseBanner />
         {/* Top bar */}
-        <header className="flex h-14 shrink-0 items-center justify-end border-b bg-card px-6">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b bg-card px-6">
+          <TourButton />
           <NotificationBell />
         </header>
         <main className="flex-1 overflow-y-auto bg-muted/20">{children}</main>
@@ -26,6 +29,7 @@ export default function DashboardLayout({
       <CommandPalette />
       <ShortcutHelp />
       <GlobalShortcuts />
+      <ProductTour />
     </div>
   );
 }

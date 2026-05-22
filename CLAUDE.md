@@ -1471,3 +1471,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `useCalendarReschedule` hook (`src/hooks/use-calendar-reschedule.ts`) — manages local post state, exposes `handleDrop(postId, year, month, day)` which calls `PATCH /api/posts/[id]` with updated `scheduledAt` (preserving original time-of-day), performs optimistic update with rollback on error; `isDraggable(postId)` returns true only for DRAFT and SCHEDULED posts
 - [x] Update `CalendarView` component — wrap in `DndContext`; post cards become draggable via `useDraggable` (cursor-grab, opacity-50 when dragging, disabled for non-reschedulable statuses); day cells become droppable via `useDroppable` (highlight with blue tint on hover); `DragOverlay` shows a ghost card while dragging; on drag end calls `handleDrop` and shows toast feedback
 - [x] Unit tests for `useCalendarReschedule` hook (initial state, successful drop updates scheduledAt, failed API call rolls back, fetch exception rolls back, unknown postId is no-op, preserves time-of-day, isDraggable true for DRAFT/SCHEDULED, isDraggable false for PUBLISHED — 8 tests)
+
+### Phase 150: Interactive Onboarding Tour & Feature Walkthrough
+- [x] `TourProgress` model in Prisma (id, userId unique, completedSteps String[], dismissed Boolean default false, createdAt, updatedAt) + migration (`20260704000000_add_tour_progress`)
+- [x] `GET /api/tour` endpoint — returns `{completedSteps, dismissed, totalSteps}`; creates default row if none exists; auth + rate limit
+- [x] `PATCH /api/tour` endpoint — accepts `{completedStep?: string, dismissed?: boolean}`; upserts TourProgress; auth + rate limit + zod validation
+- [x] `TOUR_STEPS` constant + `TourStep` type in `src/lib/tour.ts` — defines 10 key dashboard features with `key`, `title`, `description`, `targetPath`, `icon`
+- [x] `useTour` hook (`src/hooks/use-tour.ts`) — fetches progress on mount; exposes `currentStep`, `isActive`, `start()`, `next()`, `prev()`, `skip()`, `completedSteps`, `totalSteps`, `progressPercent`
+- [x] `ProductTour` component (`src/components/product-tour.tsx`) — fixed bottom-right floating card showing current step title/description, step N/M counter, prev/next/skip/finish buttons; step progress dots; uses `useTour` hook
+- [x] "Take Tour" button in dashboard header (next to notification bell) — starts tour; hidden when tour dismissed; shows completed badge when all steps done
+- [x] Unit tests for tour API (GET defaults for new user, GET with progress, PATCH complete step appends to array, PATCH dismiss sets flag, PATCH invalid body, auth, rate limit — 10 tests)
