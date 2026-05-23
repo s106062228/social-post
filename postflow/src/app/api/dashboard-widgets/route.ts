@@ -21,6 +21,7 @@ export const WIDGET_KEYS = [
   "benchmarks",
   "content_gaps",
   "tone_consistency",
+  "writing_stats",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -48,6 +49,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   benchmarks: "Engagement Benchmarks",
   content_gaps: "Content Gap Analysis",
   tone_consistency: "Tone Consistency",
+  writing_stats: "Writing Style Analytics",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {

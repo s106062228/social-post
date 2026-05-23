@@ -35,6 +35,7 @@ import { ContentMixCard } from "@/components/content-mix-card";
 import { BenchmarkCard } from "@/components/benchmark-card";
 import { ContentGapCard } from "@/components/content-gap-card";
 import { ToneConsistencyCard } from "@/components/tone-consistency-card";
+import { WritingStatsCard } from "@/components/writing-stats-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -521,6 +522,9 @@ export function AnalyticsDashboard() {
 
       {/* Tone Consistency */}
       {isVisible("tone_consistency") && <ToneConsistencyCard />}
+
+      {/* Writing Style Analytics */}
+      {isVisible("writing_stats") && <WritingStatsCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
