@@ -1530,3 +1530,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `PlatformReliabilityCard` component (`src/components/platform-reliability-card.tsx`) — overall success rate summary box, per-platform rows with colour-coded progress bars (green ≥90% / yellow ≥70% / red <70%), success/fail counts, avg retry badge, avg publish latency, expandable common error list; period selector (7d/30d/90d/all); loading skeleton; empty state
 - [x] Integrate `PlatformReliabilityCard` into analytics dashboard below `PerformanceCoachingCard`; add `"publish_reliability"` widget key and label to `WIDGET_KEYS` and `WIDGET_LABELS` in dashboard-widgets route
 - [x] Unit tests for `GET /api/analytics/publish-reliability` (auth, rate limit, invalid period, default period, empty state shape, overall success rate calculation, per-platform shape, common errors captured, avg latency calculation, sort order, DB error — 11 tests)
+
+### Phase 157: User Achievements & Posting Milestones
+- [x] `Achievement` model in Prisma (id, userId, type String, awardedAt DateTime, metadata Json?) + migration (`20260707000000_add_achievements`) + `@@unique([userId, type])`
+- [x] Achievement types constant map + checker utility (`src/lib/achievements.ts`) — defines 10 milestone types (FIRST_POST, TEN_POSTS, FIFTY_POSTS, HUNDRED_POSTS, FIRST_PUBLISH, FIRST_SCHEDULE, MULTI_PLATFORM, CONSISTENT_POSTER, HIGH_ENGAGER, FIRST_CAMPAIGN); `checkAndAwardAchievements(userId, db)` queries user stats and awards new achievements; returns `string[]` of newly awarded types; never throws
+- [x] `GET /api/achievements` endpoint — auth + rate limit; returns all achievement types with earned status, awardedAt for earned ones, label/description/icon metadata sorted alphabetically
+- [x] `POST /api/achievements/check` endpoint — auth + rate limit; calls `checkAndAwardAchievements`; returns `{ awarded: string[] }`
+- [x] Achievements page in dashboard (`/achievements`) — grid of achievement cards (earned: coloured + green border + award date; locked: dimmed + dashed border); "Check for new achievements" button with toast feedback
+- [x] Add "Achievements" to sidebar navigation (icon: `Award`)
+- [x] Unit tests for achievements API (GET 401, GET 429, GET all-unearned, GET earned with awardedAt, GET shape; POST 401, POST 429, POST empty awarded, POST awarded list, POST correct userId — 10 tests)

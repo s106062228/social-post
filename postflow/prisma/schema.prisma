@@ -168,6 +168,7 @@ model User {
   aiPersonas           AiPersona[]
   tourProgress         TourProgress?
   coachingInsights     CoachingInsight[]
+  achievements         Achievement[]
   publishingPaused       Boolean   @default(false)
   publishingPausedReason String?
   publishingPausedAt     DateTime?
@@ -1178,4 +1179,17 @@ model CoachingInsight {
 
   @@index([userId])
   @@index([userId, weekOf(sort: Desc)])
+}
+
+model Achievement {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  awardedAt DateTime @default(now())
+  metadata  Json?
+
+  @@unique([userId, type])
+  @@index([userId])
+  @@index([userId, awardedAt(sort: Desc)])
 }
