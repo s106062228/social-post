@@ -16,6 +16,7 @@ import type { PostExpiryJobData } from "./workers/expiry";
 import type { DigestScanJobData } from "./workers/digest";
 import type { AudienceSyncJobData } from "./workers/audience-sync";
 import type { EvergreenRecycleJobData } from "./workers/evergreen-recycle";
+import type { CoachingScanJobData } from "./workers/coaching";
 
 // ── Queue singletons ────────────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -732,6 +733,50 @@ export async function scheduleEvergreenRecycle(): Promise<void> {
     { pattern: "0 3 * * *" },
     {
       name: "evergreen-recycle-daily",
+      data: { triggeredAt: new Date().toISOString() },
+      opts: {
+        attempts: 2,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { count: 5 },
+        removeOnFail: { count: 10 },
+      },
+    }
+  );
+}
+
+// ── Coaching Scan Queue ────────────────────────────────────────────────────────
+
+let coachingScanQueue: Queue<CoachingScanJobData> | null = null;
+
+function getCoachingScanQueue(): Queue<CoachingScanJobData> {
+  if (!coachingScanQueue) {
+    coachingScanQueue = new Queue<CoachingScanJobData>(
+      QUEUE_NAMES.COACHING_SCAN,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 2,
+          backoff: { type: "exponential", delay: 5000 },
+          removeOnComplete: { count: 5 },
+          removeOnFail: { count: 10 },
+        },
+      }
+    );
+  }
+  return coachingScanQueue;
+}
+
+/**
+ * Registers (or replaces) the weekly Sunday 01:00 UTC coaching scan cron job.
+ * Generates AI performance coaching insights for active users.
+ */
+export async function scheduleCoachingScan(): Promise<void> {
+  const queue = getCoachingScanQueue();
+  await queue.upsertJobScheduler(
+    "coaching-scan-weekly",
+    { pattern: "0 1 * * 0" },
+    {
+      name: "coaching-scan-weekly",
       data: { triggeredAt: new Date().toISOString() },
       opts: {
         attempts: 2,

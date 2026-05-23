@@ -167,6 +167,7 @@ model User {
   savedAnalyticsViews  SavedAnalyticsView[]
   aiPersonas           AiPersona[]
   tourProgress         TourProgress?
+  coachingInsights     CoachingInsight[]
   publishingPaused       Boolean   @default(false)
   publishingPausedReason String?
   publishingPausedAt     DateTime?
@@ -1161,4 +1162,20 @@ model PostPoll {
   options       String[]
   durationHours Int      @default(24)
   createdAt     DateTime @default(now())
+}
+
+model CoachingInsight {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekOf         DateTime
+  summary        String
+  highlights     String[]
+  improvements   String[]
+  nextWeekFocus  String
+  overallScore   Int
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, weekOf(sort: Desc)])
 }

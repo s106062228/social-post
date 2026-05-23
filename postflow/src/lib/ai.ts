@@ -1237,3 +1237,109 @@ export async function suggestTagsForContent(
     return [];
   }
 }
+
+// ── Performance Coaching ──────────────────────────────────────────────────────
+
+export interface PerformanceCoachingResult {
+  summary: string;
+  highlights: string[];
+  improvements: string[];
+  nextWeekFocus: string;
+  overallScore: number;
+}
+
+export interface CoachingMetrics {
+  postsPublished: number;
+  avgEngagementScore: number;
+  topPost: { content: string; score: number } | null;
+  bottomPost: { content: string; score: number } | null;
+}
+
+export interface CoachingGoal {
+  name: string;
+  period: string;
+  targetCount: number;
+  publishedCount: number;
+  onTrack: boolean;
+}
+
+const COACHING_SYSTEM = `You are a social media performance coach. Analyze a user's weekly posting metrics and goals to provide actionable coaching insights.
+Always respond with valid JSON in this exact format:
+{"summary": "brief overall assessment", "highlights": ["positive1", "positive2"], "improvements": ["improvement1", "improvement2"], "nextWeekFocus": "one specific focus for next week", "overallScore": 75}
+The overallScore should be 0-100. Highlights and improvements should each have 2-4 items. Be specific, actionable, and encouraging.`;
+
+export async function generatePerformanceCoaching(
+  metrics: CoachingMetrics,
+  goals: CoachingGoal[],
+  recentInsights: { platform: string; likes: number; comments: number; shares: number; reach: number }[]
+): Promise<PerformanceCoachingResult | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+
+  const client = getClient();
+
+  const goalsText =
+    goals.length > 0
+      ? goals
+          .map(
+            (g) =>
+              `- ${g.name} (${g.period}): ${g.publishedCount}/${g.targetCount} — ${g.onTrack ? "on track" : "behind"}`
+          )
+          .join("\n")
+      : "No active goals.";
+
+  const insightsSummary =
+    recentInsights.length > 0
+      ? recentInsights
+          .map(
+            (i) =>
+              `${i.platform}: likes=${i.likes} comments=${i.comments} shares=${i.shares} reach=${i.reach}`
+          )
+          .join("\n")
+      : "No engagement data available.";
+
+  const prompt = `Weekly performance summary:
+- Posts published this week: ${metrics.postsPublished}
+- Average engagement score: ${metrics.avgEngagementScore.toFixed(1)}
+- Best post: ${metrics.topPost ? `"${metrics.topPost.content.slice(0, 100)}" (score: ${metrics.topPost.score})` : "none"}
+- Worst post: ${metrics.bottomPost ? `"${metrics.bottomPost.content.slice(0, 100)}" (score: ${metrics.bottomPost.score})` : "none"}
+
+Active goals:
+${goalsText}
+
+Recent platform engagement:
+${insightsSummary}
+
+Provide personalized coaching insights for this week's performance.`;
+
+  try {
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 600,
+      system: [
+        {
+          type: "text",
+          text: COACHING_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const text =
+      response.content[0]?.type === "text" ? response.content[0].text : "";
+    const parsed = JSON.parse(text) as Partial<PerformanceCoachingResult>;
+
+    return {
+      summary: typeof parsed.summary === "string" ? parsed.summary : "Performance review complete.",
+      highlights: Array.isArray(parsed.highlights) ? parsed.highlights.slice(0, 4) : [],
+      improvements: Array.isArray(parsed.improvements) ? parsed.improvements.slice(0, 4) : [],
+      nextWeekFocus: typeof parsed.nextWeekFocus === "string" ? parsed.nextWeekFocus : "Continue posting consistently.",
+      overallScore:
+        typeof parsed.overallScore === "number"
+          ? Math.max(0, Math.min(100, Math.round(parsed.overallScore)))
+          : 50,
+    };
+  } catch {
+    return null;
+  }
+}

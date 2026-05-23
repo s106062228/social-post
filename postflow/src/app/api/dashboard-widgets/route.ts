@@ -23,6 +23,7 @@ export const WIDGET_KEYS = [
   "tone_consistency",
   "writing_stats",
   "monthly_summary",
+  "performance_coaching",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -52,6 +53,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   tone_consistency: "Tone Consistency",
   writing_stats: "Writing Style Analytics",
   monthly_summary: "Monthly Summary",
+  performance_coaching: "AI Performance Coaching",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {

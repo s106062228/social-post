@@ -37,6 +37,7 @@ import { ContentGapCard } from "@/components/content-gap-card";
 import { ToneConsistencyCard } from "@/components/tone-consistency-card";
 import { WritingStatsCard } from "@/components/writing-stats-card";
 import { MonthlySummaryCard } from "@/components/monthly-summary-card";
+import { PerformanceCoachingCard } from "@/components/performance-coaching-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -529,6 +530,9 @@ export function AnalyticsDashboard() {
 
       {/* Monthly Summary */}
       {isVisible("monthly_summary") && <MonthlySummaryCard />}
+
+      {/* AI Performance Coaching */}
+      {isVisible("performance_coaching") && <PerformanceCoachingCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
