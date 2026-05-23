@@ -36,6 +36,7 @@ import { BenchmarkCard } from "@/components/benchmark-card";
 import { ContentGapCard } from "@/components/content-gap-card";
 import { ToneConsistencyCard } from "@/components/tone-consistency-card";
 import { WritingStatsCard } from "@/components/writing-stats-card";
+import { MonthlySummaryCard } from "@/components/monthly-summary-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -525,6 +526,9 @@ export function AnalyticsDashboard() {
 
       {/* Writing Style Analytics */}
       {isVisible("writing_stats") && <WritingStatsCard />}
+
+      {/* Monthly Summary */}
+      {isVisible("monthly_summary") && <MonthlySummaryCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}

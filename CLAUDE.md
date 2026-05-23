@@ -1507,3 +1507,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `WritingStatsCard` component (`src/components/writing-stats-card.tsx`) — stat grid (avg words, avg chars, avg hashtags, links %, emojis %), top emojis badge row, posting day bar chart (Recharts), period selector (30d/90d/180d/all), "No data yet" empty state
 - [x] Integrate `WritingStatsCard` into analytics dashboard below ToneConsistencyCard; add `"writing_stats"` widget key to dashboard widget customization
 - [x] Unit tests for writing stats utility (avgWordCount, avgHashtagCount, emoji detection, link detection, day/hour distribution, empty input — 8 tests) and API endpoint (auth, rate limit, period validation, response shape, empty state — 8 tests)
+
+### Phase 154: Monthly Content Summary Dashboard
+- [x] `GET /api/analytics/monthly-summary` endpoint — auth + rate limit + `?year=YYYY&month=1-12` params (defaults to current month); returns `{year, month, totalPosts, byStatus: Record<string, number>, byPlatform: {platform, count}[], avgPostsPerDay, busiestDay: {date, count} | null, quietDays: number, weekdayDistribution: {dayName, count}[]}` from PUBLISHED + SCHEDULED posts in the specified month
+- [x] `MonthlySummaryCard` component (`src/components/monthly-summary-card.tsx`) — shows month/year title with prev/next navigation, total posts KPI, status breakdown progress bars, platform distribution chips, busiest day callout, avg posts/day, weekday distribution bar chart (Recharts); "No posts this month" empty state
+- [x] Integrate `MonthlySummaryCard` into analytics dashboard below `WritingStatsCard`; add `"monthly_summary"` widget key to WIDGET_KEYS array in `src/app/api/dashboard-widgets/route.ts`
+- [x] Unit tests for monthly-summary endpoint (auth, rate limit, invalid params, defaults to current month, response shape, busiest day, quietDays count, weekday distribution, empty month, SCHEDULED posts use scheduledAt — 10 tests)
