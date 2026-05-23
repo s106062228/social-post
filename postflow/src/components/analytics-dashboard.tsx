@@ -38,6 +38,7 @@ import { ToneConsistencyCard } from "@/components/tone-consistency-card";
 import { WritingStatsCard } from "@/components/writing-stats-card";
 import { MonthlySummaryCard } from "@/components/monthly-summary-card";
 import { PerformanceCoachingCard } from "@/components/performance-coaching-card";
+import { PlatformReliabilityCard } from "@/components/platform-reliability-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -533,6 +534,9 @@ export function AnalyticsDashboard() {
 
       {/* AI Performance Coaching */}
       {isVisible("performance_coaching") && <PerformanceCoachingCard />}
+
+      {/* Platform Publishing Reliability */}
+      {isVisible("publish_reliability") && <PlatformReliabilityCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}

@@ -24,6 +24,7 @@ export const WIDGET_KEYS = [
   "writing_stats",
   "monthly_summary",
   "performance_coaching",
+  "publish_reliability",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -54,6 +55,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   writing_stats: "Writing Style Analytics",
   monthly_summary: "Monthly Summary",
   performance_coaching: "AI Performance Coaching",
+  publish_reliability: "Platform Publishing Reliability",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {
