@@ -1539,3 +1539,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Achievements page in dashboard (`/achievements`) — grid of achievement cards (earned: coloured + green border + award date; locked: dimmed + dashed border); "Check for new achievements" button with toast feedback
 - [x] Add "Achievements" to sidebar navigation (icon: `Award`)
 - [x] Unit tests for achievements API (GET 401, GET 429, GET all-unearned, GET earned with awardedAt, GET shape; POST 401, POST 429, POST empty awarded, POST awarded list, POST correct userId — 10 tests)
+
+### Phase 158: AI-Powered Engagement Reply Suggestions
+- [x] Add `generateReplySuggestions(postContent, comment, tone?)` to `src/lib/ai.ts` — calls `claude-haiku-4-5` to generate 3 thoughtful reply suggestions for a given comment on a post; uses prompt caching on system block; returns `string[]`
+- [x] `POST /api/ai/reply-suggestions` endpoint — auth + rate limit (20/min) + zod validation (`postContent`, `comment`, `tone?`); calls `generateReplySuggestions`; returns `{replies: string[]}`; returns 503 when AI not configured
+- [x] `ReplySuggestionsDialog` component (`src/components/reply-suggestions-dialog.tsx`) — modal showing 3 AI-generated reply suggestions with copy-to-clipboard buttons, regenerate option, and loading state
+- [x] Integrate "AI Reply" button (Sparkles icon) into `PostComments` component — opens `ReplySuggestionsDialog` for that specific comment; passes post content and comment text
+- [x] Unit tests for reply-suggestions endpoint (auth, rate limit, AI disabled, invalid JSON, missing fields, success shape, AI error — 8 tests)

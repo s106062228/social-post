@@ -1343,3 +1343,34 @@ Provide personalized coaching insights for this week's performance.`;
     return null;
   }
 }
+
+const REPLY_SYSTEM = `You are a social media community manager. Generate 3 thoughtful, engaging reply suggestions for a comment on a social media post.
+Always respond with valid JSON in this exact format: {"replies": ["reply1", "reply2", "reply3"]}
+Keep replies concise (under 150 chars each), friendly, and authentic. Match the tone of the original post content. Never be defensive or negative.`;
+
+export async function generateReplySuggestions(
+  postContent: string,
+  comment: string,
+  tone?: string
+): Promise<string[]> {
+  const client = getClient();
+  const userContent = `Post content: ${postContent}\n\nComment to reply to: ${comment}${tone ? `\n\nTone: ${tone}` : ""}`;
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 512,
+    system: [
+      { type: "text", text: REPLY_SYSTEM, cache_control: { type: "ephemeral" } },
+    ],
+    messages: [{ role: "user", content: userContent }],
+  });
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as { replies?: unknown };
+    const replies = parsed.replies;
+    if (Array.isArray(replies) && replies.every((r) => typeof r === "string")) {
+      return replies as string[];
+    }
+  } catch { /* fall through */ }
+  return [];
+}

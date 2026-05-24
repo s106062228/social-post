@@ -10,8 +10,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, CheckCircle2, Circle, Trash2, Loader2, Send } from "lucide-react";
+import { MessageSquare, CheckCircle2, Circle, Trash2, Loader2, Send, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { ReplySuggestionsDialog } from "@/components/reply-suggestions-dialog";
 
 interface PostComment {
   id: string;
@@ -30,14 +31,20 @@ interface CommentsResponse {
 
 interface PostCommentsProps {
   postId: string;
+  postContent?: string;
 }
 
-export function PostComments({ postId }: PostCommentsProps) {
+export function PostComments({ postId, postContent = "" }: PostCommentsProps) {
   const [comments, setComments] = useState<PostComment[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [newComment, setNewComment] = useState("");
+  const [suggestReplyFor, setSuggestReplyFor] = useState<{
+    commentId: string;
+    comment: string;
+    authorName: string;
+  } | null>(null);
 
   const fetchComments = useCallback(async () => {
     try {
@@ -170,6 +177,21 @@ export function PostComments({ postId }: PostCommentsProps) {
                     <Button
                       variant="ghost"
                       size="icon"
+                      className="h-7 w-7 text-purple-500 hover:text-purple-600"
+                      title="AI Reply Suggestions"
+                      onClick={() =>
+                        setSuggestReplyFor({
+                          commentId: c.id,
+                          comment: c.comment,
+                          authorName: c.authorName,
+                        })
+                      }
+                    >
+                      <Sparkles className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="h-7 w-7"
                       title={c.resolved ? "Reopen" : "Resolve"}
                       onClick={() => void handleResolve(c.id)}
@@ -225,6 +247,16 @@ export function PostComments({ postId }: PostCommentsProps) {
           </Button>
         </div>
       </CardContent>
+
+      {suggestReplyFor !== null && (
+        <ReplySuggestionsDialog
+          open={true}
+          onClose={() => setSuggestReplyFor(null)}
+          postContent={postContent}
+          comment={suggestReplyFor.comment}
+          commentAuthor={suggestReplyFor.authorName}
+        />
+      )}
     </Card>
   );
 }
