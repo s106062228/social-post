@@ -1553,3 +1553,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `ContentFatigueCard` component (`src/components/content-fatigue-card.tsx`) — overall health banner (green healthy / amber declining / red fatigued), per-platform rows with score progress bar, trend arrow icon, recent vs baseline engagement numbers, post counts; "No data yet" empty state; integrated into analytics dashboard below `PlatformReliabilityCard`
 - [x] Add `"content_fatigue"` widget key and label to `WIDGET_KEYS`, `WIDGET_LABELS`, and `DashboardCustomizeDialog`
 - [x] Unit tests for content fatigue utility (empty posts, improving trend, stable trend, declining trend, fatigued threshold at 70%, no baseline returns neutral, overall fatigued flag, platform filter — 10 tests) and API endpoint (auth, rate limit, platform filter, response shape, fatigued state — 6 tests)
+
+### Phase 160: Analytics Performance Snapshots & Historical Comparison
+- [x] `AnalyticsSnapshot` model in Prisma (id, userId, name, data Json, createdAt) + migration (`20260708000000_add_analytics_snapshots`) — stores point-in-time performance metric snapshots per user
+- [x] `GET /api/analytics/snapshots` endpoint — lists user's snapshots ordered by createdAt desc; auth + rate limit
+- [x] `POST /api/analytics/snapshots` endpoint — creates snapshot capturing current metrics (post counts by status, publish results, platform breakdown, connected accounts, success rate); auth + rate limit + zod validation; max 20 snapshots per user
+- [x] `DELETE /api/analytics/snapshots/[id]` endpoint — deletes snapshot with ownership check; auth + rate limit; returns 204
+- [x] `GET /api/analytics/snapshots/compare` endpoint — accepts `?from=id&to=id`; returns delta comparison with `{from, to, change, changePct}` for each key metric (totalPosts, publishedPosts, failedPosts, scheduledPosts, draftPosts, overallSuccessRate, connectedAccounts); auth + rate limit
+- [x] Snapshots page in dashboard (`/analytics/snapshots`) — list view with create button, click-to-select A/B comparison, side-by-side delta grid with colour-coded change indicators, delete button per snapshot
+- [x] Add "Snapshots" to sidebar navigation (icon: `Camera`) after Analytics entry
+- [x] Unit tests for snapshots API (GET list auth/rate limit/data, POST auth/rate limit/invalid body/max-limit/success/captured metrics, DELETE auth/rate limit/404/204, GET compare auth/rate limit/missing params/404/deltas/null changePct — 21 tests)
