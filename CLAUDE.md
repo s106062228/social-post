@@ -1563,3 +1563,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Snapshots page in dashboard (`/analytics/snapshots`) — list view with create button, click-to-select A/B comparison, side-by-side delta grid with colour-coded change indicators, delete button per snapshot
 - [x] Add "Snapshots" to sidebar navigation (icon: `Camera`) after Analytics entry
 - [x] Unit tests for snapshots API (GET list auth/rate limit/data, POST auth/rate limit/invalid body/max-limit/success/captured metrics, DELETE auth/rate limit/404/204, GET compare auth/rate limit/missing params/404/deltas/null changePct — 21 tests)
+
+### Phase 161: Post Content Checklist & Pre-publish Validation
+- [x] `ChecklistItem` model in Prisma (id, userId, label, description?, order, isActive, createdAt, updatedAt) + `PostChecklistRecord` model (id, postId unique, userId, checks Json, updatedAt) + migration (`20260709000000_add_checklist`)
+- [x] CRUD API for checklist items (`GET /api/checklist-items`, `POST /api/checklist-items`, `PATCH /api/checklist-items/[id]`, `DELETE /api/checklist-items/[id]`) — auth + rate limit + zod validation; max 20 items per user
+- [x] Post checklist state API (`GET /api/posts/[id]/checklist`, `PUT /api/posts/[id]/checklist`) — fetch and upsert per-post checklist completion state; auth + rate limit + ownership check; returns `{items, checks}`
+- [x] `PrePublishChecklist` component (`src/components/pre-publish-checklist.tsx`) — collapsible panel showing active checklist items with checkboxes and done/total count badge; calls PUT on checkbox change; "No checklist items" empty state with link to `/checklist`
+- [x] Checklist management page in dashboard (`/checklist`) — list active/inactive items with label, description, order badge; toggle active/inactive button; delete button; inline create form (label, description, order)
+- [x] Add "Checklist" to sidebar navigation (icon: `CheckSquare`)
+- [x] Unit tests for checklist items API (GET, POST, PATCH, DELETE — auth, rate limit, max-items, ownership, validation — 20 tests) and post checklist API (GET, PUT — auth, rate limit, not-found, shape — 7 tests)

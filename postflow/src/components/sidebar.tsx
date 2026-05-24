@@ -51,6 +51,7 @@ import {
   Bot,
   Award,
   Camera,
+  CheckSquare,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -88,6 +89,7 @@ const navItems = [
   { href: "/ideas", label: "Ideas", icon: Lightbulb },
   { href: "/posting-goals", label: "Goals", icon: Target },
   { href: "/snippets", label: "Snippets", icon: BookMarked },
+  { href: "/checklist", label: "Checklist", icon: CheckSquare },
   { href: "/integrations", label: "Integrations", icon: Zap },
   { href: "/zapier", label: "Zapier", icon: Workflow },
   { href: "/bio-pages", label: "Bio Pages", icon: Link2 },

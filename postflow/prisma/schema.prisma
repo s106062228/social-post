@@ -170,6 +170,8 @@ model User {
   coachingInsights     CoachingInsight[]
   achievements         Achievement[]
   analyticsSnapshots   AnalyticsSnapshot[]
+  checklistItems       ChecklistItem[]
+  postChecklistRecords PostChecklistRecord[]
   publishingPaused       Boolean   @default(false)
   publishingPausedReason String?
   publishingPausedAt     DateTime?
@@ -266,6 +268,7 @@ model Post {
   abTestsAsB     PostABTest[]   @relation("ABTestVariantB")
   threadPosts    ThreadPost[]
   poll           PostPoll?
+  checklistRecord PostChecklistRecord?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -1205,4 +1208,32 @@ model AnalyticsSnapshot {
 
   @@index([userId])
   @@index([userId, createdAt(sort: Desc)])
+}
+
+model ChecklistItem {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label       String
+  description String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, order])
+}
+
+model PostChecklistRecord {
+  id        String   @id @default(cuid())
+  postId    String   @unique
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checks    Json
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([postId])
 }
