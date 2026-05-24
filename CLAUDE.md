@@ -1546,3 +1546,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `ReplySuggestionsDialog` component (`src/components/reply-suggestions-dialog.tsx`) — modal showing 3 AI-generated reply suggestions with copy-to-clipboard buttons, regenerate option, and loading state
 - [x] Integrate "AI Reply" button (Sparkles icon) into `PostComments` component — opens `ReplySuggestionsDialog` for that specific comment; passes post content and comment text
 - [x] Unit tests for reply-suggestions endpoint (auth, rate limit, AI disabled, invalid JSON, missing fields, success shape, AI error — 8 tests)
+
+### Phase 159: Content Fatigue Detection & Audience Refresh Alerts
+- [x] Content fatigue utility (`src/lib/content-fatigue.ts`) — `detectContentFatigue(posts)` compares recent 7-day avg engagement to prior 23-day baseline per platform; computes `fatigueScore` (0–100, 100 = healthy), `isFatigued` (score ≤70), and `trend` (improving/stable/declining); returns `{overallFatigued, platforms: PlatformFatigueData[], analyzedAt}`
+- [x] `GET /api/analytics/content-fatigue` endpoint — auth + rate limit + optional `?platform=` filter; queries user's PUBLISHED posts with PostInsights from last 30 days; returns fatigue analysis result
+- [x] `ContentFatigueCard` component (`src/components/content-fatigue-card.tsx`) — overall health banner (green healthy / amber declining / red fatigued), per-platform rows with score progress bar, trend arrow icon, recent vs baseline engagement numbers, post counts; "No data yet" empty state; integrated into analytics dashboard below `PlatformReliabilityCard`
+- [x] Add `"content_fatigue"` widget key and label to `WIDGET_KEYS`, `WIDGET_LABELS`, and `DashboardCustomizeDialog`
+- [x] Unit tests for content fatigue utility (empty posts, improving trend, stable trend, declining trend, fatigued threshold at 70%, no baseline returns neutral, overall fatigued flag, platform filter — 10 tests) and API endpoint (auth, rate limit, platform filter, response shape, fatigued state — 6 tests)

@@ -25,6 +25,7 @@ export const WIDGET_KEYS = [
   "monthly_summary",
   "performance_coaching",
   "publish_reliability",
+  "content_fatigue",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -56,6 +57,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   monthly_summary: "Monthly Summary",
   performance_coaching: "AI Performance Coaching",
   publish_reliability: "Platform Publishing Reliability",
+  content_fatigue: "Content Fatigue Detection",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {
