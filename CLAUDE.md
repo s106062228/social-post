@@ -1582,3 +1582,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Collection detail page (`/collections/[id]`) — list posts in collection with remove button; "Add Post" modal selector to attach existing posts by searching
 - [x] Add "Collections" to sidebar navigation (icon: `FolderOpen`)
 - [x] Unit tests for collections API (GET list, POST create, POST max-limit, PATCH update, DELETE, add post, remove post, collectionId filter on posts — 18 tests)
+
+### Phase 163: Post Schedule Conflict Detection & Auto-Resolution
+- [x] Schedule conflict detection utility (`src/lib/schedule-conflicts.ts`) — `detectConflicts(posts, windowMinutes): ScheduleConflict[]` finds SCHEDULED posts overlapping within window per platform; `buildResolutionPlan(conflicts, spacingMinutes): ResolutionItem[]` computes new times that space conflicting posts evenly
+- [x] `GET /api/posts/schedule-conflicts` endpoint — auth + rate limit + `?windowMinutes=30` param; queries all user's SCHEDULED posts; returns `{conflicts: ScheduleConflict[], totalConflicts}` with pairs of conflicting post IDs, platform, and overlap window
+- [x] `POST /api/posts/resolve-conflicts` endpoint — auth + rate limit + zod validation; accepts `{windowMinutes?: number, spacingMinutes?: number}`; computes resolution plan, batch-updates scheduledAt for each conflicting post; returns `{resolved: number, updates: {postId, newScheduledAt}[]}`
+- [x] `ScheduleConflictBanner` component (`src/components/schedule-conflict-banner.tsx`) — amber alert banner shown in posts page when conflicts detected; shows conflict count and platform breakdown; "Auto-Resolve" button calls resolve-conflicts endpoint, toasts result, and refreshes; hidden when no conflicts
+- [x] Unit tests for schedule conflict utility and API endpoints (detectConflicts: no conflict, same-platform conflict, cross-platform no conflict, multiple overlaps; buildResolutionPlan spacing; GET: auth, rate limit, windowMinutes param, empty, conflicts shape; POST: auth, rate limit, resolves, returns updates — 16 tests)

@@ -16,6 +16,7 @@ import { PostsListClient } from "./posts-list-client";
 import { DateRangeFilter } from "./date-range-filter";
 import { SaveFilterButton } from "./save-filter-button";
 import { FilterPresetSelector } from "./filter-preset-selector";
+import { ScheduleConflictBanner } from "@/components/schedule-conflict-banner";
 
 const PLATFORMS: Platform[] = [Platform.FACEBOOK, Platform.INSTAGRAM, Platform.THREADS];
 
@@ -137,6 +138,7 @@ export default async function PostsPage({
 
   return (
     <div className="flex flex-col gap-8 p-8">
+      <ScheduleConflictBanner />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Posts</h1>
