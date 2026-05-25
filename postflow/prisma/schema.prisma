@@ -172,6 +172,7 @@ model User {
   analyticsSnapshots   AnalyticsSnapshot[]
   checklistItems       ChecklistItem[]
   postChecklistRecords PostChecklistRecord[]
+  collections          PostCollection[]
   publishingPaused       Boolean   @default(false)
   publishingPausedReason String?
   publishingPausedAt     DateTime?
@@ -269,6 +270,7 @@ model Post {
   threadPosts    ThreadPost[]
   poll           PostPoll?
   checklistRecord PostChecklistRecord?
+  collections    CollectionPost[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -1235,5 +1237,32 @@ model PostChecklistRecord {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([postId])
+}
+
+model PostCollection {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  color       String           @default("#6366f1")
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  posts       CollectionPost[]
+
+  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model CollectionPost {
+  collectionId String
+  collection   PostCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  postId       String
+  post         Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  addedAt      DateTime       @default(now())
+
+  @@id([collectionId, postId])
+  @@index([collectionId])
   @@index([postId])
 }

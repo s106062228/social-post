@@ -1572,3 +1572,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Checklist management page in dashboard (`/checklist`) — list active/inactive items with label, description, order badge; toggle active/inactive button; delete button; inline create form (label, description, order)
 - [x] Add "Checklist" to sidebar navigation (icon: `CheckSquare`)
 - [x] Unit tests for checklist items API (GET, POST, PATCH, DELETE — auth, rate limit, max-items, ownership, validation — 20 tests) and post checklist API (GET, PUT — auth, rate limit, not-found, shape — 7 tests)
+
+### Phase 162: Post Collection & Folder Organization
+- [x] `PostCollection` model in Prisma (id, userId, name, description?, color String default "#6366f1", createdAt, updatedAt) + `CollectionPost` join table (collectionId, postId, addedAt) + migration (`20260710000000_add_post_collections`)
+- [x] CRUD API for collections (`GET /api/collections`, `POST /api/collections`, `PATCH /api/collections/[id]`, `DELETE /api/collections/[id]`) — auth + rate limit + zod validation; max 50 collections per user
+- [x] Post membership API (`POST /api/collections/[id]/posts` to add a post, `DELETE /api/collections/[id]/posts/[postId]` to remove)
+- [x] Extend `GET /api/posts` to support `?collectionId=` filter — returns posts belonging to the specified collection
+- [x] Collections list page in dashboard (`/collections`) — card grid with name, description, color swatch, post count; inline create form; delete button
+- [x] Collection detail page (`/collections/[id]`) — list posts in collection with remove button; "Add Post" modal selector to attach existing posts by searching
+- [x] Add "Collections" to sidebar navigation (icon: `FolderOpen`)
+- [x] Unit tests for collections API (GET list, POST create, POST max-limit, PATCH update, DELETE, add post, remove post, collectionId filter on posts — 18 tests)

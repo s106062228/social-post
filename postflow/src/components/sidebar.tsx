@@ -101,6 +101,7 @@ const navItems = [
   { href: "/inspiration", label: "Inspiration", icon: Globe },
   { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/account-groups", label: "Account Groups", icon: FolderOpen },
+  { href: "/collections", label: "Collections", icon: FolderOpen },
   { href: "/caption-variables", label: "Variables", icon: Braces },
   { href: "/schedule-presets", label: "Time Presets", icon: Clock },
   { href: "/ai-personas", label: "AI Personas", icon: Bot },
