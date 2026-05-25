@@ -935,8 +935,22 @@ model LinkBioItem {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
+  clickEvents BioPageClick[] @relation("ItemClickEvents")
+
   @@index([pageId])
   @@index([pageId, order])
+}
+
+model BioPageClick {
+  id         String      @id @default(cuid())
+  itemId     String
+  item       LinkBioItem @relation("ItemClickEvents", fields: [itemId], references: [id], onDelete: Cascade)
+  clickedAt  DateTime    @default(now())
+  referrer   String?
+  deviceType String?
+
+  @@index([itemId])
+  @@index([itemId, clickedAt])
 }
 
 model FeedWidget {

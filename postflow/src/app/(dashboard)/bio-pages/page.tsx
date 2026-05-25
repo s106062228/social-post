@@ -14,7 +14,18 @@ import {
   Pencil,
   X,
   MousePointerClick,
+  QrCode,
+  BarChart2,
+  Download,
 } from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -47,12 +58,37 @@ interface LinkBioPage {
   items?: LinkBioItem[];
 }
 
+interface AnalyticsData {
+  pageId: string;
+  slug: string;
+  title: string;
+  totalClicks: number;
+  items: {
+    itemId: string;
+    label: string;
+    url: string;
+    clicks: number;
+    clicksLast7d: number;
+    clicksTotal: number;
+  }[];
+  dailyClicks: { date: string; count: number }[];
+  deviceBreakdown: { device: string; count: number }[];
+}
+
 export default function BioPagesPage() {
   const [pages, setPages] = useState<LinkBioPage[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [expandedPage, setExpandedPage] = useState<LinkBioPage | null>(null);
   const [loadingExpanded, setLoadingExpanded] = useState(false);
+
+  // Analytics state
+  const [analyticsPageId, setAnalyticsPageId] = useState<string | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+
+  // QR code state
+  const [downloadingQrId, setDownloadingQrId] = useState<string | null>(null);
 
   // Create page form
   const [creating, setCreating] = useState(false);
@@ -116,7 +152,66 @@ export default function BioPagesPage() {
       setExpandedPage(null);
     } else {
       setExpandedId(pageId);
+      // Close analytics if open for same page
+      if (analyticsPageId === pageId) {
+        setAnalyticsPageId(null);
+        setAnalyticsData(null);
+      }
       await loadExpanded(pageId);
+    }
+  }
+
+  async function toggleAnalytics(pageId: string) {
+    if (analyticsPageId === pageId) {
+      setAnalyticsPageId(null);
+      setAnalyticsData(null);
+      return;
+    }
+    // Close links section for this page if open
+    if (expandedId === pageId) {
+      setExpandedId(null);
+      setExpandedPage(null);
+    }
+    setAnalyticsPageId(pageId);
+    setLoadingAnalytics(true);
+    try {
+      const res = await fetch(`/api/bio-pages/${pageId}/analytics`);
+      const data = (await res.json()) as AnalyticsData & { error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Failed to load analytics");
+      setAnalyticsData(data);
+    } catch (err) {
+      toast({
+        title: err instanceof Error ? err.message : "Failed to load analytics",
+        variant: "destructive",
+      });
+      setAnalyticsPageId(null);
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  }
+
+  async function downloadQrCode(page: LinkBioPage) {
+    setDownloadingQrId(page.id);
+    try {
+      const res = await fetch(`/api/bio-pages/${page.id}/qr`);
+      if (!res.ok) throw new Error("Failed to generate QR code");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `bio-${page.slug}-qr.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast({ title: "QR code downloaded", variant: "success" });
+    } catch (err) {
+      toast({
+        title: err instanceof Error ? err.message : "Failed to download QR code",
+        variant: "destructive",
+      });
+    } finally {
+      setDownloadingQrId(null);
     }
   }
 
@@ -142,7 +237,10 @@ export default function BioPagesPage() {
       setCreating(false);
       toast({ title: "Bio page created", variant: "success" });
     } catch (err) {
-      toast({ title: err instanceof Error ? err.message : "Failed to create page", variant: "destructive" });
+      toast({
+        title: err instanceof Error ? err.message : "Failed to create page",
+        variant: "destructive",
+      });
     } finally {
       setSaving(false);
     }
@@ -161,9 +259,16 @@ export default function BioPagesPage() {
         setExpandedId(null);
         setExpandedPage(null);
       }
+      if (analyticsPageId === pageId) {
+        setAnalyticsPageId(null);
+        setAnalyticsData(null);
+      }
       toast({ title: "Bio page deleted", variant: "success" });
     } catch (err) {
-      toast({ title: err instanceof Error ? err.message : "Failed to delete page", variant: "destructive" });
+      toast({
+        title: err instanceof Error ? err.message : "Failed to delete page",
+        variant: "destructive",
+      });
     } finally {
       setDeletingPageId(null);
     }
@@ -185,9 +290,15 @@ export default function BioPagesPage() {
           )
         );
       }
-      toast({ title: data.page?.isPublished ? "Page published" : "Page unpublished", variant: "success" });
+      toast({
+        title: data.page?.isPublished ? "Page published" : "Page unpublished",
+        variant: "success",
+      });
     } catch (err) {
-      toast({ title: err instanceof Error ? err.message : "Failed to update page", variant: "destructive" });
+      toast({
+        title: err instanceof Error ? err.message : "Failed to update page",
+        variant: "destructive",
+      });
     }
   }
 
@@ -220,7 +331,10 @@ export default function BioPagesPage() {
       setEditingPageId(null);
       toast({ title: "Bio page updated", variant: "success" });
     } catch (err) {
-      toast({ title: err instanceof Error ? err.message : "Failed to update page", variant: "destructive" });
+      toast({
+        title: err instanceof Error ? err.message : "Failed to update page",
+        variant: "destructive",
+      });
     } finally {
       setEditSaving(false);
     }
@@ -259,7 +373,10 @@ export default function BioPagesPage() {
       setAddingItemToPageId(null);
       toast({ title: "Link added", variant: "success" });
     } catch (err) {
-      toast({ title: err instanceof Error ? err.message : "Failed to add link", variant: "destructive" });
+      toast({
+        title: err instanceof Error ? err.message : "Failed to add link",
+        variant: "destructive",
+      });
     } finally {
       setNewItemSaving(false);
     }
@@ -283,13 +400,19 @@ export default function BioPagesPage() {
       setPages((prev) =>
         prev.map((p) =>
           p.id === pageId
-            ? { ...p, _count: { items: Math.max(0, (p._count?.items ?? 0) - 1) } }
+            ? {
+                ...p,
+                _count: { items: Math.max(0, (p._count?.items ?? 0) - 1) },
+              }
             : p
         )
       );
       toast({ title: "Link removed", variant: "success" });
     } catch (err) {
-      toast({ title: err instanceof Error ? err.message : "Failed to delete link", variant: "destructive" });
+      toast({
+        title: err instanceof Error ? err.message : "Failed to delete link",
+        variant: "destructive",
+      });
     } finally {
       setDeletingItemId(null);
     }
@@ -317,7 +440,10 @@ export default function BioPagesPage() {
         );
       }
     } catch (err) {
-      toast({ title: err instanceof Error ? err.message : "Failed to update link", variant: "destructive" });
+      toast({
+        title: err instanceof Error ? err.message : "Failed to update link",
+        variant: "destructive",
+      });
     }
   }
 
@@ -369,13 +495,18 @@ export default function BioPagesPage() {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="new-slug">
-                  URL Slug * <span className="text-muted-foreground font-normal">(postflow.app/bio/…)</span>
+                  URL Slug *{" "}
+                  <span className="text-muted-foreground font-normal">
+                    (postflow.app/bio/…)
+                  </span>
                 </Label>
                 <Input
                   id="new-slug"
                   value={newSlug}
                   onChange={(e) =>
-                    setNewSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
+                    setNewSlug(
+                      e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "")
+                    )
                   }
                   placeholder="e.g. myname"
                   maxLength={50}
@@ -393,7 +524,9 @@ export default function BioPagesPage() {
                 maxLength={500}
                 className="resize-none"
               />
-              <p className="text-xs text-muted-foreground text-right">{newBio.length}/500</p>
+              <p className="text-xs text-muted-foreground text-right">
+                {newBio.length}/500
+              </p>
             </div>
             <div className="flex gap-2 justify-end">
               <Button
@@ -454,7 +587,11 @@ export default function BioPagesPage() {
                       <Input
                         value={editSlug}
                         onChange={(e) =>
-                          setEditSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
+                          setEditSlug(
+                            e.target.value
+                              .toLowerCase()
+                              .replace(/[^a-z0-9-]/g, "")
+                          )
                         }
                         maxLength={50}
                       />
@@ -471,7 +608,11 @@ export default function BioPagesPage() {
                     />
                   </div>
                   <div className="flex gap-2 justify-end">
-                    <Button variant="outline" size="sm" onClick={() => setEditingPageId(null)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingPageId(null)}
+                    >
                       <X className="h-4 w-4" />
                     </Button>
                     <Button
@@ -494,7 +635,9 @@ export default function BioPagesPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-semibold">{page.title}</p>
-                          <Badge variant={page.isPublished ? "default" : "secondary"}>
+                          <Badge
+                            variant={page.isPublished ? "default" : "secondary"}
+                          >
                             {page.isPublished ? "Published" : "Unpublished"}
                           </Badge>
                           <Badge variant="outline" className="text-xs">
@@ -528,10 +671,26 @@ export default function BioPagesPage() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => window.open(`/bio/${page.slug}`, "_blank")}
+                          onClick={() =>
+                            window.open(`/bio/${page.slug}`, "_blank")
+                          }
                           title="Open page"
                         >
                           <ExternalLink className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => void downloadQrCode(page)}
+                          disabled={downloadingQrId === page.id}
+                          title="Download QR code"
+                        >
+                          {downloadingQrId === page.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <QrCode className="h-4 w-4" />
+                          )}
                         </Button>
                         <Button
                           variant="ghost"
@@ -572,16 +731,145 @@ export default function BioPagesPage() {
                       </div>
                     </div>
 
-                    {/* Expand toggle */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="mt-3 h-7 text-xs text-muted-foreground"
-                      onClick={() => void toggleExpand(page.id)}
-                    >
-                      {expandedId === page.id ? "Hide links ▲" : "Manage links ▼"}
-                    </Button>
+                    {/* Action toggles */}
+                    <div className="flex gap-2 mt-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs text-muted-foreground"
+                        onClick={() => void toggleExpand(page.id)}
+                      >
+                        {expandedId === page.id
+                          ? "Hide links ▲"
+                          : "Manage links ▼"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`h-7 text-xs ${analyticsPageId === page.id ? "text-primary" : "text-muted-foreground"}`}
+                        onClick={() => void toggleAnalytics(page.id)}
+                      >
+                        <BarChart2 className="mr-1 h-3.5 w-3.5" />
+                        {analyticsPageId === page.id
+                          ? "Hide analytics ▲"
+                          : "Analytics ▼"}
+                      </Button>
+                    </div>
                   </CardContent>
+
+                  {/* Analytics section */}
+                  {analyticsPageId === page.id && (
+                    <CardContent className="border-t pt-4 space-y-4">
+                      {loadingAnalytics ? (
+                        <div className="flex justify-center py-6">
+                          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                        </div>
+                      ) : analyticsData && analyticsData.pageId === page.id ? (
+                        <>
+                          <div className="flex items-center gap-3">
+                            <div className="rounded-lg border px-4 py-2 text-center">
+                              <p className="text-2xl font-bold">
+                                {analyticsData.totalClicks}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Total Clicks
+                              </p>
+                            </div>
+                            {analyticsData.deviceBreakdown.length > 0 && (
+                              <div className="flex gap-2 flex-wrap">
+                                {analyticsData.deviceBreakdown.map((d) => (
+                                  <Badge key={d.device} variant="outline">
+                                    {d.device}: {d.count}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Daily clicks chart */}
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground mb-2">
+                              Daily Clicks (last 30 days)
+                            </p>
+                            <ResponsiveContainer width="100%" height={120}>
+                              <LineChart data={analyticsData.dailyClicks}>
+                                <XAxis
+                                  dataKey="date"
+                                  tick={{ fontSize: 10 }}
+                                  tickFormatter={(v: string) =>
+                                    v.slice(5)
+                                  }
+                                  interval="preserveStartEnd"
+                                />
+                                <YAxis
+                                  tick={{ fontSize: 10 }}
+                                  allowDecimals={false}
+                                  width={25}
+                                />
+                                <Tooltip />
+                                <Line
+                                  type="monotone"
+                                  dataKey="count"
+                                  stroke="hsl(var(--primary))"
+                                  strokeWidth={2}
+                                  dot={false}
+                                />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          </div>
+
+                          {/* Per-item breakdown */}
+                          {analyticsData.items.length > 0 && (
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground mb-2">
+                                Link Performance
+                              </p>
+                              <div className="space-y-1.5">
+                                {analyticsData.items
+                                  .sort(
+                                    (a, b) => b.clicksTotal - a.clicksTotal
+                                  )
+                                  .map((item) => (
+                                    <div
+                                      key={item.itemId}
+                                      className="flex items-center gap-3 text-sm"
+                                    >
+                                      <span className="flex-1 min-w-0 truncate font-medium">
+                                        {item.label}
+                                      </span>
+                                      <span className="flex items-center gap-1 text-muted-foreground shrink-0">
+                                        <MousePointerClick className="h-3 w-3" />
+                                        {item.clicksTotal}
+                                      </span>
+                                      <span className="text-xs text-muted-foreground shrink-0">
+                                        {item.clicksLast7d} last 7d
+                                      </span>
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* QR download button */}
+                          <div className="pt-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => void downloadQrCode(page)}
+                              disabled={downloadingQrId === page.id}
+                            >
+                              {downloadingQrId === page.id ? (
+                                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Download className="mr-2 h-3.5 w-3.5" />
+                              )}
+                              Download QR Code
+                            </Button>
+                          </div>
+                        </>
+                      ) : null}
+                    </CardContent>
+                  )}
 
                   {/* Expanded items section */}
                   {expandedId === page.id && (
@@ -605,7 +893,9 @@ export default function BioPagesPage() {
                                   className="flex items-center gap-3 rounded-md border px-3 py-2"
                                 >
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium">{item.label}</p>
+                                    <p className="text-sm font-medium">
+                                      {item.label}
+                                    </p>
                                     <p className="text-xs text-muted-foreground truncate">
                                       {item.url}
                                     </p>
@@ -616,7 +906,9 @@ export default function BioPagesPage() {
                                       {item.clicks}
                                     </span>
                                     <button
-                                      onClick={() => void toggleItemActive(page.id, item)}
+                                      onClick={() =>
+                                        void toggleItemActive(page.id, item)
+                                      }
                                       className={`text-xs px-2 py-0.5 rounded-full border font-medium transition-colors ${
                                         item.isActive
                                           ? "bg-primary/10 text-primary border-primary/30"
@@ -653,13 +945,17 @@ export default function BioPagesPage() {
                                 <Input
                                   placeholder="Label (e.g. My Website)"
                                   value={newItemLabel}
-                                  onChange={(e) => setNewItemLabel(e.target.value)}
+                                  onChange={(e) =>
+                                    setNewItemLabel(e.target.value)
+                                  }
                                   maxLength={100}
                                 />
                                 <Input
                                   placeholder="URL (https://…)"
                                   value={newItemUrl}
-                                  onChange={(e) => setNewItemUrl(e.target.value)}
+                                  onChange={(e) =>
+                                    setNewItemUrl(e.target.value)
+                                  }
                                   type="url"
                                   maxLength={2048}
                                 />
