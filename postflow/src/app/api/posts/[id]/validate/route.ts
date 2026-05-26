@@ -63,7 +63,7 @@ export async function POST(
       "FACEBOOK", "INSTAGRAM", "THREADS", "LINKEDIN", "PINTEREST",
       "YOUTUBE", "TIKTOK", "TWITTER", "BLUESKY", "MASTODON",
       "TELEGRAM", "REDDIT", "NOSTR", "TUMBLR", "WORDPRESS",
-      "MEDIUM", "GHOST", "DEVTO", "HASHNODE",
+      "MEDIUM", "GHOST", "DEVTO", "GOOGLE_BUSINESS", "HASHNODE",
     ];
 
     const platforms: Platform[] = body.platforms && body.platforms.length > 0

@@ -34,6 +34,7 @@ jest.mock("@prisma/client", () => ({
     MEDIUM: "MEDIUM",
     GHOST: "GHOST",
     DEVTO: "DEVTO",
+    GOOGLE_BUSINESS: "GOOGLE_BUSINESS",
     HASHNODE: "HASHNODE",
   },
   Prisma: {

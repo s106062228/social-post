@@ -37,6 +37,7 @@ const PLATFORM_LABELS: Record<string, string> = {
   MEDIUM: "ME",
   GHOST: "GH",
   DEVTO: "DV",
+  GOOGLE_BUSINESS: "GB",
   HASHNODE: "HN",
 };
 
@@ -59,6 +60,7 @@ const PLATFORM_COLOURS: Record<string, string> = {
   MEDIUM: "bg-green-700 text-white",
   GHOST: "bg-yellow-700 text-white",
   DEVTO: "bg-gray-900 text-white",
+  GOOGLE_BUSINESS: "bg-green-700 text-white",
   HASHNODE: "bg-blue-500 text-white",
 };
 

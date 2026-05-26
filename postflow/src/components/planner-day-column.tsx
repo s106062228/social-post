@@ -64,6 +64,7 @@ const PLATFORM_ABBREV: Record<string, string> = {
   MEDIUM: "ME",
   GHOST: "GH",
   DEVTO: "DV",
+  GOOGLE_BUSINESS: "GB",
   HASHNODE: "HN",
 };
 

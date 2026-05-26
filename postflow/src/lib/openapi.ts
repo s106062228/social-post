@@ -86,6 +86,7 @@ export function generateOpenApiSpec() {
                 "MEDIUM",
                 "GHOST",
                 "DEVTO",
+                "GOOGLE_BUSINESS",
                 "HASHNODE",
               ],
             },

@@ -19,6 +19,7 @@ export const PLATFORM_CHAR_LIMITS: Record<Platform, number> = {
   MEDIUM: 100000,
   GHOST: 100000,
   DEVTO: 100000,
+  GOOGLE_BUSINESS: 1500,
   HASHNODE: 40000,
 };
 

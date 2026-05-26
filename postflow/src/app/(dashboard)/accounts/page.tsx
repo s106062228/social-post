@@ -46,6 +46,9 @@ export default async function AccountsPage({
   const hasGhost = accounts.some((a) => a.platform === Platform.GHOST);
   const hasDevTo = accounts.some((a) => a.platform === Platform.DEVTO);
   const hasHashnode = accounts.some((a) => a.platform === Platform.HASHNODE);
+  const hasGoogleBusiness = accounts.some(
+    (a) => a.platform === Platform.GOOGLE_BUSINESS
+  );
   const hasAnyMeta = hasFacebook || hasInstagram || hasThreads;
 
   const linkedInEnabled = !!(
@@ -87,6 +90,10 @@ export default async function AccountsPage({
   const ghostEnabled = true;
   // Dev.to uses personal API keys — no client credentials required
   const devtoEnabled = true;
+  const googleBusinessEnabled = !!(
+    process.env.GOOGLE_BUSINESS_CLIENT_ID &&
+    process.env.GOOGLE_BUSINESS_CLIENT_SECRET
+  );
   // Hashnode uses personal access tokens — no client credentials required
   const hashnodeEnabled = true;
 
@@ -555,6 +562,39 @@ export default async function AccountsPage({
         </Card>
       )}
 
+      {/* Google Business Profile connection card */}
+      {googleBusinessEnabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Google Business Profile</CardTitle>
+                <CardDescription>
+                  Connect your Google Business Profile to publish local posts to
+                  your business listing on Google Search and Maps.
+                </CardDescription>
+              </div>
+              <OAuthConnect
+                href="/api/oauth/google-business/connect"
+                label={
+                  hasGoogleBusiness
+                    ? "Reconnect Google Business"
+                    : "Connect Google Business"
+                }
+              />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <PlatformStatus
+                name="Google Business Profile"
+                connected={hasGoogleBusiness}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Hashnode connection card */}
       {hashnodeEnabled && (
         <Card>
@@ -670,6 +710,7 @@ function errorMessage(code: string): string {
     medium_auth_failed: "Medium authentication failed. Please try again.",
     ghost_auth_failed: "Ghost authentication failed. Check your instance URL and Admin API key.",
     devto_auth_failed: "Dev.to authentication failed. Check your personal API key.",
+    google_business_auth_failed: "Google Business Profile authentication failed. Please try again.",
     hashnode_auth_failed: "Hashnode authentication failed. Check your personal access token.",
   };
   return messages[code] ?? "An unexpected error occurred. Please try again.";

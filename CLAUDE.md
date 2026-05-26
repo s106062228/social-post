@@ -1597,3 +1597,15 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `GET /api/bio-pages/[id]/qr` endpoint — auth + ownership check + rate limit; generates PNG QR code for the bio page public URL using `qrcode` package (`QRCode.toBuffer`); returns `image/png` with `Content-Disposition: attachment`
 - [x] Bio pages dashboard UI updated — QR download button (QrCode icon) in page header toolbar; Analytics expand toggle per page showing daily clicks Recharts line chart, device breakdown badges, per-item click table (sorted by total clicks), and "Download QR Code" button
 - [x] Unit tests for analytics endpoint (auth, rate limit, not-found, ownership, response shape, totalClicks aggregation, 30 daily entries, device breakdown, item stats, no-clicks page — 10 tests) and QR endpoint (auth, rate limit, not-found, ownership, PNG content-type, content-disposition, QRCode.toBuffer call — 7 tests)
+
+### Phase 165: Google Business Profile Integration
+- [x] Add `GOOGLE_BUSINESS` to `Platform` enum in Prisma schema + migration (`20260712000000_add_google_business_platform`)
+- [x] Google Business Profile OAuth utility (`src/lib/auth/google-business-oauth.ts`) — `buildGoogleBusinessOAuthUrl`, `exchangeGoogleBusinessCode`, `getGoogleBusinessAccount`; uses `https://www.googleapis.com/auth/business.manage` scope; `serializeGoogleBusinessToken`/`parseGoogleBusinessToken` storing `{accessToken, refreshToken, accountName, locationName, businessName}` JSON
+- [x] Google Business connect route (`GET /api/oauth/google-business/connect`) — CSRF state + redirect to Google OAuth dialog
+- [x] Google Business callback route (`GET /api/oauth/google-business/callback`) — exchange code, fetch first GBP account and location, store encrypted token in SocialAccount
+- [x] Google Business Profile platform adapter (`src/lib/platforms/google-business.ts`) — implements PlatformAdapter; supports text posts (NONE) and image posts (IMAGE via `media[].sourceUrl`); VIDEO/CAROUSEL throw unsupported errors; publishes via GBP Local Posts API v4
+- [x] Update `character-limits.ts` — add `GOOGLE_BUSINESS: 1500` to `PLATFORM_CHAR_LIMITS`
+- [x] Update `.env.example` with `GOOGLE_BUSINESS_CLIENT_ID`, `GOOGLE_BUSINESS_CLIENT_SECRET`, `GOOGLE_BUSINESS_OAUTH_CALLBACK_URL`
+- [x] Update accounts page — add Google Business Profile connection card with status indicators and connect button (requires credentials)
+- [x] Update publish worker, retry route, insights route, sync-insights worker, publish route, content validator, and UI components (`platform-char-counter`, `platform-variants`, `post-preview`, `post-composer`, `queue-client`, `performance-alerts form`, and all other `Record<Platform,...>` maps) to include GOOGLE_BUSINESS
+- [x] Unit tests for Google Business adapter (text post, image post with photo URL, first-image-only, content truncation, VIDEO/CAROUSEL unsupported, API error, getStatus LIVE/REJECTED/unknown/error, deletePost success/404/500, getInsights returns zeros — 15 tests)

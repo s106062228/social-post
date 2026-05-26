@@ -36,6 +36,7 @@ const PLATFORM_BAR_COLORS: Record<string, string> = {
   MEDIUM: "bg-green-600",
   GHOST: "bg-yellow-600",
   DEVTO: "bg-gray-700",
+  GOOGLE_BUSINESS: "bg-green-600",
   HASHNODE: "bg-blue-600",
   PINTEREST: "bg-red-600",
 };

@@ -31,6 +31,7 @@ const PLATFORM_MEDIA_SUPPORT: Record<Platform, MediaType[]> = {
   MEDIUM: ["NONE", "IMAGE"],
   GHOST: ["NONE", "IMAGE"],
   DEVTO: ["NONE", "IMAGE"],
+  GOOGLE_BUSINESS: ["NONE", "IMAGE"],
   HASHNODE: ["NONE", "IMAGE"],
 };
 

@@ -24,6 +24,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   MEDIUM: "Medium",
   GHOST: "Ghost",
   DEVTO: "Dev.to",
+  GOOGLE_BUSINESS: "Google Business",
   HASHNODE: "Hashnode",
 };
 
@@ -46,6 +47,7 @@ const PLATFORM_LIMITS: Record<Platform, number> = {
   MEDIUM: 100000,
   GHOST: 100000,
   DEVTO: 100000,
+  GOOGLE_BUSINESS: 1500,
   HASHNODE: 40000,
 };
 

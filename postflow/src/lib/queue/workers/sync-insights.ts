@@ -21,6 +21,7 @@ import { wordpressAdapter } from "@/lib/platforms/wordpress";
 import { mediumAdapter } from "@/lib/platforms/medium";
 import { ghostAdapter } from "@/lib/platforms/ghost";
 import { devtoAdapter } from "@/lib/platforms/devto";
+import { googleBusinessAdapter } from "@/lib/platforms/google-business";
 import { hashnodeAdapter } from "@/lib/platforms/hashnode";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { workerLogger } from "@/lib/logger";
@@ -54,6 +55,7 @@ const adapters: Record<Platform, PlatformAdapter> = {
   [Platform.MEDIUM]: mediumAdapter,
   [Platform.GHOST]: ghostAdapter,
   [Platform.DEVTO]: devtoAdapter,
+  [Platform.GOOGLE_BUSINESS]: googleBusinessAdapter,
   [Platform.HASHNODE]: hashnodeAdapter,
 };
 

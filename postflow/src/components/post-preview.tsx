@@ -21,6 +21,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   MEDIUM: "Medium",
   GHOST: "Ghost",
   DEVTO: "Dev.to",
+  GOOGLE_BUSINESS: "Google Business",
   HASHNODE: "Hashnode",
 };
 
@@ -43,6 +44,7 @@ const PREVIEW_TRUNCATE: Record<Platform, number> = {
   MEDIUM: 300,
   GHOST: 300,
   DEVTO: 300,
+  GOOGLE_BUSINESS: 1500,
   HASHNODE: 300,
 };
 

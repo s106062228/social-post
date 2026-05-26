@@ -28,6 +28,7 @@ enum Platform {
   MEDIUM
   GHOST
   DEVTO
+  GOOGLE_BUSINESS
   HASHNODE
 }
 

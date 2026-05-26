@@ -43,6 +43,7 @@ type Platform =
   | "MEDIUM"
   | "GHOST"
   | "DEVTO"
+  | "GOOGLE_BUSINESS"
   | "HASHNODE";
 
 interface InspirationItem {
