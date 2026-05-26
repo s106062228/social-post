@@ -32,6 +32,7 @@ enum Platform {
   HASHNODE
   BEEHIIV
   PIXELFED
+  VIMEO
 }
 
 enum PostStatus {
