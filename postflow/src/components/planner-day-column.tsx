@@ -66,6 +66,7 @@ const PLATFORM_ABBREV: Record<string, string> = {
   DEVTO: "DV",
   GOOGLE_BUSINESS: "GB",
   HASHNODE: "HN",
+  BEEHIIV: "BH",
 };
 
 function formatTime(isoString: string): string {

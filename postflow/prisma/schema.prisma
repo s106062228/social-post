@@ -30,6 +30,7 @@ enum Platform {
   DEVTO
   GOOGLE_BUSINESS
   HASHNODE
+  BEEHIIV
 }
 
 enum PostStatus {

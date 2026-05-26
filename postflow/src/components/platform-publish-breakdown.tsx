@@ -39,6 +39,7 @@ const PLATFORM_BAR_COLORS: Record<string, string> = {
   GOOGLE_BUSINESS: "bg-green-600",
   HASHNODE: "bg-blue-600",
   PINTEREST: "bg-red-600",
+  BEEHIIV: "bg-orange-500",
 };
 
 export function PlatformPublishBreakdown({ breakdown }: PlatformPublishBreakdownProps) {

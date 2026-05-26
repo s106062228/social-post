@@ -24,6 +24,7 @@ import { ghostAdapter } from "@/lib/platforms/ghost";
 import { devtoAdapter } from "@/lib/platforms/devto";
 import { googleBusinessAdapter } from "@/lib/platforms/google-business";
 import { hashnodeAdapter } from "@/lib/platforms/hashnode";
+import { beehiivAdapter } from "@/lib/platforms/beehiiv";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { handleRouteError } from "@/lib/errors";
 
@@ -50,6 +51,7 @@ const adapters: Record<Platform, PlatformAdapter> = {
   [Platform.DEVTO]: devtoAdapter,
   [Platform.GOOGLE_BUSINESS]: googleBusinessAdapter,
   [Platform.HASHNODE]: hashnodeAdapter,
+  [Platform.BEEHIIV]: beehiivAdapter,
 };
 
 // ── GET /api/posts/[id]/insights ──────────────────────────────────────────────

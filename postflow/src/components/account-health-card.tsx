@@ -39,6 +39,7 @@ const PLATFORM_LABELS: Record<string, string> = {
   DEVTO: "DV",
   GOOGLE_BUSINESS: "GB",
   HASHNODE: "HN",
+  BEEHIIV: "BH",
 };
 
 const PLATFORM_COLOURS: Record<string, string> = {
@@ -62,6 +63,7 @@ const PLATFORM_COLOURS: Record<string, string> = {
   DEVTO: "bg-gray-900 text-white",
   GOOGLE_BUSINESS: "bg-green-700 text-white",
   HASHNODE: "bg-blue-500 text-white",
+  BEEHIIV: "bg-orange-500 text-white",
 };
 
 // ── Score circle ──────────────────────────────────────────────────────────────

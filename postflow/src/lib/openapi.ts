@@ -88,6 +88,7 @@ export function generateOpenApiSpec() {
                 "DEVTO",
                 "GOOGLE_BUSINESS",
                 "HASHNODE",
+                "BEEHIIV",
               ],
             },
             accountName: { type: "string" },

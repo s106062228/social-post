@@ -49,6 +49,7 @@ export default async function AccountsPage({
   const hasGoogleBusiness = accounts.some(
     (a) => a.platform === Platform.GOOGLE_BUSINESS
   );
+  const hasBeehiiv = accounts.some((a) => a.platform === Platform.BEEHIIV);
   const hasAnyMeta = hasFacebook || hasInstagram || hasThreads;
 
   const linkedInEnabled = !!(
@@ -96,6 +97,8 @@ export default async function AccountsPage({
   );
   // Hashnode uses personal access tokens — no client credentials required
   const hashnodeEnabled = true;
+  // Beehiiv uses personal API key + publication ID — no client credentials required
+  const beehiivEnabled = true;
 
   return (
     <div className="flex flex-col gap-8 p-8">
@@ -618,6 +621,34 @@ export default async function AccountsPage({
           <CardContent>
             <div className="grid gap-3 sm:grid-cols-1">
               <PlatformStatus name="Hashnode" connected={hasHashnode} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Beehiiv connection card */}
+      {beehiivEnabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Beehiiv</CardTitle>
+                <CardDescription>
+                  Connect your Beehiiv newsletter using an API key to publish
+                  post drafts directly to your publication.
+                </CardDescription>
+              </div>
+              <a
+                href="/accounts/beehiiv-connect"
+                className="inline-flex items-center justify-center rounded-md bg-[#FF6B35] px-4 py-2 text-sm font-medium text-white hover:bg-[#E55A25] focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:ring-offset-2"
+              >
+                {hasBeehiiv ? "Reconnect Beehiiv" : "Connect Beehiiv"}
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <PlatformStatus name="Beehiiv" connected={hasBeehiiv} />
             </div>
           </CardContent>
         </Card>

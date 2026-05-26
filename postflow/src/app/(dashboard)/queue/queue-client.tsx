@@ -31,6 +31,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   DEVTO: "Dev.to",
   GOOGLE_BUSINESS: "Google Business",
   HASHNODE: "Hashnode",
+  BEEHIIV: "Beehiiv",
 };
 
 interface QueueSlot {

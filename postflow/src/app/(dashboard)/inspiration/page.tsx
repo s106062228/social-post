@@ -44,7 +44,8 @@ type Platform =
   | "GHOST"
   | "DEVTO"
   | "GOOGLE_BUSINESS"
-  | "HASHNODE";
+  | "HASHNODE"
+  | "BEEHIIV";
 
 interface InspirationItem {
   id: string;
@@ -78,6 +79,7 @@ const PLATFORM_LABELS: Partial<Record<Platform, string>> = {
   GHOST: "Ghost",
   DEVTO: "Dev.to",
   HASHNODE: "Hashnode",
+  BEEHIIV: "Beehiiv",
 };
 
 export default function InspirationPage() {

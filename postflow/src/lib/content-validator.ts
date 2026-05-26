@@ -33,6 +33,7 @@ const PLATFORM_MEDIA_SUPPORT: Record<Platform, MediaType[]> = {
   DEVTO: ["NONE", "IMAGE"],
   GOOGLE_BUSINESS: ["NONE", "IMAGE"],
   HASHNODE: ["NONE", "IMAGE"],
+  BEEHIIV: ["NONE", "IMAGE"],
 };
 
 // Per-platform URL limits (max URLs in content, null = no limit)

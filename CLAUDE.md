@@ -1609,3 +1609,15 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update accounts page — add Google Business Profile connection card with status indicators and connect button (requires credentials)
 - [x] Update publish worker, retry route, insights route, sync-insights worker, publish route, content validator, and UI components (`platform-char-counter`, `platform-variants`, `post-preview`, `post-composer`, `queue-client`, `performance-alerts form`, and all other `Record<Platform,...>` maps) to include GOOGLE_BUSINESS
 - [x] Unit tests for Google Business adapter (text post, image post with photo URL, first-image-only, content truncation, VIDEO/CAROUSEL unsupported, API error, getStatus LIVE/REJECTED/unknown/error, deletePost success/404/500, getInsights returns zeros — 15 tests)
+
+### Phase 166: Beehiiv Newsletter Integration
+- [x] Add `BEEHIIV` to `Platform` enum in Prisma schema + migration (`20260713000000_add_beehiiv_platform`)
+- [x] Beehiiv API key utility (`src/lib/auth/beehiiv-oauth.ts`) — `verifyBeehiivApiKey(apiKey, publicationId)` verifies via Beehiiv API v2 `GET /publications/{id}`; `serializeBeehiivToken`/`parseBeehiivToken` for encrypted storage storing `{apiKey, publicationId, publicationName}`
+- [x] Beehiiv connect route (`POST /api/oauth/beehiiv/connect`) — accepts `{apiKey, publicationId}` JSON body; verifies with Beehiiv API; stores encrypted token in SocialAccount; rate-limited
+- [x] Beehiiv platform adapter (`src/lib/platforms/beehiiv.ts`) — implements PlatformAdapter; supports text posts (NONE as newsletter draft) and image posts (IMAGE with embedded image URL in HTML body); VIDEO/CAROUSEL throw unsupported errors; uses Beehiiv API v2 `POST /publications/{id}/posts`
+- [x] Update `character-limits.ts` — add `BEEHIIV: 50000` to `PLATFORM_CHAR_LIMITS`
+- [x] Update publish worker, retry route, insights route, sync-insights worker, and UI components (`platform-char-counter`, `platform-variants`, `post-preview`, `post-composer`, `queue-client`, `performance-alerts form`) to include BEEHIIV
+- [x] Update `.env.example` — add Beehiiv section noting no client credentials are required (uses personal API key + publication ID)
+- [x] Update accounts page — add Beehiiv connection card (always enabled) linking to `/accounts/beehiiv-connect`
+- [x] Beehiiv connect form page (`/accounts/beehiiv-connect`) — client component form accepting API key + publication ID; POSTs to `/api/oauth/beehiiv/connect`; redirects to `/accounts` on success; shows error inline
+- [x] Unit tests for Beehiiv adapter (text post, title extraction, image post with embedded URL, VIDEO/CAROUSEL unsupported, getStatus draft/confirmed, deletePost no-op, getInsights empty — 10 tests)

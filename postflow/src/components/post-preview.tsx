@@ -23,6 +23,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   DEVTO: "Dev.to",
   GOOGLE_BUSINESS: "Google Business",
   HASHNODE: "Hashnode",
+  BEEHIIV: "Beehiiv",
 };
 
 const PREVIEW_TRUNCATE: Record<Platform, number> = {
@@ -46,6 +47,7 @@ const PREVIEW_TRUNCATE: Record<Platform, number> = {
   DEVTO: 300,
   GOOGLE_BUSINESS: 1500,
   HASHNODE: 300,
+  BEEHIIV: 300,
 };
 
 function truncate(text: string, maxLen: number): { text: string; truncated: boolean } {

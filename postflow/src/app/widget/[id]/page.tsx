@@ -38,6 +38,7 @@ const PLATFORM_LABELS: Record<string, string> = {
   DEVTO: "Dev.to",
   GOOGLE_BUSINESS: "Google Business",
   HASHNODE: "Hashnode",
+  BEEHIIV: "Beehiiv",
 };
 
 export default async function WidgetPage({ params }: PageProps) {
