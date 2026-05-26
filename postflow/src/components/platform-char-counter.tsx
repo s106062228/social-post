@@ -25,6 +25,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   GOOGLE_BUSINESS: "Google Business",
   HASHNODE: "Hashnode",
   BEEHIIV: "Beehiiv",
+  PIXELFED: "Pixelfed",
 };
 
 interface PlatformCharCounterProps {

@@ -1,0 +1,1 @@
+ALTER TYPE "Platform" ADD VALUE 'PIXELFED';

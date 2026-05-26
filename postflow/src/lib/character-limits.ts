@@ -22,6 +22,7 @@ export const PLATFORM_CHAR_LIMITS: Record<Platform, number> = {
   GOOGLE_BUSINESS: 1500,
   HASHNODE: 40000,
   BEEHIIV: 50000,
+  PIXELFED: 500,
 };
 
 export interface CharacterInfo {

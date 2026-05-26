@@ -34,6 +34,7 @@ const PLATFORM_MEDIA_SUPPORT: Record<Platform, MediaType[]> = {
   GOOGLE_BUSINESS: ["NONE", "IMAGE"],
   HASHNODE: ["NONE", "IMAGE"],
   BEEHIIV: ["NONE", "IMAGE"],
+  PIXELFED: ["NONE", "IMAGE"],
 };
 
 // Per-platform URL limits (max URLs in content, null = no limit)

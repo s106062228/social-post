@@ -23,6 +23,7 @@ import { devtoAdapter } from "@/lib/platforms/devto";
 import { googleBusinessAdapter } from "@/lib/platforms/google-business";
 import { hashnodeAdapter } from "@/lib/platforms/hashnode";
 import { beehiivAdapter } from "@/lib/platforms/beehiiv";
+import { pixelfedAdapter } from "@/lib/platforms/pixelfed";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { createRedisConnection, QUEUE_NAMES } from "../connection";
 import { publishLogger } from "@/lib/logger";
@@ -65,6 +66,7 @@ const adapters: Record<Platform, PlatformAdapter> = {
   [Platform.GOOGLE_BUSINESS]: googleBusinessAdapter,
   [Platform.HASHNODE]: hashnodeAdapter,
   [Platform.BEEHIIV]: beehiivAdapter,
+  [Platform.PIXELFED]: pixelfedAdapter,
 };
 
 // ── Exponential backoff helper ─────────────────────────────────────────────────

@@ -27,6 +27,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   GOOGLE_BUSINESS: "Google Business",
   HASHNODE: "Hashnode",
   BEEHIIV: "Beehiiv",
+  PIXELFED: "Pixelfed",
 };
 
 const PLATFORM_LIMITS: Record<Platform, number> = {
@@ -51,6 +52,7 @@ const PLATFORM_LIMITS: Record<Platform, number> = {
   GOOGLE_BUSINESS: 1500,
   HASHNODE: 40000,
   BEEHIIV: 50000,
+  PIXELFED: 500,
 };
 
 export interface PlatformVariantData {

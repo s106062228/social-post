@@ -89,6 +89,7 @@ export function generateOpenApiSpec() {
                 "GOOGLE_BUSINESS",
                 "HASHNODE",
                 "BEEHIIV",
+                "PIXELFED",
               ],
             },
             accountName: { type: "string" },

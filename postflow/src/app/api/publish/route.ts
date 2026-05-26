@@ -25,6 +25,7 @@ import { devtoAdapter } from "@/lib/platforms/devto";
 import { googleBusinessAdapter } from "@/lib/platforms/google-business";
 import { hashnodeAdapter } from "@/lib/platforms/hashnode";
 import { beehiivAdapter } from "@/lib/platforms/beehiiv";
+import { pixelfedAdapter } from "@/lib/platforms/pixelfed";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 import { handleRouteError } from "@/lib/errors";
 import { publishLimiter, rateLimitHeaders } from "@/lib/rate-limit";
@@ -65,6 +66,7 @@ const adapters: Record<Platform, PlatformAdapter> = {
   [Platform.GOOGLE_BUSINESS]: googleBusinessAdapter,
   [Platform.HASHNODE]: hashnodeAdapter,
   [Platform.BEEHIIV]: beehiivAdapter,
+  [Platform.PIXELFED]: pixelfedAdapter,
 };
 
 // ── POST /api/publish ─────────────────────────────────────────────────────────

@@ -31,6 +31,7 @@ enum Platform {
   GOOGLE_BUSINESS
   HASHNODE
   BEEHIIV
+  PIXELFED
 }
 
 enum PostStatus {

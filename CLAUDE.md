@@ -1621,3 +1621,16 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update accounts page — add Beehiiv connection card (always enabled) linking to `/accounts/beehiiv-connect`
 - [x] Beehiiv connect form page (`/accounts/beehiiv-connect`) — client component form accepting API key + publication ID; POSTs to `/api/oauth/beehiiv/connect`; redirects to `/accounts` on success; shows error inline
 - [x] Unit tests for Beehiiv adapter (text post, title extraction, image post with embedded URL, VIDEO/CAROUSEL unsupported, getStatus draft/confirmed, deletePost no-op, getInsights empty — 10 tests)
+
+### Phase 167: Pixelfed Platform Integration
+- [x] Add `PIXELFED` to `Platform` enum in Prisma schema + migration (`20260714000000_add_pixelfed_platform`)
+- [x] Pixelfed token utility (`src/lib/auth/pixelfed-oauth.ts`) — `verifyPixelfedToken(instanceUrl, accessToken)` verifies via Pixelfed API `/api/v1/accounts/verify_credentials`; `serializePixelfedToken`, `parsePixelfedToken` for encrypted storage storing `{instanceUrl, accessToken, accountId, username}`
+- [x] Pixelfed connect route (`POST /api/oauth/pixelfed/connect`) — accepts `{instanceUrl, accessToken}` JSON body; verifies token with instance; stores encrypted `{instanceUrl, accessToken, accountId, username}` JSON in SocialAccount; rate-limited
+- [x] Pixelfed platform adapter (`src/lib/platforms/pixelfed.ts`) — implements PlatformAdapter; supports text posts (NONE) and image posts (IMAGE, up to 4 images via `/api/v1/media` upload + `/api/v1/statuses`); VIDEO/CAROUSEL throw unsupported errors
+- [x] Update `character-limits.ts` — add `PIXELFED: 500` to `PLATFORM_CHAR_LIMITS`
+- [x] Update publish worker — import and register `pixelfedAdapter`; no token refresh needed (Pixelfed tokens do not expire)
+- [x] Update `.env.example` — add Pixelfed section noting no client credentials are required
+- [x] Update accounts page — add Pixelfed connection card (always enabled) linking to `/accounts/pixelfed-connect`
+- [x] Pixelfed connect form page (`/accounts/pixelfed-connect`) — client component form accepting instance URL + access token; POSTs to `/api/oauth/pixelfed/connect`; redirects to `/accounts` on success; shows error inline
+- [x] Update all `Record<Platform, ...>` maps and UI components (`platform-char-counter`, `platform-variants`, `post-preview`, `post-composer`, `queue-client`, `performance-alerts form`) to include PIXELFED
+- [x] Unit tests for Pixelfed adapter (text post, content truncation, image post with media upload, image fetch failure, media upload failure, VIDEO/CAROUSEL unsupported, getStatus found, getStatus not-found, deletePost success, deletePost failure, getInsights — 11 tests)
