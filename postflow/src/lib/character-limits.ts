@@ -23,6 +23,7 @@ export const PLATFORM_CHAR_LIMITS: Record<Platform, number> = {
   HASHNODE: 40000,
   BEEHIIV: 50000,
   PIXELFED: 500,
+  VIMEO: 5000,
 };
 
 export interface CharacterInfo {

@@ -26,6 +26,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   HASHNODE: "Hashnode",
   BEEHIIV: "Beehiiv",
   PIXELFED: "Pixelfed",
+  VIMEO: "Vimeo",
 };
 
 interface PlatformCharCounterProps {

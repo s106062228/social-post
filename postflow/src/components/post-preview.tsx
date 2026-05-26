@@ -25,6 +25,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   HASHNODE: "Hashnode",
   BEEHIIV: "Beehiiv",
   PIXELFED: "Pixelfed",
+  VIMEO: "Vimeo",
 };
 
 const PREVIEW_TRUNCATE: Record<Platform, number> = {
@@ -50,6 +51,7 @@ const PREVIEW_TRUNCATE: Record<Platform, number> = {
   HASHNODE: 300,
   BEEHIIV: 300,
   PIXELFED: 500,
+  VIMEO: 5000,
 };
 
 function truncate(text: string, maxLen: number): { text: string; truncated: boolean } {

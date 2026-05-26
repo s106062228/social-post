@@ -28,6 +28,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   HASHNODE: "Hashnode",
   BEEHIIV: "Beehiiv",
   PIXELFED: "Pixelfed",
+  VIMEO: "Vimeo",
 };
 
 const PLATFORM_LIMITS: Record<Platform, number> = {
@@ -53,6 +54,7 @@ const PLATFORM_LIMITS: Record<Platform, number> = {
   HASHNODE: 40000,
   BEEHIIV: 50000,
   PIXELFED: 500,
+  VIMEO: 5000,
 };
 
 export interface PlatformVariantData {

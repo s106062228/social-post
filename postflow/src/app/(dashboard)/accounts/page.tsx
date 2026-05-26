@@ -51,6 +51,7 @@ export default async function AccountsPage({
   );
   const hasBeehiiv = accounts.some((a) => a.platform === Platform.BEEHIIV);
   const hasPixelfed = accounts.some((a) => a.platform === Platform.PIXELFED);
+  const hasVimeo = accounts.some((a) => a.platform === Platform.VIMEO);
   const hasAnyMeta = hasFacebook || hasInstagram || hasThreads;
 
   const linkedInEnabled = !!(
@@ -102,6 +103,9 @@ export default async function AccountsPage({
   const beehiivEnabled = true;
   // Pixelfed uses access tokens — no client credentials required
   const pixelfedEnabled = true;
+  const vimeoEnabled = !!(
+    process.env.VIMEO_CLIENT_ID && process.env.VIMEO_CLIENT_SECRET
+  );
 
   return (
     <div className="flex flex-col gap-8 p-8">
@@ -680,6 +684,34 @@ export default async function AccountsPage({
           <CardContent>
             <div className="grid gap-3 sm:grid-cols-1">
               <PlatformStatus name="Pixelfed" connected={hasPixelfed} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Vimeo connection card */}
+      {vimeoEnabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Vimeo</CardTitle>
+                <CardDescription>
+                  Connect your Vimeo account to publish video posts via the
+                  Vimeo API v3. Supports URL-based video upload.
+                </CardDescription>
+              </div>
+              <a
+                href="/api/oauth/vimeo/connect"
+                className="inline-flex items-center justify-center rounded-md bg-[#1AB7EA] px-4 py-2 text-sm font-medium text-white hover:bg-[#0F9CC9] focus:outline-none focus:ring-2 focus:ring-[#1AB7EA] focus:ring-offset-2"
+              >
+                {hasVimeo ? "Reconnect Vimeo" : "Connect Vimeo"}
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-1">
+              <PlatformStatus name="Vimeo" connected={hasVimeo} />
             </div>
           </CardContent>
         </Card>

@@ -1634,3 +1634,15 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Pixelfed connect form page (`/accounts/pixelfed-connect`) — client component form accepting instance URL + access token; POSTs to `/api/oauth/pixelfed/connect`; redirects to `/accounts` on success; shows error inline
 - [x] Update all `Record<Platform, ...>` maps and UI components (`platform-char-counter`, `platform-variants`, `post-preview`, `post-composer`, `queue-client`, `performance-alerts form`) to include PIXELFED
 - [x] Unit tests for Pixelfed adapter (text post, content truncation, image post with media upload, image fetch failure, media upload failure, VIDEO/CAROUSEL unsupported, getStatus found, getStatus not-found, deletePost success, deletePost failure, getInsights — 11 tests)
+
+### Phase 168: Vimeo Platform Integration
+- [x] Add `VIMEO` to `Platform` enum in Prisma schema + migration (`20260715000000_add_vimeo_platform`)
+- [x] Vimeo OAuth 2.0 utility (`src/lib/auth/vimeo-oauth.ts`) — `buildVimeoOAuthUrl`, `exchangeVimeoCode`, `getVimeoUser`; uses `public private upload edit` scopes; `serializeVimeoToken`/`parseVimeoToken` storing `{accessToken, userId, name, link}`
+- [x] Vimeo connect route (`GET /api/oauth/vimeo/connect`) — CSRF state + redirect to Vimeo OAuth dialog
+- [x] Vimeo callback route (`GET /api/oauth/vimeo/callback`) — exchange code, fetch user info, store encrypted token in SocialAccount
+- [x] Vimeo platform adapter (`src/lib/platforms/vimeo.ts`) — implements PlatformAdapter; supports video posts (VIDEO) via Vimeo API v3 using the upload API (POST /me/videos with link approach for URL-based uploads); NONE/IMAGE/CAROUSEL throw unsupported errors
+- [x] Update `character-limits.ts` — add `VIMEO: 5000` to `PLATFORM_CHAR_LIMITS`
+- [x] Update `.env.example` with `VIMEO_CLIENT_ID`, `VIMEO_CLIENT_SECRET`, `VIMEO_OAUTH_CALLBACK_URL`
+- [x] Update accounts page — add Vimeo connection card with status indicators and connect button
+- [x] Update publish worker, retry route, insights route, sync-insights worker, and UI components (`platform-char-counter`, `platform-variants`, `post-preview`, `post-composer`, `queue-client`, `performance-alerts form`) to include VIMEO
+- [x] Unit tests for Vimeo adapter (video post, no-media error, NONE/IMAGE unsupported, getStatus, deletePost, getInsights — 12 tests)

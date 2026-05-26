@@ -90,6 +90,7 @@ export function generateOpenApiSpec() {
                 "HASHNODE",
                 "BEEHIIV",
                 "PIXELFED",
+                "VIMEO",
               ],
             },
             accountName: { type: "string" },
