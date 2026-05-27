@@ -1374,3 +1374,72 @@ export async function generateReplySuggestions(
   } catch { /* fall through */ }
   return [];
 }
+
+export interface ContentRefreshSuggestion {
+  type: "hashtag_update" | "stat_refresh" | "tone_modernize" | "add_cta" | "platform_optimize";
+  original?: string;
+  updated: string;
+  reason: string;
+}
+
+export interface ContentRefreshResult {
+  suggestions: ContentRefreshSuggestion[];
+  refreshedContent: string;
+}
+
+const REFRESH_SYSTEM = `You are a social media content strategist. Your job is to refresh older social media posts to make them current and engaging again.
+Analyze the original post content and suggest specific improvements. Always respond with valid JSON in this exact format:
+{"suggestions": [{"type": "hashtag_update|stat_refresh|tone_modernize|add_cta|platform_optimize", "original": "old text if replacing specific part", "updated": "new or replacement text", "reason": "why this improves the post"}], "refreshedContent": "the complete refreshed post content"}
+Provide 2-4 actionable suggestions. Types:
+- hashtag_update: update or add relevant hashtags
+- stat_refresh: update statistics or numbers that may be outdated
+- tone_modernize: modernize the language and tone
+- add_cta: add or improve a call-to-action
+- platform_optimize: optimize for the target platform's current best practices
+Keep refreshedContent under platform character limits when specified.`;
+
+export async function suggestContentRefresh(
+  originalContent: string,
+  originalDate: string,
+  platforms: string[]
+): Promise<ContentRefreshResult> {
+  const client = getClient();
+  const userContent = `Original post content:\n${originalContent}\n\nOriginal publish date: ${originalDate}\n\nTarget platforms: ${platforms.join(", ")}\n\nSuggest how to refresh this content to make it more current and engaging.`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 1024,
+    system: [
+      { type: "text", text: REFRESH_SYSTEM, cache_control: { type: "ephemeral" } },
+    ],
+    messages: [{ role: "user", content: userContent }],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as { suggestions?: unknown; refreshedContent?: unknown };
+    const suggestions = parsed.suggestions;
+    const refreshedContent = parsed.refreshedContent;
+    if (
+      Array.isArray(suggestions) &&
+      suggestions.every(
+        (s) =>
+          typeof s === "object" &&
+          s !== null &&
+          typeof (s as Record<string, unknown>).type === "string" &&
+          typeof (s as Record<string, unknown>).updated === "string" &&
+          typeof (s as Record<string, unknown>).reason === "string"
+      ) &&
+      typeof refreshedContent === "string"
+    ) {
+      return {
+        suggestions: suggestions as ContentRefreshSuggestion[],
+        refreshedContent,
+      };
+    }
+  } catch {
+    // fall through
+  }
+  return { suggestions: [], refreshedContent: originalContent };
+}

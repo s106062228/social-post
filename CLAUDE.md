@@ -1678,3 +1678,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `PerformanceMatrixCard` component (`src/components/performance-matrix-card.tsx`) — grid heatmap showing categories as rows and platforms as columns; cell color intensity proportional to engagement score; post count badge per cell; period selector (30d/90d/all); "No data yet" empty state
 - [x] Integrate `PerformanceMatrixCard` into analytics dashboard below the `BenchmarkCard`; add `"performance_matrix"` widget key to `WIDGET_KEYS` array and `WIDGET_LABELS` in dashboard-widgets route; add to `DashboardCustomizeDialog`
 - [x] Unit tests for performance-matrix endpoint (auth, rate limit, period validation, response shape, matrix aggregation, empty state, single platform, multi-category — 10 tests)
+
+### Phase 173: AI Content Refresh & Evergreen Post Update Suggestions
+- [x] Add `suggestContentRefresh(originalContent, originalDate, platforms)` to `src/lib/ai.ts` — calls `claude-haiku-4-5` to analyze older post content and suggest specific improvements (hashtag updates, stat refreshes, tone modernization, CTAs, platform optimization); uses prompt caching on system block; returns `{suggestions: ContentRefreshSuggestion[], refreshedContent: string}`
+- [x] `POST /api/posts/[id]/suggest-refresh` endpoint — auth + rate limit + AI check + ownership; uses published platforms by default (falls back to all platforms when none); calls `suggestContentRefresh`; returns `{suggestions, refreshedContent}`; 503 when AI not configured
+- [x] `ContentRefreshDialog` component (`src/components/content-refresh-dialog.tsx`) — modal showing per-suggestion type badge, original→updated diff, and reason; complete refreshed content preview with copy-to-clipboard and "Create as New Draft" button; regenerate option; loading state
+- [x] "Refresh" button (RefreshCw icon) per post row in posts list — opens `ContentRefreshDialog`
+- [x] Unit tests for suggest-refresh endpoint (auth, rate limit, AI disabled, not-found, ownership, success shape, targetPlatforms param, invalid platform, fallback to all platforms, DB error — 10 tests)
