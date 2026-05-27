@@ -286,6 +286,66 @@ async function main() {
   });
   console.log(`✅  Post: FAILED (id: ${failedPost.id})`);
 
+  // ── Changelog Entries ──────────────────────────────────────────────────────
+  const changelogEntries = [
+    {
+      title: "AI-Powered Scheduling Advisor",
+      summary:
+        "Get personalized scheduling recommendations based on your historical engagement data and posting patterns.",
+      body: "**What's new:** The AI Scheduling Advisor analyzes your past PostInsights and engagement metrics to suggest the optimal times to publish on each platform.\n\n**How to use:** Visit the Analytics dashboard and look for the Scheduling Advisor card. Click 'Get Recommendations' to receive prioritized posting time suggestions.\n\n`POST /api/ai/schedule-advice` now available.",
+      type: "feature",
+      version: "2.5.0",
+      publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      isPublished: true,
+    },
+    {
+      title: "Content Duplicate Detection",
+      summary:
+        "PostFlow now warns you when new post content is too similar to something you've already published.",
+      body: "We've added a similarity engine that computes Jaccard similarity across your recent posts. A **DuplicateWarning** banner will appear in the post composer when your content is ≥40% similar to an existing post.\n\nThis helps you keep your feed fresh and avoid accidentally re-posting the same content.",
+      type: "improvement",
+      version: "2.4.0",
+      publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      isPublished: true,
+    },
+    {
+      title: "Bluesky & Mastodon Platform Support",
+      summary:
+        "Connect your Bluesky and Mastodon accounts to PostFlow and publish to the open social web.",
+      body: "PostFlow now supports two federated social platforms:\n\n**Bluesky** — Connect via AT Protocol app password. Supports text posts and multi-image posts (up to 4 images).\n\n**Mastodon** — Connect any Mastodon instance using your access token. Supports text and image posts.\n\nVisit the **Accounts** page to connect these platforms.",
+      type: "feature",
+      version: "2.3.0",
+      publishedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+      isPublished: true,
+    },
+    {
+      title: "Post A/B Testing",
+      summary:
+        "Compare two post variants side-by-side with real engagement metrics to determine which content performs better.",
+      body: "The new **A/B Tests** section lets you pair any two posts as variants and track their relative performance over time.\n\n- View impressions, reach, likes, comments, and shares side-by-side\n- Mark a winner (A, B, or Inconclusive) when the test concludes\n- Add notes about what you learned\n\nFind it in the sidebar under **A/B Tests**.",
+      type: "feature",
+      version: "2.2.0",
+      publishedAt: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000),
+      isPublished: true,
+    },
+    {
+      title: "Fixed: Calendar date display in non-UTC timezones",
+      summary:
+        "Scheduled posts now correctly appear on the right date in the calendar view when your timezone differs from UTC.",
+      body: "We fixed a bug where posts scheduled near midnight UTC would appear on the wrong day in the calendar for users in timezones significantly offset from UTC.\n\nThe fix applies both the month view and the year heatmap. Your timezone setting from **Settings → Timezone** is now respected consistently across all calendar views.",
+      type: "bugfix",
+      version: "2.1.1",
+      publishedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      isPublished: true,
+    },
+  ];
+
+  await prisma.changelogEntry.createMany({
+    data: changelogEntries,
+    skipDuplicates: true,
+  });
+  console.log(`✅  Changelog: ${changelogEntries.length} sample entries created`);
+
   console.log("\n🎉  Seed complete!\n");
   console.log("  Login: demo@postflow.dev");
   console.log("  Password: demo1234\n");

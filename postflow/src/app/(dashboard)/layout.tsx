@@ -1,5 +1,6 @@
 import { Sidebar } from "@/components/sidebar";
 import { NotificationBell } from "@/components/notification-bell";
+import { ChangelogBadge } from "@/components/changelog-badge";
 import { CommandPalette } from "@/components/command-palette";
 import { ShortcutHelp } from "@/components/shortcut-help";
 import { GlobalShortcuts } from "@/components/global-shortcuts";
@@ -21,7 +22,10 @@ export default function DashboardLayout({
         {/* Top bar */}
         <header className="flex h-14 shrink-0 items-center justify-between border-b bg-card px-6">
           <TourButton />
-          <NotificationBell />
+          <div className="flex items-center gap-1">
+            <ChangelogBadge />
+            <NotificationBell />
+          </div>
         </header>
         <main className="flex-1 overflow-y-auto bg-muted/20">{children}</main>
       </div>

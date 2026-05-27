@@ -1646,3 +1646,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update accounts page — add Vimeo connection card with status indicators and connect button
 - [x] Update publish worker, retry route, insights route, sync-insights worker, and UI components (`platform-char-counter`, `platform-variants`, `post-preview`, `post-composer`, `queue-client`, `performance-alerts form`) to include VIMEO
 - [x] Unit tests for Vimeo adapter (video post, no-media error, NONE/IMAGE unsupported, getStatus, deletePost, getInsights — 12 tests)
+
+### Phase 169: In-App Changelog & Feature Announcements
+- [x] `ChangelogEntry` model in Prisma (id, title, summary, body, type String (feature/improvement/bugfix), version?, publishedAt DateTime, isPublished Boolean default false, createdAt, updatedAt) + `UserChangelogView` model (id, userId, entryId, viewedAt) + migration (`20260716000000_add_changelog`)
+- [x] `GET /api/changelog` endpoint — returns published entries sorted by publishedAt desc; includes `seen` boolean per entry based on UserChangelogView; auth + rate limit; supports `?limit=20` param
+- [x] `POST /api/changelog/mark-seen` endpoint — upserts UserChangelogView rows for all unseen published entries; auth + rate limit; returns `{marked: number}`
+- [x] `ChangelogBadge` client component (`src/components/changelog-badge.tsx`) — bell/sparkle icon button in dashboard header showing count of unseen entries as a badge; clicking opens a dropdown list of recent changelog entries with type colour chips and "Mark all as seen" button; polling every 5 min
+- [x] Changelog page in dashboard (`/changelog`) — full paginated list of all published entries with type filters (All / Feature / Improvement / Bugfix), search by title, rendered body with markdown support; marks all as seen on mount
+- [x] Add "Changelog" to sidebar navigation (icon: `Newspaper`)
+- [x] Seed script extension — adds 5 sample changelog entries (mix of feature/improvement/bugfix types) to development data
+- [x] Unit tests for changelog API (GET auth, GET rate limit, GET returns published only, GET includes seen flag, GET unseen count, POST mark-seen auth, POST mark-seen rate limit, POST marks all unseen, POST idempotent — 11 tests)

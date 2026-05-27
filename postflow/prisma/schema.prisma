@@ -180,6 +180,7 @@ model User {
   publishingPaused       Boolean   @default(false)
   publishingPausedReason String?
   publishingPausedAt     DateTime?
+  changelogViews         UserChangelogView[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1283,4 +1284,34 @@ model CollectionPost {
   @@id([collectionId, postId])
   @@index([collectionId])
   @@index([postId])
+}
+
+model ChangelogEntry {
+  id          String              @id @default(cuid())
+  title       String
+  summary     String
+  body        String
+  type        String              // feature | improvement | bugfix
+  version     String?
+  publishedAt DateTime
+  isPublished Boolean             @default(false)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  views       UserChangelogView[]
+
+  @@index([isPublished, publishedAt(sort: Desc)])
+  @@index([publishedAt(sort: Desc)])
+}
+
+model UserChangelogView {
+  id       String         @id @default(cuid())
+  userId   String
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entryId  String
+  entry    ChangelogEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  viewedAt DateTime       @default(now())
+
+  @@unique([userId, entryId])
+  @@index([userId])
+  @@index([entryId])
 }
