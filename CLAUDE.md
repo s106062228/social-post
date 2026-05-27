@@ -1672,3 +1672,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Engagement goals page in dashboard (`/engagement-goals`) — circular progress indicators per goal, metric/aggregation/period/platform badges, toggle active/pause, delete, inline create form
 - [x] Add "Engagement Goals" to sidebar navigation (icon: `TrendingUp`)
 - [x] Unit tests for engagement goals API (GET list, POST create, POST max-limit, POST invalid body, POST platform filter, DELETE success, DELETE not-found, DELETE ownership, toggle on/off, toggle wrong-owner, progress auth, progress empty, progress TOTAL aggregation, progress AVERAGE aggregation, progress no-insights, progress response shape — 24 tests)
+
+### Phase 172: Content Category × Platform Performance Matrix
+- [x] `GET /api/analytics/performance-matrix` endpoint — auth + rate limit + `?period=30d|90d|all`; joins user's PUBLISHED posts (with contentCategory) to their PublishResults and PostInsights; computes avgEngagement (likes+comments+shares) per contentCategory × platform combination; returns `{matrix: {platform, category, avgEngagement, postCount}[], platforms: string[], categories: string[]}`
+- [x] `PerformanceMatrixCard` component (`src/components/performance-matrix-card.tsx`) — grid heatmap showing categories as rows and platforms as columns; cell color intensity proportional to engagement score; post count badge per cell; period selector (30d/90d/all); "No data yet" empty state
+- [x] Integrate `PerformanceMatrixCard` into analytics dashboard below the `BenchmarkCard`; add `"performance_matrix"` widget key to `WIDGET_KEYS` array and `WIDGET_LABELS` in dashboard-widgets route; add to `DashboardCustomizeDialog`
+- [x] Unit tests for performance-matrix endpoint (auth, rate limit, period validation, response shape, matrix aggregation, empty state, single platform, multi-category — 10 tests)

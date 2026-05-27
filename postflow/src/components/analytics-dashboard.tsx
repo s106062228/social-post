@@ -40,6 +40,7 @@ import { MonthlySummaryCard } from "@/components/monthly-summary-card";
 import { PerformanceCoachingCard } from "@/components/performance-coaching-card";
 import { PlatformReliabilityCard } from "@/components/platform-reliability-card";
 import { ContentFatigueCard } from "@/components/content-fatigue-card";
+import { PerformanceMatrixCard } from "@/components/performance-matrix-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -541,6 +542,9 @@ export function AnalyticsDashboard() {
 
       {/* Content Fatigue Detection */}
       {isVisible("content_fatigue") && <ContentFatigueCard />}
+
+      {/* Content Category × Platform Performance Matrix */}
+      {isVisible("performance_matrix") && <PerformanceMatrixCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
