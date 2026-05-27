@@ -1656,3 +1656,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Add "Changelog" to sidebar navigation (icon: `Newspaper`)
 - [x] Seed script extension — adds 5 sample changelog entries (mix of feature/improvement/bugfix types) to development data
 - [x] Unit tests for changelog API (GET auth, GET rate limit, GET returns published only, GET includes seen flag, GET unseen count, POST mark-seen auth, POST mark-seen rate limit, POST marks all unseen, POST idempotent — 11 tests)
+
+### Phase 170: User Data Export & GDPR Compliance
+- [x] `GET /api/account/export` endpoint — auth + rate limit (strict: 3/hr per user); compiles full JSON export of user data (profile, social accounts without raw tokens, posts, templates, campaigns, tags, hashtag groups, activity log last 90 days, settings); sets `Content-Disposition: attachment; filename="postflow-export-{date}.json"`; logs activity `account.exported`
+- [x] `DELETE /api/account` endpoint — auth + rate limit; accepts `{confirmEmail: string}` body; verifies email matches session user; hard-deletes user record (cascade deletes all related data via Prisma onDelete: Cascade); returns 204; no session invalidation needed (NextAuth session will become orphaned)
+- [x] Data export & account deletion section in settings page — "Export My Data" button (calls GET /api/account/export, triggers download); "Delete Account" danger zone card with email confirmation input, red "Delete Account" button, and warning text; both as client components
+- [x] Unit tests for account export and delete endpoints (GET: auth, rate limit, response shape, content-disposition header, data sections present; DELETE: auth, rate limit, email mismatch, missing email, success 204, prisma delete called — 14 tests)

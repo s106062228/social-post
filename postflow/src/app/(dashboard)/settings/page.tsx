@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { SettingsForm } from "./settings-form";
 import { TwoFactorSettings } from "./two-factor-settings";
 import { PublishingControls } from "./publishing-controls";
+import { DataExportSection } from "./data-export-section";
 import { PushNotificationSetup } from "@/components/push-notification-setup";
 import { NotificationPreferences } from "@/components/notification-preferences";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,6 +58,7 @@ export default async function SettingsPage() {
           initialReason={user.publishingPausedReason ?? null}
           initialPausedAt={user.publishingPausedAt ?? null}
         />
+        <DataExportSection userEmail={user.email} />
       </div>
     </div>
   );

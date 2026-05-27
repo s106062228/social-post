@@ -25,7 +25,9 @@ export type ActivityAction =
   | "post.expired"
   | "publishing.paused"
   | "publishing.resumed"
-  | "post.conflicts_resolved";
+  | "post.conflicts_resolved"
+  | "account.exported"
+  | "account.deleted";
 
 export interface LogActivityOptions {
   userId: string;
