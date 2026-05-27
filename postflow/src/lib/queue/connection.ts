@@ -37,6 +37,7 @@ export const QUEUE_NAMES = {
   AUDIENCE_SYNC: "postflow:audience-sync",
   EVERGREEN_RECYCLE: "postflow:evergreen-recycle",
   COACHING_SCAN: "postflow:coaching-scan",
+  ENGAGEMENT_GOAL_SCAN: "postflow:engagement-goal-scan",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];

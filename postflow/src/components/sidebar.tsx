@@ -89,6 +89,7 @@ const navItems = [
   { href: "/utm-presets", label: "UTM Tags", icon: Link2 },
   { href: "/ideas", label: "Ideas", icon: Lightbulb },
   { href: "/posting-goals", label: "Goals", icon: Target },
+  { href: "/engagement-goals", label: "Engagement Goals", icon: TrendingUp },
   { href: "/snippets", label: "Snippets", icon: BookMarked },
   { href: "/checklist", label: "Checklist", icon: CheckSquare },
   { href: "/integrations", label: "Integrations", icon: Zap },

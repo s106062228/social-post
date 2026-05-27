@@ -17,6 +17,7 @@ import type { DigestScanJobData } from "./workers/digest";
 import type { AudienceSyncJobData } from "./workers/audience-sync";
 import type { EvergreenRecycleJobData } from "./workers/evergreen-recycle";
 import type { CoachingScanJobData } from "./workers/coaching";
+import type { EngagementGoalScanJobData } from "./workers/engagement-goals";
 
 // ── Queue singletons ────────────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -777,6 +778,51 @@ export async function scheduleCoachingScan(): Promise<void> {
     { pattern: "0 1 * * 0" },
     {
       name: "coaching-scan-weekly",
+      data: { triggeredAt: new Date().toISOString() },
+      opts: {
+        attempts: 2,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { count: 5 },
+        removeOnFail: { count: 10 },
+      },
+    }
+  );
+}
+
+// ── Engagement Goal Scan Queue ─────────────────────────────────────────────────
+
+let engagementGoalScanQueue: Queue<EngagementGoalScanJobData> | null = null;
+
+function getEngagementGoalScanQueue(): Queue<EngagementGoalScanJobData> {
+  if (!engagementGoalScanQueue) {
+    engagementGoalScanQueue = new Queue<EngagementGoalScanJobData>(
+      QUEUE_NAMES.ENGAGEMENT_GOAL_SCAN,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 2,
+          backoff: { type: "exponential", delay: 5000 },
+          removeOnComplete: { count: 5 },
+          removeOnFail: { count: 10 },
+        },
+      }
+    );
+  }
+  return engagementGoalScanQueue;
+}
+
+/**
+ * Registers (or replaces) the daily engagement-goal scan cron job.
+ * Runs at 06:00 UTC every day. Checks active engagement goals and fires
+ * in-app notifications when targets are reached.
+ */
+export async function scheduleEngagementGoalScan(): Promise<void> {
+  const queue = getEngagementGoalScanQueue();
+  await queue.upsertJobScheduler(
+    "engagement-goal-scan-daily",
+    { pattern: "0 6 * * *" },
+    {
+      name: "engagement-goal-scan-daily",
       data: { triggeredAt: new Date().toISOString() },
       opts: {
         attempts: 2,

@@ -93,6 +93,20 @@ enum AlertMetric {
   SCORE
 }
 
+enum EngagementMetric {
+  IMPRESSIONS
+  REACH
+  LIKES
+  COMMENTS
+  SHARES
+  SCORE
+}
+
+enum EngagementAggregation {
+  TOTAL
+  AVERAGE
+}
+
 enum AlertOperator {
   ABOVE
   BELOW
@@ -181,6 +195,7 @@ model User {
   publishingPausedReason String?
   publishingPausedAt     DateTime?
   changelogViews         UserChangelogView[]
+  engagementGoals        EngagementGoal[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1314,4 +1329,24 @@ model UserChangelogView {
   @@unique([userId, entryId])
   @@index([userId])
   @@index([entryId])
+}
+
+model EngagementGoal {
+  id              String                @id @default(cuid())
+  userId          String
+  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  metric          EngagementMetric
+  targetValue     Float
+  aggregation     EngagementAggregation @default(AVERAGE)
+  period          GoalPeriod
+  platform        Platform?
+  isActive        Boolean               @default(true)
+  lastNotifiedAt  DateTime?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@index([userId])
+  @@index([userId, isActive])
+  @@index([userId, createdAt(sort: Desc)])
 }

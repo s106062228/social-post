@@ -34,6 +34,7 @@ import { createDigestWorker } from "../src/lib/queue/workers/digest";
 import { createAudienceSyncWorker } from "../src/lib/queue/workers/audience-sync";
 import { createEvergreenRecycleWorker } from "../src/lib/queue/workers/evergreen-recycle";
 import { createCoachingWorker } from "../src/lib/queue/workers/coaching";
+import { createEngagementGoalWorker } from "../src/lib/queue/workers/engagement-goals";
 import {
   scheduleTokenExpiryCheck,
   scheduleExpiringTokenRefreshes,
@@ -46,6 +47,7 @@ import {
   scheduleAudienceSync,
   scheduleEvergreenRecycle,
   scheduleCoachingScan,
+  scheduleEngagementGoalScan,
 } from "../src/lib/queue/scheduler";
 import { workerLogger } from "../src/lib/logger";
 
@@ -66,6 +68,7 @@ const digestWorker = createDigestWorker();
 const audienceSyncWorker = createAudienceSyncWorker();
 const evergreenRecycleWorker = createEvergreenRecycleWorker();
 const coachingWorker = createCoachingWorker();
+const engagementGoalWorker = createEngagementGoalWorker();
 
 workerLogger.info("Publish worker started");
 workerLogger.info("Token refresh worker started");
@@ -82,6 +85,7 @@ workerLogger.info("Notification digest worker started");
 workerLogger.info("Audience sync worker started");
 workerLogger.info("Evergreen recycle worker started");
 workerLogger.info("Coaching worker started");
+workerLogger.info("Engagement goal worker started");
 
 // ── Register repeatable cron jobs ─────────────────────────────────────────────
 
@@ -165,6 +169,14 @@ async function registerCronJobs(): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     workerLogger.error({ err: message }, "Failed to register coaching scan cron");
   }
+
+  try {
+    await scheduleEngagementGoalScan();
+    workerLogger.info("Registered daily engagement goal scan cron (06:00 UTC)");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    workerLogger.error({ err: message }, "Failed to register engagement goal scan cron");
+  }
 }
 
 // ── Initial token refresh scan ────────────────────────────────────────────
@@ -210,6 +222,7 @@ async function shutdown(signal: string): Promise<void> {
     audienceSyncWorker.close(),
     evergreenRecycleWorker.close(),
     coachingWorker.close(),
+    engagementGoalWorker.close(),
   ]);
 
   workerLogger.info("All workers stopped. Exiting.");
