@@ -1706,3 +1706,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Update `CalendarView` component — render notes as coloured pill banners in each day cell; clicking a note opens an inline popover with full title/body and delete action; "Add Note" icon button per day opens a quick-add form popover
 - [x] Add "Day Notes" quick-access button in calendar page header linking to a notes management list page (`/calendar-notes`) — table view with date, title, color, delete; inline create form
 - [x] Unit tests for calendar notes API (GET list, POST create, POST max-limit, POST invalid date, PATCH update, PATCH not-found, PATCH ownership, DELETE success, DELETE not-found, DELETE ownership, auth, rate limit — 14 tests)
+
+### Phase 177: Shareable Read-Only Content Calendar for Clients
+- [x] `CalendarShare` model in Prisma (id, userId, token unique, title, platforms[], startDate?, endDate?, showContent, expiresAt?, views, createdAt, updatedAt) + migration (`20260719000000_add_calendar_shares`)
+- [x] CRUD API for calendar shares (`GET /api/calendar-shares`, `POST /api/calendar-shares`, `DELETE /api/calendar-shares/[id]`) — auth + rate limit + zod validation; max 20 shares per user
+- [x] Public calendar data endpoint (`GET /api/cal/[token]`) — no auth required; returns title, posts (with optional content based on showContent flag), platforms, expiry info; increments view counter; 410 for expired shares
+- [x] Calendar shares management page in dashboard (`/calendar-shares`) — list shares with title, view count, date range, copy-link button, open-in-new-tab button, create dialog (title, date range, showContent toggle), delete/revoke
+- [x] Public read-only calendar page (`/cal/[token]`) — server-rendered timeline grouped by month; shows post date, time, content (if showContent), status badge, platform chips; no auth required
+- [x] "Share Calendar" button added to calendar page header linking to `/calendar-shares`
+- [x] Add "Calendar Shares" to sidebar navigation (icon: `Share2`)
+- [x] Unit tests for calendar shares API (GET list, POST create, POST max-limit, POST invalid body, DELETE auth, DELETE not-found, DELETE ownership, DELETE success, public GET not-found, public GET expired, public GET with posts, public GET showContent=false — 12 tests)

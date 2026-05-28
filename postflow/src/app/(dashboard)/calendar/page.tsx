@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarView } from "@/components/calendar-view";
 import { CalendarExport } from "@/components/calendar-export";
 import { CalendarPlannerDialog } from "@/components/calendar-planner-dialog";
-import { Plus, StickyNote } from "lucide-react";
+import { Plus, StickyNote, Share2 } from "lucide-react";
 
 export default async function CalendarPage() {
   const session = await auth();
@@ -63,6 +63,12 @@ export default async function CalendarPage() {
             <Link href="/calendar-notes">
               <StickyNote className="mr-2 h-4 w-4" />
               Day Notes
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/calendar-shares">
+              <Share2 className="mr-2 h-4 w-4" />
+              Share Calendar
             </Link>
           </Button>
           <CalendarExport />

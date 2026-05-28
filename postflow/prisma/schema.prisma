@@ -197,6 +197,7 @@ model User {
   changelogViews         UserChangelogView[]
   engagementGoals        EngagementGoal[]
   calendarNotes          CalendarNote[]
+  calendarShares         CalendarShare[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1365,4 +1366,23 @@ model CalendarNote {
 
   @@index([userId])
   @@index([userId, date])
+}
+
+model CalendarShare {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token       String     @unique @default(cuid())
+  title       String
+  platforms   Platform[]
+  startDate   String?
+  endDate     String?
+  showContent Boolean    @default(true)
+  expiresAt   DateTime?
+  views       Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([token])
 }

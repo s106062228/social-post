@@ -55,6 +55,7 @@ import {
   CheckSquare,
   Newspaper,
   StickyNote,
+  Share2,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -66,6 +67,7 @@ const navItems = [
   { href: "/posts", label: "Posts", icon: FileText },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/calendar-notes", label: "Day Notes", icon: StickyNote },
+  { href: "/calendar-shares", label: "Calendar Shares", icon: Share2 },
   { href: "/planner", label: "Planner", icon: CalendarRange },
   { href: "/accounts", label: "Accounts", icon: Users },
   { href: "/templates", label: "Templates", icon: LayoutTemplate },
