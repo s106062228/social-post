@@ -1698,3 +1698,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Account comparison page in dashboard (`/account-comparison`) — active-account multi-select chips (max 4), "Compare" button fetches data and renders `AccountComparisonCard`; clears on account deselect; "No accounts connected" empty state
 - [x] Add "Compare Accounts" to sidebar navigation (icon: `BarChart3`)
 - [x] Unit tests for account comparison endpoint (auth, rate limit, too few/many accountIds, non-owned account rejection, per-account shape, engagementRate calculation, followerGrowth with/without data, postsPerWeek, empty metrics — 10 tests)
+
+### Phase 176: Content Calendar Day Notes & Planning Annotations
+- [x] `CalendarNote` model in Prisma (id, userId, date String YYYY-MM-DD, title, body?, color String default "#6366f1", createdAt, updatedAt) + migration (`20260718000000_add_calendar_notes`)
+- [x] CRUD API for calendar notes (`GET /api/calendar-notes`, `POST /api/calendar-notes`, `PATCH /api/calendar-notes/[id]`, `DELETE /api/calendar-notes/[id]`) — auth + rate limit + zod validation; max 500 notes per user; date validated as YYYY-MM-DD format
+- [x] Update calendar page — fetch notes alongside posts and pass to `CalendarView`
+- [x] Update `CalendarView` component — render notes as coloured pill banners in each day cell; clicking a note opens an inline popover with full title/body and delete action; "Add Note" icon button per day opens a quick-add form popover
+- [x] Add "Day Notes" quick-access button in calendar page header linking to a notes management list page (`/calendar-notes`) — table view with date, title, color, delete; inline create form
+- [x] Unit tests for calendar notes API (GET list, POST create, POST max-limit, POST invalid date, PATCH update, PATCH not-found, PATCH ownership, DELETE success, DELETE not-found, DELETE ownership, auth, rate limit — 14 tests)

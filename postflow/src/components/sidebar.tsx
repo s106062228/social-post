@@ -54,6 +54,7 @@ import {
   Camera,
   CheckSquare,
   Newspaper,
+  StickyNote,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -64,6 +65,7 @@ const navItems = [
   { href: "/search", label: "Search", icon: SearchIcon },
   { href: "/posts", label: "Posts", icon: FileText },
   { href: "/calendar", label: "Calendar", icon: Calendar },
+  { href: "/calendar-notes", label: "Day Notes", icon: StickyNote },
   { href: "/planner", label: "Planner", icon: CalendarRange },
   { href: "/accounts", label: "Accounts", icon: Users },
   { href: "/templates", label: "Templates", icon: LayoutTemplate },

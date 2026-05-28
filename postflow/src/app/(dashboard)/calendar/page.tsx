@@ -6,27 +6,39 @@ import { Button } from "@/components/ui/button";
 import { CalendarView } from "@/components/calendar-view";
 import { CalendarExport } from "@/components/calendar-export";
 import { CalendarPlannerDialog } from "@/components/calendar-planner-dialog";
-import { Plus } from "lucide-react";
+import { Plus, StickyNote } from "lucide-react";
 
 export default async function CalendarPage() {
   const session = await auth();
   const userId = session!.user!.id;
 
-  // Fetch scheduled posts for calendar view
-  const posts = await prisma.post.findMany({
-    where: {
-      userId,
-      status: { in: [PostStatus.SCHEDULED, PostStatus.PUBLISHED] },
-      scheduledAt: { not: null },
-    },
-    orderBy: { scheduledAt: "asc" },
-    select: {
-      id: true,
-      content: true,
-      scheduledAt: true,
-      status: true,
-    },
-  });
+  const [posts, notes] = await Promise.all([
+    prisma.post.findMany({
+      where: {
+        userId,
+        status: { in: [PostStatus.SCHEDULED, PostStatus.PUBLISHED] },
+        scheduledAt: { not: null },
+      },
+      orderBy: { scheduledAt: "asc" },
+      select: {
+        id: true,
+        content: true,
+        scheduledAt: true,
+        status: true,
+      },
+    }),
+    prisma.calendarNote.findMany({
+      where: { userId },
+      orderBy: [{ date: "asc" }, { createdAt: "asc" }],
+      select: {
+        id: true,
+        date: true,
+        title: true,
+        body: true,
+        color: true,
+      },
+    }),
+  ]);
 
   const calendarPosts = posts
     .filter((p) => p.scheduledAt !== null)
@@ -47,6 +59,12 @@ export default async function CalendarPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/calendar-notes">
+              <StickyNote className="mr-2 h-4 w-4" />
+              Day Notes
+            </Link>
+          </Button>
           <CalendarExport />
           <CalendarPlannerDialog />
           <Button asChild>
@@ -58,7 +76,7 @@ export default async function CalendarPage() {
         </div>
       </div>
 
-      <CalendarView posts={calendarPosts} />
+      <CalendarView posts={calendarPosts} notes={notes} />
     </div>
   );
 }
