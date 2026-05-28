@@ -1443,3 +1443,38 @@ export async function suggestContentRefresh(
   }
   return { suggestions: [], refreshedContent: originalContent };
 }
+
+const HEADLINE_SYSTEM = `You are a professional copywriter and headline expert. Generate compelling headlines/titles for social media posts and long-form content.
+Always respond with valid JSON in this exact format: {"headlines": ["headline1", "headline2", "headline3", "headline4", "headline5"]}
+Generate exactly the requested number of headlines. Each headline should be distinct, compelling, and appropriate for the specified platforms. Keep headlines concise, engaging, and action-oriented when suitable.`;
+
+export async function generateHeadlines(
+  content: string,
+  platforms: string[],
+  count: number = 5
+): Promise<string[]> {
+  const client = getClient();
+  const userContent = `Post content:\n${content}\n\nTarget platforms: ${platforms.join(", ")}\n\nGenerate ${count} compelling headline/title options for this content.`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 512,
+    system: [
+      { type: "text", text: HEADLINE_SYSTEM, cache_control: { type: "ephemeral" } },
+    ],
+    messages: [{ role: "user", content: userContent }],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as { headlines?: unknown };
+    const headlines = parsed.headlines;
+    if (Array.isArray(headlines) && headlines.every((h) => typeof h === "string")) {
+      return headlines as string[];
+    }
+  } catch {
+    // fall through
+  }
+  return [];
+}

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -29,6 +29,7 @@ import { SmartScheduleSuggestions } from "@/components/smart-schedule-suggestion
 import { ThreadBuilder, type ThreadItem } from "@/components/thread-builder";
 import { PollBuilder, type PollData } from "@/components/poll-builder";
 import { HashtagResearchDialog } from "@/components/hashtag-research-dialog";
+import { HeadlineGeneratorDialog } from "@/components/headline-generator-dialog";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
 import {
@@ -177,6 +178,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
   // Hashtag research dialog state
   const [showHashtagResearch, setShowHashtagResearch] = useState(false);
+
+  // Headline generator dialog state
+  const [showHeadlineDialog, setShowHeadlineDialog] = useState(false);
 
   useEffect(() => {
     fetch("/api/templates?limit=50")
@@ -825,6 +829,15 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
               <FileText className="h-3 w-3" />
               Brief
             </button>
+            <button
+              type="button"
+              onClick={() => setShowHeadlineDialog(true)}
+              disabled={!content.trim()}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:pointer-events-none disabled:opacity-50"
+            >
+              <Type className="h-3 w-3" />
+              Headlines
+            </button>
             <GrammarCheckButton
               content={content}
               onApply={(newContent) => setContent(newContent)}
@@ -996,6 +1009,19 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           );
         }}
         selectedPlatforms={selectedPlatforms}
+      />
+
+      {/* Headline Generator Dialog */}
+      <HeadlineGeneratorDialog
+        open={showHeadlineDialog}
+        onClose={() => setShowHeadlineDialog(false)}
+        content={content}
+        platforms={selectedPlatforms}
+        onUseAsFirstLine={(headline) => {
+          setContent((prev) =>
+            prev.trim() ? `${headline}\n\n${prev}` : headline
+          );
+        }}
       />
 
       {/* First comment — shown when Facebook or Instagram accounts are selected */}

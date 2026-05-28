@@ -1716,3 +1716,10 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] "Share Calendar" button added to calendar page header linking to `/calendar-shares`
 - [x] Add "Calendar Shares" to sidebar navigation (icon: `Share2`)
 - [x] Unit tests for calendar shares API (GET list, POST create, POST max-limit, POST invalid body, DELETE auth, DELETE not-found, DELETE ownership, DELETE success, public GET not-found, public GET expired, public GET with posts, public GET showContent=false — 12 tests)
+
+### Phase 178: AI-Powered Post Title & Headline Generator
+- [x] Add `generateHeadlines(content, platforms, count)` to `src/lib/ai.ts` — calls `claude-haiku-4-5` to generate compelling headline/title options for a given post; uses prompt caching on system block; returns `string[]`
+- [x] `POST /api/ai/headlines` endpoint — auth + rate limit + zod validation (`content: string`, `platforms: string[]`, `count?: 1–10`); calls `generateHeadlines`; returns `{headlines: string[]}`; 503 when AI not configured
+- [x] `HeadlineGeneratorDialog` component (`src/components/headline-generator-dialog.tsx`) — modal showing up to 5 AI-generated headline options with numbered list, copy-to-clipboard per headline, "Use as First Line" button that prepends the headline to the post content, regenerate button, loading state
+- [x] "Headlines" button in post composer toolbar — opens `HeadlineGeneratorDialog` with current content and selected platforms; disabled when content is empty
+- [x] Unit tests for `POST /api/ai/headlines` (auth, rate limit, AI disabled, invalid JSON, missing content, empty platforms, success shape, custom count, default count, AI error — 10 tests)
