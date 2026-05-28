@@ -1685,3 +1685,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `ContentRefreshDialog` component (`src/components/content-refresh-dialog.tsx`) — modal showing per-suggestion type badge, original→updated diff, and reason; complete refreshed content preview with copy-to-clipboard and "Create as New Draft" button; regenerate option; loading state
 - [x] "Refresh" button (RefreshCw icon) per post row in posts list — opens `ContentRefreshDialog`
 - [x] Unit tests for suggest-refresh endpoint (auth, rate limit, AI disabled, not-found, ownership, success shape, targetPlatforms param, invalid platform, fallback to all platforms, DB error — 10 tests)
+
+### Phase 174: Post Performance Report Card
+- [x] `GET /api/posts/[id]/report-card` endpoint — auth + rate limit + ownership check; aggregates PostInsights, SEO score, Flesch-Kincaid readability, brand compliance, and sentiment into a weighted 0–100 overall score with letter grade (A–F); weights: Engagement 40%, SEO 20%, Readability 20%, Compliance 10%, Sentiment 10%; normalizes raw engagement via log10 scale; returns `{postId, content, overallGrade, overallScore, dimensions, totalEngagement, topPlatform, publishedPlatforms, recommendations}`
+- [x] `PostReportCardDialog` component (`src/components/post-report-card-dialog.tsx`) — modal with grade circle badge (colour-coded A=green/B=blue/C=yellow/D=orange/F=red), dimension breakdown with score bars and per-dimension letter grades, platform info, total engagement count, and recommendation bullet list; lazy-loads on open; loading/error states
+- [x] "Report Card" button (FileBarChart2 icon) per post row in `posts-list-client.tsx` — opens `PostReportCardDialog`
+- [x] Unit tests for the report-card endpoint (auth, rate limit, invalid ID, not-found, wrong user, no-insights grade, insights grade, score 0–100 bounds, recommendations present, dimension names, sentiment boost, compliance default — 10 tests)

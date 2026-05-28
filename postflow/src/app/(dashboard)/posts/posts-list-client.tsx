@@ -28,6 +28,7 @@ import { AssigneeSelector } from "./assignee-selector";
 import { RepurposeDialog } from "@/components/repurpose-dialog";
 import { TranslateDialog } from "@/components/translate-dialog";
 import { ContentRefreshDialog } from "@/components/content-refresh-dialog";
+import { PostReportCardDialog } from "@/components/post-report-card-dialog";
 import { ComparePostsButton } from "./compare-posts-button";
 import { AutoTagButton } from "./auto-tag-button";
 import { BulkAutoTagButton } from "./bulk-auto-tag-button";
@@ -389,6 +390,7 @@ export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
                 <RepurposeDialog postId={post.id} />
                 <TranslateDialog postId={post.id} />
                 <ContentRefreshDialog postId={post.id} />
+                <PostReportCardDialog postId={post.id} />
                 {post.status === "PUBLISHED" && (
                   <RecyclePostButton postId={post.id} />
                 )}
