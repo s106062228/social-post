@@ -54,8 +54,29 @@ const PLATFORM_HASHTAG_LIMITS: Partial<Record<Platform, number>> = {
   TIKTOK: 30,
 };
 
+// Per-platform maximum media file count (null = no enforced limit)
+export const PLATFORM_MAX_MEDIA: Partial<Record<Platform, number>> = {
+  FACEBOOK: 10,
+  INSTAGRAM: 10,
+  THREADS: 1,
+  LINKEDIN: 9,
+  PINTEREST: 1,
+  YOUTUBE: 1,
+  TIKTOK: 1,
+  TWITTER: 4,
+  BLUESKY: 4,
+  MASTODON: 4,
+  TELEGRAM: 10,
+  PIXELFED: 4,
+  VIMEO: 1,
+  GOOGLE_BUSINESS: 1,
+};
+
 // Platforms that require media (cannot post text-only)
-const MEDIA_REQUIRED_PLATFORMS: Platform[] = ["PINTEREST", "YOUTUBE", "TIKTOK"];
+const MEDIA_REQUIRED_PLATFORMS: Platform[] = ["PINTEREST", "YOUTUBE", "TIKTOK", "VIMEO"];
+
+// Platforms where external links in post body are not rendered as clickable
+const EXTERNAL_LINKS_NOT_CLICKABLE: Platform[] = ["INSTAGRAM", "TIKTOK"];
 
 function countUrls(content: string): number {
   const urlPattern = /https?:\/\/[^\s]+/gi;
@@ -72,7 +93,8 @@ function countHashtags(content: string): number {
 export function validateForPlatform(
   content: string,
   mediaType: MediaType,
-  platform: Platform
+  platform: Platform,
+  mediaUrls?: string[]
 ): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -102,9 +124,27 @@ export function validateForPlatform(
     errors.push(`${platform} requires media (image or video) — text-only posts are not supported`);
   }
 
+  // Media file count check
+  const maxMedia = PLATFORM_MAX_MEDIA[platform];
+  if (maxMedia !== undefined && mediaUrls && mediaUrls.length > maxMedia) {
+    errors.push(
+      `${platform} supports at most ${maxMedia} media file${maxMedia !== 1 ? "s" : ""} (found ${mediaUrls.length})`
+    );
+  }
+
+  // External links not clickable warning
+  if (EXTERNAL_LINKS_NOT_CLICKABLE.includes(platform)) {
+    const urlCount = countUrls(content);
+    if (urlCount > 0) {
+      warnings.push(
+        `Links in ${platform} post captions are not clickable — consider adding the link to your bio instead`
+      );
+    }
+  }
+
   // URL count check
   const urlLimit = PLATFORM_URL_LIMITS[platform];
-  if (urlLimit !== undefined) {
+  if (urlLimit !== undefined && !EXTERNAL_LINKS_NOT_CLICKABLE.includes(platform)) {
     const urlCount = countUrls(content);
     if (urlCount > urlLimit) {
       warnings.push(
@@ -139,10 +179,11 @@ export function validateForPlatform(
 export function validateForAllPlatforms(
   content: string,
   mediaType: MediaType,
-  platforms: Platform[]
+  platforms: Platform[],
+  mediaUrls?: string[]
 ): PlatformValidationResult[] {
   return platforms.map((platform) => ({
     platform,
-    ...validateForPlatform(content, mediaType, platform),
+    ...validateForPlatform(content, mediaType, platform, mediaUrls),
   }));
 }

@@ -1740,3 +1740,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Integrate `AccountHealthBanner` into dashboard layout above `PublishingPauseBanner`
 - [x] Add `TOKEN_HEALTH_SCAN` to `QUEUE_NAMES` in connection.ts; add `scheduleTokenHealthScan()` to scheduler.ts (daily 07:00 UTC); register worker + cron in `workers/queue-worker.ts`
 - [x] Unit tests for accounts health API (GET auth, GET rate limit, GET response shape, healthStatus "ok"/"expiring"/"expired"/"invalid" mapping, daysUntilExpiry calculation, POST scan auth, POST scan rate limit, POST scan success shape — 10 tests)
+
+### Phase 181: Platform Content Policy Validator
+- [x] Add per-platform media file count limits to `src/lib/content-validator.ts` (FB/IG: 10, Twitter/Bluesky/Mastodon/Pixelfed: 4, Telegram: 10, Threads/Pinterest/YouTube/TikTok/Vimeo: 1, others: 30); add Instagram external-link-not-clickable warning
+- [x] `POST /api/posts/validate` endpoint — auth + rate limit + zod validation; accepts `{content, platforms: Platform[], mediaType: MediaType, mediaUrls: string[]}` body; runs `validateForAllPlatforms` with media count check; returns `{results: {platform, valid, errors, warnings}[], overallValid: boolean}`
+- [x] `ContentPolicyWarnings` component (`src/components/content-policy-warnings.tsx`) — compact per-platform validation summary; errors in red, warnings in amber; integrated into post composer below `BrandComplianceIndicator` with 300 ms debounce; hidden when no platforms selected or no issues
+- [x] Unit tests for validate endpoint and extended validator (auth, rate limit, valid post, char limit error, media type error, hashtag warning, media count error, empty platforms — 12 tests)
