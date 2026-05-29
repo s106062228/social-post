@@ -18,6 +18,7 @@ import type { AudienceSyncJobData } from "./workers/audience-sync";
 import type { EvergreenRecycleJobData } from "./workers/evergreen-recycle";
 import type { CoachingScanJobData } from "./workers/coaching";
 import type { EngagementGoalScanJobData } from "./workers/engagement-goals";
+import type { TokenHealthScanJobData } from "./workers/token-health";
 
 // ── Queue singletons ────────────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -823,6 +824,51 @@ export async function scheduleEngagementGoalScan(): Promise<void> {
     { pattern: "0 6 * * *" },
     {
       name: "engagement-goal-scan-daily",
+      data: { triggeredAt: new Date().toISOString() },
+      opts: {
+        attempts: 2,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { count: 5 },
+        removeOnFail: { count: 10 },
+      },
+    }
+  );
+}
+
+// ── Token Health Scan Queue ────────────────────────────────────────────────────
+
+let tokenHealthScanQueue: Queue<TokenHealthScanJobData> | null = null;
+
+function getTokenHealthScanQueue(): Queue<TokenHealthScanJobData> {
+  if (!tokenHealthScanQueue) {
+    tokenHealthScanQueue = new Queue<TokenHealthScanJobData>(
+      QUEUE_NAMES.TOKEN_HEALTH_SCAN,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 2,
+          backoff: { type: "exponential", delay: 5000 },
+          removeOnComplete: { count: 5 },
+          removeOnFail: { count: 10 },
+        },
+      }
+    );
+  }
+  return tokenHealthScanQueue;
+}
+
+/**
+ * Registers (or replaces) the daily token health scan cron job.
+ * Runs at 07:00 UTC every day. Computes health status for all active
+ * social accounts and notifies users of expiring/expired tokens.
+ */
+export async function scheduleTokenHealthScan(): Promise<void> {
+  const queue = getTokenHealthScanQueue();
+  await queue.upsertJobScheduler(
+    "token-health-scan-daily",
+    { pattern: "0 7 * * *" },
+    {
+      name: "token-health-scan-daily",
       data: { triggeredAt: new Date().toISOString() },
       opts: {
         attempts: 2,

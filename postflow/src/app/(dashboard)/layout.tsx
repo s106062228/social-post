@@ -5,6 +5,7 @@ import { CommandPalette } from "@/components/command-palette";
 import { ShortcutHelp } from "@/components/shortcut-help";
 import { GlobalShortcuts } from "@/components/global-shortcuts";
 import { PublishingPauseBanner } from "@/components/publishing-pause-banner";
+import { AccountHealthBanner } from "@/components/account-health-banner";
 import { TourButton } from "@/components/tour-button";
 import { ProductTour } from "@/components/product-tour";
 
@@ -17,6 +18,8 @@ export default function DashboardLayout({
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Account health warning banner */}
+        <AccountHealthBanner />
         {/* Publishing pause warning banner */}
         <PublishingPauseBanner />
         {/* Top bar */}

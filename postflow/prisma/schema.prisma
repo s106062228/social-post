@@ -219,23 +219,26 @@ model Notification {
 }
 
 model SocialAccount {
-  id                String           @id @default(cuid())
-  userId            String
-  user              User             @relation(fields: [userId], references: [id])
-  platform          Platform
-  platformAccountId String
-  accountName       String
-  encryptedToken    String
-  tokenExpiresAt    DateTime?
-  scopes            String
-  isActive          Boolean          @default(true)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  audienceMetrics   AudienceMetric[]
+  id                   String           @id @default(cuid())
+  userId               String
+  user                 User             @relation(fields: [userId], references: [id])
+  platform             Platform
+  platformAccountId    String
+  accountName          String
+  encryptedToken       String
+  tokenExpiresAt       DateTime?
+  scopes               String
+  isActive             Boolean          @default(true)
+  tokenHealthCheckedAt DateTime?
+  tokenHealthStatus    String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  audienceMetrics      AudienceMetric[]
 
   @@unique([userId, platform, platformAccountId])
   @@index([userId])
   @@index([isActive, tokenExpiresAt])
+  @@index([tokenHealthStatus])
 }
 
 model AudienceMetric {

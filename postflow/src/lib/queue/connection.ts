@@ -38,6 +38,7 @@ export const QUEUE_NAMES = {
   EVERGREEN_RECYCLE: "postflow:evergreen-recycle",
   COACHING_SCAN: "postflow:coaching-scan",
   ENGAGEMENT_GOAL_SCAN: "postflow:engagement-goal-scan",
+  TOKEN_HEALTH_SCAN: "postflow:token-health-scan",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];

@@ -1730,3 +1730,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Integrate `publishNotificationEvent` into `createNotification` helper (`src/lib/notifications.ts`) — after creating the DB record, publish a `notification` event to the user's SSE channel (fire-and-forget)
 - [x] Update `NotificationBell` component (`src/components/notification-bell.tsx`) — try `EventSource("/api/sse")` first; on message: re-fetch notifications; on error: close SSE and fall back to 30-second polling interval; cleanup on unmount closes both SSE connection and interval
 - [x] Unit tests for `GET /api/sse` (401 unauthenticated, 429 rate limited, 503 no REDIS_URL, 200 text/event-stream, Cache-Control header, X-Accel-Buffering header, Redis subscriber + channel, quit-on-cancel — 8 tests)
+
+### Phase 180: Platform Connection Health Monitor & Automated Token Status Tracking
+- [x] Add `tokenHealthCheckedAt` (nullable DateTime) + `tokenHealthStatus` (nullable String: "ok"|"expiring"|"expired"|"invalid") to SocialAccount model + Prisma migration (`20260720000000_add_token_health`)
+- [x] `GET /api/accounts/health` endpoint — auth + rate limit; returns per-account health status: `{accountId, accountName, platform, isActive, healthStatus, tokenExpiresAt, daysUntilExpiry, lastCheckedAt}`
+- [x] `POST /api/accounts/health/scan` endpoint — auth + rate limit; triggers immediate health check for all user's active accounts; pings platform API (using existing `/api/accounts/[id]/check` logic) per account; updates tokenHealthStatus field; returns updated health data
+- [x] Daily BullMQ token health worker (`src/lib/queue/workers/token-health.ts`) — for each active SocialAccount, computes health status from tokenExpiresAt; creates in-app notification when status changes to "expiring" (≤7 days) or "expired"; updates tokenHealthCheckedAt + tokenHealthStatus
+- [x] `AccountHealthBanner` component (`src/components/account-health-banner.tsx`) — dismissable amber/red alert banner shown in dashboard layout when any account tokenHealthStatus is "expiring" or "expired"; shows account count and links to `/accounts`
+- [x] Integrate `AccountHealthBanner` into dashboard layout above `PublishingPauseBanner`
+- [x] Add `TOKEN_HEALTH_SCAN` to `QUEUE_NAMES` in connection.ts; add `scheduleTokenHealthScan()` to scheduler.ts (daily 07:00 UTC); register worker + cron in `workers/queue-worker.ts`
+- [x] Unit tests for accounts health API (GET auth, GET rate limit, GET response shape, healthStatus "ok"/"expiring"/"expired"/"invalid" mapping, daysUntilExpiry calculation, POST scan auth, POST scan rate limit, POST scan success shape — 10 tests)
