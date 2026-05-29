@@ -123,6 +123,20 @@ enum ContentCategory {
   USER_GENERATED
 }
 
+enum RuleType {
+  REQUIRED_HASHTAG
+  FORBIDDEN_WORD
+  MIN_LENGTH
+  MAX_HASHTAGS
+  REQUIRED_CTA
+  CUSTOM_REGEX
+}
+
+enum RuleSeverity {
+  ERROR
+  WARNING
+}
+
 model User {
   id                 String              @id @default(cuid())
   email              String              @unique
@@ -198,6 +212,7 @@ model User {
   engagementGoals        EngagementGoal[]
   calendarNotes          CalendarNote[]
   calendarShares         CalendarShare[]
+  contentRules           ContentRule[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1388,4 +1403,21 @@ model CalendarShare {
 
   @@index([userId])
   @@index([token])
+}
+
+model ContentRule {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  type      RuleType
+  value     String
+  platforms String[]     @default([])
+  severity  RuleSeverity @default(WARNING)
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([userId, isActive])
 }

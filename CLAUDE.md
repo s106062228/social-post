@@ -1746,3 +1746,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `POST /api/posts/validate` endpoint — auth + rate limit + zod validation; accepts `{content, platforms: Platform[], mediaType: MediaType, mediaUrls: string[]}` body; runs `validateForAllPlatforms` with media count check; returns `{results: {platform, valid, errors, warnings}[], overallValid: boolean}`
 - [x] `ContentPolicyWarnings` component (`src/components/content-policy-warnings.tsx`) — compact per-platform validation summary; errors in red, warnings in amber; integrated into post composer below `BrandComplianceIndicator` with 300 ms debounce; hidden when no platforms selected or no issues
 - [x] Unit tests for validate endpoint and extended validator (auth, rate limit, valid post, char limit error, media type error, hashtag warning, media count error, empty platforms — 12 tests)
+
+### Phase 182: Custom Content Rules & Posting Guardrails
+- [x] `ContentRule` model in Prisma (id, userId, name, type: RuleType, value, platforms[], severity: RuleSeverity, isActive, createdAt, updatedAt) + `RuleType` enum (REQUIRED_HASHTAG/FORBIDDEN_WORD/MIN_LENGTH/MAX_HASHTAGS/REQUIRED_CTA/CUSTOM_REGEX) + `RuleSeverity` enum (ERROR/WARNING) + migration (`20260801000000_add_content_rules`)
+- [x] CRUD API for content rules (`GET /api/content-rules`, `POST /api/content-rules`, `PATCH /api/content-rules/[id]`, `DELETE /api/content-rules/[id]`) — auth + rate limit + zod validation; max 50 rules per user
+- [x] `POST /api/content-rules/check` endpoint — auth + rate limit; accepts `{content, platform?}`; runs all active rules against content; returns `{violations, errors, warnings, compliant}`
+- [x] Content rules utility (`src/lib/content-rules.ts`) — `checkContentRules(content, rules, platform?)` evaluates each rule type; returns structured violation list with severity separation
+- [x] `ContentRulesIndicator` component (`src/components/content-rules-indicator.tsx`) — debounced 600ms real-time checker below post composer textarea; shows green "Rules passed" or expandable violation list with error/warning counts
+- [x] Content rules management page in dashboard (`/content-rules`) — list rules with type badge, severity badge, active toggle, delete; inline create form (name, type selector, value input with contextual hint, severity)
+- [x] Add "Content Rules" to sidebar navigation (icon: `ShieldCheck`)
+- [x] Unit tests for content rules utility (23 tests) and API routes (37 tests — GET list, POST create, max-limit, invalid body, PATCH update, ownership, DELETE, check endpoint with all rule types, platform filter, inactive skip)
