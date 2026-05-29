@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { PostStatus } from "@prisma/client";
 import { logger } from "@/lib/logger";
+import { publishNotificationEvent } from "@/lib/sse";
 
 export const NOTIFICATION_TYPES = {
   POST_PUBLISHED: "post.published",
@@ -62,6 +63,12 @@ async function _createNotificationAsync(
       entityId: input.entityId ?? null,
       entityType: input.entityType ?? null,
     },
+  });
+
+  // Push real-time SSE event to connected clients
+  publishNotificationEvent(input.userId, {
+    type: "notification",
+    data: { type: input.type, title: input.title, body: input.body },
   });
 }
 

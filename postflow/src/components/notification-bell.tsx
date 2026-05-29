@@ -5,6 +5,8 @@ import { Bell, CheckCheck, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
+// Keep existing interfaces and helpers below
+
 interface AppNotification {
   id: string;
   type: string;
@@ -42,6 +44,8 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<NotificationsResponse | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const esRef = useRef<EventSource | null>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -55,12 +59,47 @@ export function NotificationBell() {
     }
   }, []);
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void fetchNotifications();
-    const interval = setInterval(() => void fetchNotifications(), 30000);
-    return () => clearInterval(interval);
+  const startPolling = useCallback(() => {
+    if (pollIntervalRef.current) return; // already polling
+    pollIntervalRef.current = setInterval(() => void fetchNotifications(), 30000);
   }, [fetchNotifications]);
+
+  useEffect(() => {
+    // Initial fetch
+    void fetchNotifications();
+
+    // Try SSE first
+    if (typeof window !== "undefined" && "EventSource" in window) {
+      const es = new EventSource("/api/sse");
+      esRef.current = es;
+
+      es.onmessage = () => {
+        // A new notification arrived — re-fetch to get fresh data
+        void fetchNotifications();
+      };
+
+      es.onerror = () => {
+        // SSE failed or is not available — fall back to polling
+        es.close();
+        esRef.current = null;
+        startPolling();
+      };
+    } else {
+      // EventSource not available — use polling
+      startPolling();
+    }
+
+    return () => {
+      if (esRef.current) {
+        esRef.current.close();
+        esRef.current = null;
+      }
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    };
+  }, [fetchNotifications, startPolling]);
 
   // Close on outside click
   useEffect(() => {
