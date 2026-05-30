@@ -215,6 +215,7 @@ model User {
   contentRules           ContentRule[]
   externalReviews        ExternalReview[]
   socialComments         SocialComment[]
+  clientPortals          ClientPortal[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1477,4 +1478,25 @@ model SocialComment {
   @@index([userId, isRead])
   @@index([userId, platform])
   @@index([userId, postedAt(sort: Desc)])
+}
+
+model ClientPortal {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug          String    @unique
+  title         String
+  description   String?
+  accentColor   String    @default("#6366f1")
+  showCalendar  Boolean   @default(true)
+  showAnalytics Boolean   @default(true)
+  showPosts     Boolean   @default(true)
+  isPublished   Boolean   @default(false)
+  expiresAt     DateTime?
+  views         Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([slug])
 }
