@@ -214,6 +214,7 @@ model User {
   calendarShares         CalendarShare[]
   contentRules           ContentRule[]
   externalReviews        ExternalReview[]
+  socialComments         SocialComment[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -250,6 +251,7 @@ model SocialAccount {
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
   audienceMetrics      AudienceMetric[]
+  socialComments       SocialComment[]
 
   @@unique([userId, platform, platformAccountId])
   @@index([userId])
@@ -1450,4 +1452,29 @@ model ExternalReview {
   @@index([postId])
   @@index([userId])
   @@index([token])
+}
+
+model SocialComment {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId         String
+  account           SocialAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  platformPostId    String
+  platformCommentId String        @unique
+  authorName        String
+  authorHandle      String
+  authorAvatarUrl   String?
+  content           String
+  isRead            Boolean       @default(false)
+  isReplied         Boolean       @default(false)
+  platform          Platform
+  postedAt          DateTime
+  fetchedAt         DateTime      @default(now())
+  createdAt         DateTime      @default(now())
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([userId, platform])
+  @@index([userId, postedAt(sort: Desc)])
 }

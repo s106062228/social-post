@@ -29,7 +29,8 @@ export type ActivityAction =
   | "account.exported"
   | "account.deleted"
   | "post.review_requested"
-  | "post.review_responded";
+  | "post.review_responded"
+  | "comment.replied";
 
 export interface LogActivityOptions {
   userId: string;

@@ -58,6 +58,16 @@ export interface Insights {
   shares?: number;
 }
 
+/** A comment fetched from a platform (for the inbox) */
+export interface IncomingComment {
+  platformCommentId: string;
+  authorName: string;
+  authorHandle: string;
+  authorAvatarUrl?: string;
+  content: string;
+  postedAt: Date;
+}
+
 /**
  * Unified interface that every platform adapter must implement.
  * The `token` parameter is always the decrypted platform access token.
@@ -96,4 +106,10 @@ export interface PlatformAdapter {
    * Optional — only FB and IG support this; Threads does not.
    */
   addComment?(platformPostId: string, comment: string, token: string): Promise<void>;
+
+  /**
+   * Fetch recent comments on a published post.
+   * Optional — implemented for Facebook and Instagram.
+   */
+  fetchComments?(platformPostId: string, token: string): Promise<IncomingComment[]>;
 }

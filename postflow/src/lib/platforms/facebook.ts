@@ -5,6 +5,7 @@ import {
   PublishResult,
   PostStatus,
   Insights,
+  IncomingComment,
   PlatformAdapter,
 } from "./types";
 
@@ -233,6 +234,42 @@ export class FacebookAdapter implements PlatformAdapter {
       z.object({ id: z.string() }),
       { message: comment }
     );
+  }
+
+  async fetchComments(platformPostId: string, token: string): Promise<IncomingComment[]> {
+    const params = new URLSearchParams({
+      access_token: token,
+      fields: "id,message,from{id,name,picture},created_time",
+      limit: "50",
+    });
+    const url = `${META_API_BASE}/${platformPostId}/comments?${params.toString()}`;
+    const schema = z.object({
+      data: z.array(
+        z.object({
+          id: z.string(),
+          message: z.string().optional(),
+          from: z.object({ id: z.string(), name: z.string(), picture: z.object({ data: z.object({ url: z.string() }) }).optional() }).optional(),
+          created_time: z.string(),
+        })
+      ).default([]),
+    });
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return [];
+      const raw = await res.json() as unknown;
+      const parsed = schema.safeParse(raw);
+      if (!parsed.success) return [];
+      return parsed.data.data.map((c) => ({
+        platformCommentId: c.id,
+        authorName: c.from?.name ?? "Unknown",
+        authorHandle: c.from?.id ?? c.id,
+        authorAvatarUrl: c.from?.picture?.data?.url,
+        content: c.message ?? "",
+        postedAt: new Date(c.created_time),
+      }));
+    } catch {
+      return [];
+    }
   }
 
   async getInsights(platformPostId: string, token: string): Promise<Insights> {

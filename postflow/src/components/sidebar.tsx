@@ -57,6 +57,7 @@ import {
   StickyNote,
   Share2,
   ShieldCheck,
+  MessageSquare,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -107,6 +108,7 @@ const navItems = [
   { href: "/short-links", label: "Short Links", icon: Scissors },
   { href: "/blackout-periods", label: "Blackouts", icon: CalendarOff },
   { href: "/brand-kit", label: "Brand Kit", icon: Palette },
+  { href: "/inbox", label: "Inbox", icon: MessageSquare },
   { href: "/content-rules", label: "Content Rules", icon: ShieldCheck },
   { href: "/inspiration", label: "Inspiration", icon: Globe },
   { href: "/billing", label: "Billing", icon: CreditCard },
