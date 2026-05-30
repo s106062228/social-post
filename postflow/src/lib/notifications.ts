@@ -13,6 +13,8 @@ export const NOTIFICATION_TYPES = {
   POST_REMINDER: "post.reminder",
   POST_EXPIRED: "post.expired",
   POST_RECYCLED: "post.recycled",
+  EXTERNAL_REVIEW_RESPONDED: "external_review.responded",
+  EXTERNAL_REVIEW_REQUESTED: "external_review.requested",
 } as const;
 
 export type NotificationType =

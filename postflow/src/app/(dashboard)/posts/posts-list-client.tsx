@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { FileText, History, Trash2 } from "lucide-react";
+import { FileText, History, Send, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { DeletePostButton } from "./delete-post-button";
 import { RetryPostButton } from "./retry-post-button";
@@ -32,6 +32,7 @@ import { PostReportCardDialog } from "@/components/post-report-card-dialog";
 import { ComparePostsButton } from "./compare-posts-button";
 import { AutoTagButton } from "./auto-tag-button";
 import { BulkAutoTagButton } from "./bulk-auto-tag-button";
+import { ExternalReviewDialog } from "@/components/external-review-dialog";
 import { computeScore, scoreLabel } from "@/lib/content-score";
 import { QualityScoreBadge } from "@/components/quality-score-badge";
 
@@ -173,6 +174,7 @@ export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
+  const [reviewingPostId, setReviewingPostId] = useState<string | null>(null);
 
   const selectablePosts = posts.filter((p) => p.status !== "PUBLISHING");
   const allSelected =
@@ -420,12 +422,27 @@ export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
                   postMediaUrls={post.mediaUrls}
                 />
                 <SharePostButton postId={post.id} />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  title="Review requests"
+                  onClick={() => setReviewingPostId(post.id)}
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
                 <DeletePostButton postId={post.id} status={post.status} />
               </div>
             </div>
           );
         })}
       </div>
+      {reviewingPostId && (
+        <ExternalReviewDialog
+          postId={reviewingPostId}
+          postContent={posts.find((p) => p.id === reviewingPostId)?.content ?? ""}
+          onClose={() => setReviewingPostId(null)}
+        />
+      )}
     </div>
   );
 }
