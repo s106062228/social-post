@@ -1756,3 +1756,14 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Content rules management page in dashboard (`/content-rules`) — list rules with type badge, severity badge, active toggle, delete; inline create form (name, type selector, value input with contextual hint, severity)
 - [x] Add "Content Rules" to sidebar navigation (icon: `ShieldCheck`)
 - [x] Unit tests for content rules utility (23 tests) and API routes (37 tests — GET list, POST create, max-limit, invalid body, PATCH update, ownership, DELETE, check endpoint with all rule types, platform filter, inactive skip)
+
+### Phase 183: External Post Review Requests
+- [ ] `ExternalReview` model in Prisma (id, postId, userId, reviewerEmail, reviewerName?, token unique, message?, status: ExternalReviewStatus enum PENDING/APPROVED/REJECTED/CANCELLED, feedback?, createdAt, respondedAt?, expiresAt?) + migration (`20260802000000_add_external_reviews`)
+- [ ] `GET /api/posts/[id]/external-reviews` + `POST /api/posts/[id]/external-reviews` endpoints — list and create review requests; POST validates ownership, generates crypto token, sends email to reviewer with public link, logs activity; auth + rate limit + zod validation
+- [ ] `DELETE /api/posts/[id]/external-reviews/[reviewId]` endpoint — cancel a pending review request; auth + rate limit + ownership check
+- [ ] `GET /api/external-review/[token]` public endpoint — returns sanitized post data (content, mediaType, mediaUrls, platform info, no user PII) for valid non-expired non-cancelled tokens; 404/410 for invalid/expired
+- [ ] `POST /api/external-review/[token]/respond` public endpoint — accepts `{decision: "APPROVED"|"REJECTED", feedback?: string}`; updates review status + respondedAt; fires in-app notification to post owner; returns `{status}`
+- [ ] Public external review page (`/external-review/[token]`) — server-rendered; shows post preview using `PostPreview` component, reviewer name + email form (optional), decision buttons (Approve / Request Changes), feedback textarea; thank-you state after submission; no auth required
+- [ ] `ExternalReviewDialog` component (`src/components/external-review-dialog.tsx`) — modal with reviewer email input, optional name, optional message, optional expiry date; calls `POST /api/posts/[id]/external-reviews`; toast feedback; lists existing requests with status badge, respond date, feedback preview, and cancel button
+- [ ] "Review Requests" button (Send icon) per post row in posts list — opens `ExternalReviewDialog`; shows unread badge when any request has APPROVED/REJECTED status
+- [ ] Unit tests for external review endpoints (POST create, GET list, DELETE cancel, GET public valid, GET public expired, GET public cancelled, POST respond approve, POST respond reject, POST respond already-responded, auth + ownership — 16 tests)

@@ -213,6 +213,7 @@ model User {
   calendarNotes          CalendarNote[]
   calendarShares         CalendarShare[]
   contentRules           ContentRule[]
+  externalReviews        ExternalReview[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -309,9 +310,10 @@ model Post {
   abTestsAsB     PostABTest[]   @relation("ABTestVariantB")
   threadPosts    ThreadPost[]
   poll           PostPoll?
-  checklistRecord PostChecklistRecord?
-  collections    CollectionPost[]
-  createdAt      DateTime       @default(now())
+  checklistRecord  PostChecklistRecord?
+  collections      CollectionPost[]
+  externalReviews  ExternalReview[]
+  createdAt        DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
   @@index([userId])
@@ -1420,4 +1422,32 @@ model ContentRule {
 
   @@index([userId])
   @@index([userId, isActive])
+}
+
+enum ExternalReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model ExternalReview {
+  id            String               @id @default(cuid())
+  postId        String
+  post          Post                 @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewerEmail String
+  reviewerName  String?
+  token         String               @unique @default(cuid())
+  message       String?
+  status        ExternalReviewStatus @default(PENDING)
+  feedback      String?
+  respondedAt   DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime             @default(now())
+
+  @@index([postId])
+  @@index([userId])
+  @@index([token])
 }
