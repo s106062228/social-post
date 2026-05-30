@@ -1779,3 +1779,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Inbox page in dashboard (`/inbox`) — comment feed with platform filter tabs, unread count badge per tab, read/unread toggle, reply button per comment opening inline reply textarea, "Sync Now" button showing last synced timestamp; "Mark All Read" button; empty state when no comments
 - [x] Add "Inbox" to sidebar navigation (icon: `MessageSquare`)
 - [x] Unit tests for inbox API endpoints (sync, GET list with platform filter, GET unreadOnly filter, PATCH read toggle, POST reply success, POST reply adapter error, bulk-read — auth, rate limit, ownership, shape — 21 tests)
+
+### Phase 185: Team Shared Calendar
+- [x] `GET /api/teams/[id]/calendar` endpoint — auth + team membership check + rate limit; accepts `?year=YYYY&month=1-12` params (defaults to current month); returns all SCHEDULED/PUBLISHED posts from all team members in that month, each with author name, platform info, scheduledAt; returns `{year, month, posts: [{postId, content, scheduledAt, status, platform, authorName, authorId}[]}]}`
+- [x] Team calendar page in dashboard (`/teams/[id]/calendar`) — server-rendered calendar grid (same layout as CalendarView); posts color-coded by author; legend showing each member's color; click reveals post content, platform, status, author; prev/next month navigation via URL params; "Back to Team" link
+- [x] Add "View Shared Calendar" button/link in team detail page (`/teams/[id]`) linking to `/teams/[id]/calendar`
+- [x] Unit tests for team calendar API (auth required, non-member rejected, rate limit, defaults to current month, year/month params, all-member posts returned, response shape, empty month — 8 tests)

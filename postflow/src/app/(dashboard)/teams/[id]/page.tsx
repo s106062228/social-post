@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, Link as LinkIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Users, Link as LinkIcon, CalendarDays } from "lucide-react";
 import { InviteForm } from "./invite-form";
 import { MemberActions } from "./member-actions";
 
@@ -49,14 +51,22 @@ export default async function TeamDetailPage({ params }: Props) {
 
   return (
     <div className="flex flex-col gap-8 p-8 max-w-3xl">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">{team.name}</h1>
-        <p className="text-muted-foreground mt-1">
-          Your role:{" "}
-          <Badge variant={ROLE_VARIANTS[membership.role] ?? "outline"}>
-            {ROLE_LABELS[membership.role] ?? membership.role}
-          </Badge>
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{team.name}</h1>
+          <p className="text-muted-foreground mt-1">
+            Your role:{" "}
+            <Badge variant={ROLE_VARIANTS[membership.role] ?? "outline"}>
+              {ROLE_LABELS[membership.role] ?? membership.role}
+            </Badge>
+          </p>
+        </div>
+        <Button variant="outline" asChild>
+          <Link href={`/teams/${id}/calendar`}>
+            <CalendarDays className="h-4 w-4 mr-2" />
+            View Shared Calendar
+          </Link>
+        </Button>
       </div>
 
       {/* Members */}
