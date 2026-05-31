@@ -41,6 +41,7 @@ import { PerformanceCoachingCard } from "@/components/performance-coaching-card"
 import { PlatformReliabilityCard } from "@/components/platform-reliability-card";
 import { ContentFatigueCard } from "@/components/content-fatigue-card";
 import { PerformanceMatrixCard } from "@/components/performance-matrix-card";
+import { SentimentTrendCard } from "@/components/sentiment-trend-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -545,6 +546,9 @@ export function AnalyticsDashboard() {
 
       {/* Content Category × Platform Performance Matrix */}
       {isVisible("performance_matrix") && <PerformanceMatrixCard />}
+
+      {/* Sentiment Trend */}
+      {isVisible("sentiment_trend") && <SentimentTrendCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}

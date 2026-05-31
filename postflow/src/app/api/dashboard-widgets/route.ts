@@ -27,6 +27,7 @@ export const WIDGET_KEYS = [
   "publish_reliability",
   "content_fatigue",
   "performance_matrix",
+  "sentiment_trend",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -60,6 +61,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   publish_reliability: "Platform Publishing Reliability",
   content_fatigue: "Content Fatigue Detection",
   performance_matrix: "Content Category × Platform Matrix",
+  sentiment_trend: "Sentiment Trend",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {
