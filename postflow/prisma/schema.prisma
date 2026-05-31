@@ -216,6 +216,7 @@ model User {
   externalReviews        ExternalReview[]
   socialComments         SocialComment[]
   clientPortals          ClientPortal[]
+  audiencePersonas       AudiencePersona[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -316,6 +317,8 @@ model Post {
   checklistRecord  PostChecklistRecord?
   collections      CollectionPost[]
   externalReviews  ExternalReview[]
+  targetPersonaId  String?
+  targetPersona    AudiencePersona? @relation(fields: [targetPersonaId], references: [id], onDelete: SetNull)
   createdAt        DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -1499,4 +1502,24 @@ model ClientPortal {
 
   @@index([userId])
   @@index([slug])
+}
+
+model AudiencePersona {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String
+  description      String?
+  ageRange         String?
+  primaryPlatforms String[] @default([])
+  interests        String[] @default([])
+  painPoints       String[] @default([])
+  goals            String[] @default([])
+  contentTypes     String[] @default([])
+  notes            String?
+  posts            Post[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([userId])
 }

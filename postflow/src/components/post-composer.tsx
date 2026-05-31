@@ -126,6 +126,8 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [firstComment, setFirstComment] = useState("");
   const [language, setLanguage] = useState<string>("");
   const [contentCategory, setContentCategory] = useState<string>("");
+  const [targetPersonaId, setTargetPersonaId] = useState<string>("");
+  const [audiencePersonas, setAudiencePersonas] = useState<{ id: string; name: string }[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([]);
   const [snippets, setSnippets] = useState<ContentSnippet[]>([]);
@@ -215,6 +217,13 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       .then((r) => r.json())
       .then((data: { groups?: AccountGroup[] }) => {
         if (data.groups) setAccountGroups(data.groups);
+      })
+      .catch(() => undefined);
+
+    fetch("/api/audience-personas")
+      .then((r) => r.json())
+      .then((data: { personas?: { id: string; name: string }[] }) => {
+        if (data.personas) setAudiencePersonas(data.personas);
       })
       .catch(() => undefined);
 
@@ -346,6 +355,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       }
       if (contentCategory) {
         body.contentCategory = contentCategory;
+      }
+      if (targetPersonaId) {
+        body.targetPersonaId = targetPersonaId;
       }
       const trimmedAltTexts = altTexts.map((t) => t ?? "");
       if (trimmedAltTexts.some((t) => t.trim())) {
@@ -1119,6 +1131,26 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           <option value="USER_GENERATED">User Generated</option>
         </select>
       </div>
+
+      {/* Target audience persona */}
+      {audiencePersonas.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="target-persona-select">Target audience</Label>
+          <select
+            id="target-persona-select"
+            value={targetPersonaId}
+            onChange={(e) => setTargetPersonaId(e.target.value)}
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            <option value="">None (general audience)</option>
+            {audiencePersonas.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Per-platform content variants (shown when 2+ platforms are selected) */}
       {selectedPlatforms.length >= 2 && (

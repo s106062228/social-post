@@ -59,6 +59,7 @@ import {
   ShieldCheck,
   MessageSquare,
   Building2,
+  Users2,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -118,6 +119,7 @@ const navItems = [
   { href: "/caption-variables", label: "Variables", icon: Braces },
   { href: "/schedule-presets", label: "Time Presets", icon: Clock },
   { href: "/ai-personas", label: "AI Personas", icon: Bot },
+  { href: "/audience-personas", label: "Personas", icon: Users2 },
   { href: "/achievements", label: "Achievements", icon: Award },
   { href: "/api-explorer", label: "API Docs", icon: BookOpen },
   { href: "/client-portals", label: "Client Portals", icon: Building2 },

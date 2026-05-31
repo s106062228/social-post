@@ -38,6 +38,7 @@ const createPostSchema = z.object({
   contentCategory: z.nativeEnum(ContentCategory).nullable().optional(),
   altTexts: z.array(z.string().max(2200)).max(10).default([]),
   poll: pollSchema.nullable().optional(),
+  targetPersonaId: z.string().nullable().optional(),
 });
 
 const listPostsSchema = z.object({
@@ -203,7 +204,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { mediaType, mediaUrls, scheduledAt, tagIds, reminderMinutes, firstComment, language, contentCategory, altTexts, poll } = parsed.data;
+    const { mediaType, mediaUrls, scheduledAt, tagIds, reminderMinutes, firstComment, language, contentCategory, altTexts, poll, targetPersonaId } = parsed.data;
     const content = sanitizePostContent(parsed.data.content);
 
     if (content.length === 0) {
@@ -242,6 +243,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           language: language ?? null,
           contentCategory: contentCategory ?? null,
           altTexts,
+          targetPersonaId: targetPersonaId ?? null,
           tags: validTagIds.length > 0
             ? { create: validTagIds.map((tagId) => ({ tagId })) }
             : undefined,

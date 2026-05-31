@@ -38,6 +38,7 @@ const updatePostSchema = z
     contentCategory: z.nativeEnum(ContentCategory).nullable().optional(),
     altTexts: z.array(z.string().max(2200)).max(10).optional(),
     poll: pollUpdateSchema.nullable().optional(),
+    targetPersonaId: z.string().nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field must be provided",
@@ -149,7 +150,7 @@ export async function PATCH(
       );
     }
 
-    const { content, mediaType, mediaUrls, scheduledAt, status, firstComment, language, altTexts, poll } = parsed.data;
+    const { content, mediaType, mediaUrls, scheduledAt, status, firstComment, language, altTexts, poll, targetPersonaId } = parsed.data;
 
     // Derive status from scheduledAt if status not explicitly provided
     let newStatus: PostStatus | undefined = status;
@@ -178,6 +179,7 @@ export async function PATCH(
         ...(firstComment !== undefined && { firstComment: firstComment ?? null }),
         ...(language !== undefined && { language: language ?? null }),
         ...(altTexts !== undefined && { altTexts }),
+        ...(targetPersonaId !== undefined && { targetPersonaId: targetPersonaId ?? null }),
       },
       include: { publishResults: true, poll: true },
     });

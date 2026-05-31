@@ -1802,3 +1802,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `SentimentTrendCard` component (`src/components/sentiment-trend-card.tsx`) — Recharts stacked AreaChart with green/grey/red areas for positive/neutral/negative; summary pills showing counts and positive rate; period selector (30d/90d/180d); "No data yet" empty state with instructions to use Analyze Sentiment; loading and error states
 - [x] Integrate `SentimentTrendCard` into analytics dashboard page below `PerformanceMatrixCard`; add `"sentiment_trend"` widget key and label to `WIDGET_KEYS` and `WIDGET_LABELS` in dashboard-widgets route
 - [x] Unit tests for sentiment-trend endpoint (auth, rate limit, invalid period, empty state shape, 31/91/181 day entries, positive/neutral/negative aggregation, day entry shape, case-insensitive sentiment, 100% positive rate, query filter — 12 tests)
+
+### Phase 188: Audience Persona Management & Targeted Content Creation
+- [x] `AudiencePersona` model in Prisma (id, userId, name, description?, ageRange?, primaryPlatforms String[], interests String[], painPoints String[], goals String[], contentTypes String[], notes?, createdAt, updatedAt) + `targetPersonaId` nullable FK on Post + migration (`20260806000000_add_audience_personas`)
+- [x] CRUD API for audience personas (`GET /api/audience-personas`, `POST /api/audience-personas`, `PATCH /api/audience-personas/[id]`, `DELETE /api/audience-personas/[id]`) — auth + rate limit + zod validation; max 20 personas per user
+- [x] Audience personas management page in dashboard (`/audience-personas`) — card grid with persona details (name, age range, platforms, interests, pain points, goals), inline create/edit form, delete button
+- [x] Persona selector in post composer — compact "Target Audience" dropdown; passes `targetPersonaId` with post creation/update; extend POST/PATCH `/api/posts` zod schemas to accept optional `targetPersonaId`
+- [x] Add "Personas" to sidebar navigation (icon: `Users2`)
+- [x] Unit tests for audience personas API (GET list, POST create, POST max-limit, POST invalid body, PATCH update, PATCH not-found, PATCH ownership, DELETE success, DELETE not-found, DELETE ownership, auth, rate limit — 14 tests)
