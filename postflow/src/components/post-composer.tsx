@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -30,6 +30,8 @@ import { ThreadBuilder, type ThreadItem } from "@/components/thread-builder";
 import { PollBuilder, type PollData } from "@/components/poll-builder";
 import { HashtagResearchDialog } from "@/components/hashtag-research-dialog";
 import { HeadlineGeneratorDialog } from "@/components/headline-generator-dialog";
+import { PostOptimizationDialog } from "@/components/post-optimization-dialog";
+import type { PostOptimizationResult } from "@/lib/ai";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
 import {
@@ -183,6 +185,11 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
   // Headline generator dialog state
   const [showHeadlineDialog, setShowHeadlineDialog] = useState(false);
+
+  // Optimize dialog state
+  const [showOptimizeDialog, setShowOptimizeDialog] = useState(false);
+  const [optimizeResult, setOptimizeResult] = useState<PostOptimizationResult | null>(null);
+  const [optimizeLoading, setOptimizeLoading] = useState(false);
 
   useEffect(() => {
     fetch("/api/templates?limit=50")
@@ -606,6 +613,34 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
     }
   }
 
+  async function handleOptimize() {
+    if (!content.trim()) return;
+    setOptimizeLoading(true);
+    try {
+      const res = await fetch("/api/ai/optimize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, platforms: selectedPlatforms }),
+      });
+      if (res.status === 503) {
+        toast({
+          title: "AI not configured",
+          description: "Post optimization requires an Anthropic API key.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!res.ok) throw new Error("Request failed");
+      const data = (await res.json()) as PostOptimizationResult;
+      setOptimizeResult(data);
+      setShowOptimizeDialog(true);
+    } catch {
+      toast({ title: "Optimization failed", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setOptimizeLoading(false);
+    }
+  }
+
   async function tagUrlsWithUtm() {
     const urls = extractUrls(content);
     if (urls.length === 0) {
@@ -856,6 +891,19 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
             />
             <button
               type="button"
+              onClick={() => void handleOptimize()}
+              disabled={optimizeLoading || !content.trim()}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:pointer-events-none disabled:opacity-50"
+            >
+              {optimizeLoading ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Wand2 className="h-3 w-3" />
+              )}
+              {optimizeLoading ? "Optimizing…" : "Optimize"}
+            </button>
+            <button
+              type="button"
               onClick={fetchHashtagSuggestions}
               disabled={hashtagsLoading || !content.trim()}
               className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:pointer-events-none disabled:opacity-50"
@@ -1035,6 +1083,20 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           );
         }}
       />
+
+      {/* Post Optimization Dialog */}
+      {optimizeResult && (
+        <PostOptimizationDialog
+          open={showOptimizeDialog}
+          onClose={() => setShowOptimizeDialog(false)}
+          originalContent={content}
+          platforms={selectedPlatforms}
+          result={optimizeResult}
+          onApply={(optimized) => setContent(optimized)}
+          onRegenerate={() => { void handleOptimize(); }}
+          isRegenerating={optimizeLoading}
+        />
+      )}
 
       {/* First comment — shown when Facebook or Instagram accounts are selected */}
       {selectedPlatforms.some((p) => p === "FACEBOOK" || p === "INSTAGRAM") && (
