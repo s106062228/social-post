@@ -42,6 +42,7 @@ import { PlatformReliabilityCard } from "@/components/platform-reliability-card"
 import { ContentFatigueCard } from "@/components/content-fatigue-card";
 import { PerformanceMatrixCard } from "@/components/performance-matrix-card";
 import { SentimentTrendCard } from "@/components/sentiment-trend-card";
+import { PersonaPerformanceCard } from "@/components/persona-performance-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -549,6 +550,9 @@ export function AnalyticsDashboard() {
 
       {/* Sentiment Trend */}
       {isVisible("sentiment_trend") && <SentimentTrendCard />}
+
+      {/* Audience Persona Performance */}
+      {isVisible("persona_performance") && <PersonaPerformanceCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
