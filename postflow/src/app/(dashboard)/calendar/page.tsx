@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarView } from "@/components/calendar-view";
 import { CalendarExport } from "@/components/calendar-export";
 import { CalendarPlannerDialog } from "@/components/calendar-planner-dialog";
-import { Plus, StickyNote, Share2 } from "lucide-react";
+import { Plus, StickyNote, Share2, Upload } from "lucide-react";
 
 export default async function CalendarPage() {
   const session = await auth();
@@ -69,6 +69,12 @@ export default async function CalendarPage() {
             <Link href="/calendar-shares">
               <Share2 className="mr-2 h-4 w-4" />
               Share Calendar
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/calendar/import">
+              <Upload className="mr-2 h-4 w-4" />
+              Import ICS
             </Link>
           </Button>
           <CalendarExport />
