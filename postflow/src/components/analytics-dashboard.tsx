@@ -43,6 +43,7 @@ import { ContentFatigueCard } from "@/components/content-fatigue-card";
 import { PerformanceMatrixCard } from "@/components/performance-matrix-card";
 import { SentimentTrendCard } from "@/components/sentiment-trend-card";
 import { PersonaPerformanceCard } from "@/components/persona-performance-card";
+import { TrendingHashtagsCard } from "@/components/trending-hashtags-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -553,6 +554,9 @@ export function AnalyticsDashboard() {
 
       {/* Audience Persona Performance */}
       {isVisible("persona_performance") && <PersonaPerformanceCard />}
+
+      {/* Emerging Hashtag Trends */}
+      {isVisible("trending_hashtags") && <TrendingHashtagsCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}

@@ -29,6 +29,7 @@ export const WIDGET_KEYS = [
   "performance_matrix",
   "sentiment_trend",
   "persona_performance",
+  "trending_hashtags",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -64,6 +65,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   performance_matrix: "Content Category × Platform Matrix",
   sentiment_trend: "Sentiment Trend",
   persona_performance: "Audience Persona Performance",
+  trending_hashtags: "Emerging Hashtag Trends",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {
