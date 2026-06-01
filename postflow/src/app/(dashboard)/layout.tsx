@@ -8,6 +8,7 @@ import { PublishingPauseBanner } from "@/components/publishing-pause-banner";
 import { AccountHealthBanner } from "@/components/account-health-banner";
 import { TourButton } from "@/components/tour-button";
 import { ProductTour } from "@/components/product-tour";
+import { AiChatPanel } from "@/components/ai-chat-panel";
 
 export default function DashboardLayout({
   children,
@@ -26,6 +27,7 @@ export default function DashboardLayout({
         <header className="flex h-14 shrink-0 items-center justify-between border-b bg-card px-6">
           <TourButton />
           <div className="flex items-center gap-1">
+            <AiChatPanel />
             <ChangelogBadge />
             <NotificationBell />
           </div>

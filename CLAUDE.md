@@ -1830,3 +1830,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `PostOptimizationDialog` component (`src/components/post-optimization-dialog.tsx`) — modal showing original vs optimized content side-by-side, change list with type-coloured badges (grammar/hashtags/engagement/platform/clarity), improvement score badge (0–100), "Apply Optimization" button that replaces composer content, copy-to-clipboard, regenerate option, loading state
 - [x] "Optimize" button (Wand2 icon) in post composer toolbar — opens `PostOptimizationDialog` with current content and selected platforms; disabled when content is empty or no AI configured; shows loading spinner during optimization
 - [x] Unit tests for `POST /api/ai/optimize` (auth, rate limit, AI disabled, invalid JSON, missing content, empty platforms, success shape with changes array, brand context included when kit exists, brand context absent when no kit, AI error — 10 tests)
+
+### Phase 192: AI Content Strategy Chat Assistant
+- [x] `AiChatMessage` model in Prisma (id, userId, role String, content String, createdAt DateTime, @@index([userId, createdAt(sort: Desc)])) + migration (`20260807000000_add_ai_chat`)
+- [x] Add `chatWithAssistant(messages, contextSummary?)` + `ChatMessage` interface to `src/lib/ai.ts` — calls `claude-haiku-4-5` with system prompt as PostFlow content strategy assistant; uses prompt caching on system block; accepts conversation history + optional account context summary
+- [x] `GET /api/ai/chat` endpoint — auth + rate limit (60/min); returns last 50 messages ordered chronologically
+- [x] `POST /api/ai/chat` endpoint — auth + rate limit (20/min) + zod validation; saves user message + AI reply in DB transaction; prunes history to MAX_HISTORY=50; includes context summary (connected accounts count, posts last 30 days); returns `{reply}`
+- [x] `DELETE /api/ai/chat` endpoint — auth + rate limit (10/min); clears all messages for user; returns `{deleted: count}`
+- [x] `AiChatPanel` floating client component (`src/components/ai-chat-panel.tsx`) — toggle button in dashboard header; fixed bottom-right panel with message history, user/assistant bubbles, textarea input (Enter to send, Shift+Enter for newline), send button, clear history button, loading indicator; lazy-loads history on first open
+- [x] Integrate `AiChatPanel` into dashboard layout header
+- [x] Unit tests for GET/POST/DELETE `/api/ai/chat` (auth 401, rate limit 429, history shape, AI disabled 503, invalid body 400, success reply, history context passing, clear history — 10 tests)

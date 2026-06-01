@@ -1479,98 +1479,33 @@ export async function generateHeadlines(
   return [];
 }
 
-export interface OptimizationChange {
-  type: "grammar" | "hashtags" | "engagement" | "platform" | "clarity";
-  description: string;
+const CHAT_SYSTEM = `You are PostFlow's AI content strategy assistant. You help social media managers with content strategy, post ideas, understanding analytics, scheduling optimization, and improving social media performance.
+Be helpful, concise, and actionable. Give specific, practical advice. When the user asks for content ideas, generate examples. Keep responses focused and under 300 words unless more detail is requested.`;
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
 }
 
-export interface PostOptimizationResult {
-  optimizedContent: string;
-  changes: OptimizationChange[];
-  hashtagsAdded: string[];
-  estimatedImprovementScore: number;
-}
-
-const OPTIMIZE_SYSTEM = `You are a professional social media content optimizer. Your job is to comprehensively improve post content for maximum engagement and platform effectiveness.
-Analyze the content and apply improvements including: fixing grammar, enhancing engagement, adding relevant hashtags, improving clarity, and applying platform-specific best practices.
-Always respond with valid JSON in this exact format:
-{"optimizedContent": "the fully optimized post content", "changes": [{"type": "grammar|hashtags|engagement|platform|clarity", "description": "what was changed and why"}], "hashtagsAdded": ["#tag1", "#tag2"], "estimatedImprovementScore": 75}
-- optimizedContent: the complete improved post content (preserve essential meaning, enhance delivery)
-- changes: list of 2-5 specific improvements made (type must be one of the 5 values above)
-- hashtagsAdded: array of new hashtags added (with # prefix), empty array if none added
-- estimatedImprovementScore: integer 0-100 representing how much the post was improved (0=no improvement, 100=major overhaul)
-Respect platform character limits when specified. Preserve the author's voice while improving quality.`;
-
-export async function optimizePost(
-  content: string,
-  platforms: string[],
-  brandKitContext?: string | null,
-  tone?: string | null
-): Promise<PostOptimizationResult> {
+export async function chatWithAssistant(
+  messages: ChatMessage[],
+  contextSummary?: string | null
+): Promise<string> {
   const client = getClient();
 
-  const contextParts: string[] = [
-    `Post content to optimize:\n${content}`,
-    `Target platforms: ${platforms.join(", ")}`,
-  ];
-  if (tone) contextParts.push(`Desired tone: ${tone}`);
-  if (brandKitContext) contextParts.push(`Brand guidelines:\n${brandKitContext}`);
-  contextParts.push("Please optimize this content comprehensively.");
-
-  const userContent = contextParts.join("\n\n");
+  const systemText = contextSummary
+    ? `${CHAT_SYSTEM}\n\nUser account context:\n${contextSummary}`
+    : CHAT_SYSTEM;
 
   const response = await client.messages.create({
     model: MODEL,
     max_tokens: 1024,
     system: [
-      { type: "text", text: OPTIMIZE_SYSTEM, cache_control: { type: "ephemeral" } },
+      { type: "text", text: systemText, cache_control: { type: "ephemeral" } },
     ],
-    messages: [{ role: "user", content: userContent }],
+    messages: messages.map((m) => ({ role: m.role, content: m.content })),
   });
 
   const block = response.content.find((b) => b.type === "text");
-  const text = block && block.type === "text" ? block.text : "{}";
-  try {
-    const parsed = JSON.parse(text) as {
-      optimizedContent?: unknown;
-      changes?: unknown;
-      hashtagsAdded?: unknown;
-      estimatedImprovementScore?: unknown;
-    };
-
-    const optimizedContent = parsed.optimizedContent;
-    const changes = parsed.changes;
-    const hashtagsAdded = parsed.hashtagsAdded;
-    const estimatedImprovementScore = parsed.estimatedImprovementScore;
-
-    if (
-      typeof optimizedContent === "string" &&
-      Array.isArray(changes) &&
-      changes.every(
-        (c) =>
-          typeof c === "object" &&
-          c !== null &&
-          typeof (c as Record<string, unknown>).type === "string" &&
-          typeof (c as Record<string, unknown>).description === "string"
-      ) &&
-      Array.isArray(hashtagsAdded) &&
-      hashtagsAdded.every((h) => typeof h === "string") &&
-      typeof estimatedImprovementScore === "number"
-    ) {
-      return {
-        optimizedContent,
-        changes: changes as OptimizationChange[],
-        hashtagsAdded,
-        estimatedImprovementScore: Math.max(0, Math.min(100, Math.round(estimatedImprovementScore))),
-      };
-    }
-  } catch {
-    // fall through
-  }
-  return {
-    optimizedContent: content,
-    changes: [],
-    hashtagsAdded: [],
-    estimatedImprovementScore: 0,
-  };
+  return block && block.type === "text" ? block.text : "Sorry, I could not generate a response. Please try again.";
 }
