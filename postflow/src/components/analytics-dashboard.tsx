@@ -44,6 +44,7 @@ import { PerformanceMatrixCard } from "@/components/performance-matrix-card";
 import { SentimentTrendCard } from "@/components/sentiment-trend-card";
 import { PersonaPerformanceCard } from "@/components/persona-performance-card";
 import { TrendingHashtagsCard } from "@/components/trending-hashtags-card";
+import { PostingFrequencyCard } from "@/components/posting-frequency-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -557,6 +558,9 @@ export function AnalyticsDashboard() {
 
       {/* Emerging Hashtag Trends */}
       {isVisible("trending_hashtags") && <TrendingHashtagsCard />}
+
+      {/* Posting Frequency & Pacing */}
+      {isVisible("posting_frequency") && <PostingFrequencyCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
