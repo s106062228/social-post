@@ -164,6 +164,8 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [aiPersonaId, setAiPersonaId] = useState<string>("");
   const [aiPersonas, setAiPersonas] = useState<{ id: string; name: string; tone: string }[]>([]);
   const [personasLoaded, setPersonasLoaded] = useState(false);
+  const [savedPrompts, setSavedPrompts] = useState<{ id: string; name: string; prompt: string; category: string | null }[]>([]);
+  const [savedPromptsLoaded, setSavedPromptsLoaded] = useState(false);
 
   // UTM tagging state
   const [utmLoading, setUtmLoading] = useState(false);
@@ -540,6 +542,20 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
     }
   }
 
+  async function loadSavedPrompts() {
+    if (savedPromptsLoaded) return;
+    try {
+      const res = await fetch("/api/saved-prompts");
+      const data = (await res.json()) as {
+        prompts?: { id: string; name: string; prompt: string; category: string | null }[];
+      };
+      setSavedPrompts(data.prompts ?? []);
+      setSavedPromptsLoaded(true);
+    } catch {
+      // non-critical — saved prompts are optional
+    }
+  }
+
   async function fetchAiVariants() {
     if (!aiTopic.trim()) {
       toast({ title: "Enter a topic first.", variant: "destructive" });
@@ -862,7 +878,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => { setShowAiDialog(true); void loadAiPersonas(); }}
+              onClick={() => { setShowAiDialog(true); void loadAiPersonas(); void loadSavedPrompts(); }}
               className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
               <Sparkles className="h-3 w-3" />
@@ -1307,6 +1323,33 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
                   {aiPersonas.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name} ({p.tone})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {savedPrompts.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="ai-load-prompt">Load Saved Prompt</Label>
+                <select
+                  id="ai-load-prompt"
+                  className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  defaultValue=""
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    if (!selectedId) return;
+                    const found = savedPrompts.find((p) => p.id === selectedId);
+                    if (found) {
+                      setAiTopic(found.prompt);
+                      void fetch(`/api/saved-prompts/${selectedId}/use`, { method: "POST" });
+                      e.target.value = "";
+                    }
+                  }}
+                >
+                  <option value="">— Select a saved prompt —</option>
+                  {savedPrompts.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}{p.category ? ` (${p.category})` : ""}
                     </option>
                   ))}
                 </select>

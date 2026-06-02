@@ -1878,3 +1878,14 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Queue monitor page in dashboard (`/queue-monitor`) — full-page view with `QueueMonitorCard` at top; job list table below with state filter tabs (All / Waiting / Active / Failed / Delayed); each row shows jobId, postId, platform, attempts, timestamp, failedReason; "Retry" button per failed job; "Refresh" button; empty state per tab
 - [x] Add "Queue Monitor" to sidebar navigation (icon: `Activity`)
 - [x] Unit tests for queue status and jobs endpoints (auth, rate limit, shape with all count fields, Redis unavailable fallback, jobs filtered by userId, state filter param, retry success, retry wrong-user — 14 tests)
+
+### Phase 198: AI Prompt Library & Saved Custom Prompts
+- [x] `SavedPrompt` model in Prisma (id, userId, name, description?, prompt, category?, isPublic Boolean default false, usageCount Int default 0, createdAt, updatedAt) + migration (`20260809000000_add_saved_prompts`)
+- [x] CRUD API for saved prompts (`GET /api/saved-prompts`, `POST /api/saved-prompts`, `PATCH /api/saved-prompts/[id]`, `DELETE /api/saved-prompts/[id]`) — auth + rate limit + zod validation; max 50 prompts per user
+- [x] `GET /api/saved-prompts/community` endpoint — returns top 50 public prompts sorted by usageCount desc; no auth required
+- [x] `POST /api/saved-prompts/[id]/use` endpoint — increments usageCount; works for own prompts and public community prompts; auth + rate limit
+- [x] Saved prompts management page in dashboard (`/saved-prompts`) — "My Prompts" tab (list with category badge, usage count, public/private indicator, inline create form, edit-in-place, delete) + "Community Prompts" tab (public prompts from all users with "Add to Library" copy button that clones and increments usageCount)
+- [x] `Switch` and `Tabs` shadcn/ui components (`src/components/ui/switch.tsx`, `src/components/ui/tabs.tsx`) added to support the saved prompts page and future pages
+- [x] "Load Saved Prompt" dropdown in post composer AI Suggest dialog — lazy-loaded on dialog open; selecting a prompt fills the topic field and calls `/api/saved-prompts/[id]/use` fire-and-forget
+- [x] Add "Prompts" to sidebar navigation (icon: `Sparkles`)
+- [x] Unit tests for saved prompts API (GET list, POST create, POST max-limit, POST invalid body, PATCH update, PATCH ownership, DELETE success, DELETE not-found, DELETE ownership, community GET returns only public, use increments count, use on private by non-owner rejected — 29 tests)

@@ -61,6 +61,7 @@ import {
   Building2,
   Users2,
   MonitorDot,
+  Sparkles,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -121,6 +122,7 @@ const navItems = [
   { href: "/schedule-presets", label: "Time Presets", icon: Clock },
   { href: "/ai-personas", label: "AI Personas", icon: Bot },
   { href: "/audience-personas", label: "Personas", icon: Users2 },
+  { href: "/saved-prompts", label: "Prompts", icon: Sparkles },
   { href: "/achievements", label: "Achievements", icon: Award },
   { href: "/api-explorer", label: "API Docs", icon: BookOpen },
   { href: "/client-portals", label: "Client Portals", icon: Building2 },

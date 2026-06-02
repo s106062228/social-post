@@ -215,6 +215,7 @@ model User {
   contentRules           ContentRule[]
   chatMessages           AiChatMessage[]
   feedToken              FeedToken?
+  savedPrompts           SavedPrompt[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1443,4 +1444,23 @@ model FeedToken {
   createdAt DateTime @default(now())
 
   @@index([token])
+}
+
+model SavedPrompt {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  prompt      String
+  category    String?
+  isPublic    Boolean  @default(false)
+  usageCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isPublic])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([isPublic, usageCount(sort: Desc)])
 }
