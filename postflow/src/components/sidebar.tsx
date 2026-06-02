@@ -60,6 +60,7 @@ import {
   MessageSquare,
   Building2,
   Users2,
+  MonitorDot,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -123,6 +124,7 @@ const navItems = [
   { href: "/achievements", label: "Achievements", icon: Award },
   { href: "/api-explorer", label: "API Docs", icon: BookOpen },
   { href: "/client-portals", label: "Client Portals", icon: Building2 },
+  { href: "/queue-monitor", label: "Queue Monitor", icon: MonitorDot },
   { href: "/changelog", label: "Changelog", icon: Newspaper },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
