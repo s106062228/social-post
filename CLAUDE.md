@@ -1896,3 +1896,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `VideoScriptDialog` component (`src/components/video-script-dialog.tsx`) — modal with topic input, duration selector (15s/30s/1min/1.5min/3min/5min/10min), optional tone selector (professional/casual/educational/entertaining/inspirational); calls `/api/ai/video-script`; shows structured sections (Hook, Body, Call-to-Action) each with copy button; per-platform caption list with "Use" button applying caption to post content via `onApply` callback; regenerate button; loading state
 - [x] "Video Script" button (Film icon) in post composer toolbar — opens `VideoScriptDialog` with currently selected platforms; `onApply` sets post content
 - [x] Unit tests for `POST /api/ai/video-script` (auth 401, rate limit 429, AI disabled 503, invalid JSON 400, missing topic 400, duration out of range 400, empty platforms 400, success shape, AI error 500 — 9 tests)
+
+### Phase 200: Legal Disclaimer & Compliance Footer Management
+- [x] `LegalDisclaimer` model in Prisma (id, userId, name, content, platforms[], position String default "append", autoAppend Boolean, isActive Boolean, createdAt, updatedAt) + migration (`20260810000000_add_legal_disclaimers`)
+- [x] CRUD API for legal disclaimers (`GET /api/legal-disclaimers`, `POST /api/legal-disclaimers`, `PATCH /api/legal-disclaimers/[id]`, `DELETE /api/legal-disclaimers/[id]`) — auth + rate limit + zod validation; max 20 disclaimers per user
+- [x] `POST /api/legal-disclaimers/preview` endpoint — auth + rate limit; accepts `{content, disclaimerId}`; returns `{preview}` with disclaimer appended or prepended based on position field
+- [x] Legal disclaimers management page in dashboard (`/legal-disclaimers`) — list disclaimers with platform badges, position chip, auto-append indicator, active toggle; inline create/edit form (name, content textarea with char counter, position selector, platform chip toggles, autoAppend/isActive switches); delete with toast feedback
+- [x] Add "Disclaimers" to sidebar navigation (icon: `FileText`)
+- [x] Unit tests for legal disclaimers API (GET list, POST create, POST max-limit, POST invalid body, PATCH update, PATCH ownership, DELETE success, DELETE not-found, POST preview append, POST preview prepend — auth, rate limit, validation, shape — 33 tests)

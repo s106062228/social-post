@@ -57,11 +57,6 @@ import {
   StickyNote,
   Share2,
   ShieldCheck,
-  MessageSquare,
-  Building2,
-  Users2,
-  MonitorDot,
-  Sparkles,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -112,7 +107,6 @@ const navItems = [
   { href: "/short-links", label: "Short Links", icon: Scissors },
   { href: "/blackout-periods", label: "Blackouts", icon: CalendarOff },
   { href: "/brand-kit", label: "Brand Kit", icon: Palette },
-  { href: "/inbox", label: "Inbox", icon: MessageSquare },
   { href: "/content-rules", label: "Content Rules", icon: ShieldCheck },
   { href: "/inspiration", label: "Inspiration", icon: Globe },
   { href: "/billing", label: "Billing", icon: CreditCard },
@@ -121,13 +115,10 @@ const navItems = [
   { href: "/caption-variables", label: "Variables", icon: Braces },
   { href: "/schedule-presets", label: "Time Presets", icon: Clock },
   { href: "/ai-personas", label: "AI Personas", icon: Bot },
-  { href: "/audience-personas", label: "Personas", icon: Users2 },
-  { href: "/saved-prompts", label: "Prompts", icon: Sparkles },
   { href: "/achievements", label: "Achievements", icon: Award },
   { href: "/api-explorer", label: "API Docs", icon: BookOpen },
-  { href: "/client-portals", label: "Client Portals", icon: Building2 },
-  { href: "/queue-monitor", label: "Queue Monitor", icon: MonitorDot },
   { href: "/changelog", label: "Changelog", icon: Newspaper },
+  { href: "/legal-disclaimers", label: "Disclaimers", icon: FileText },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

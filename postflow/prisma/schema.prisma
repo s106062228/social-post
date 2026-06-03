@@ -213,9 +213,7 @@ model User {
   calendarNotes          CalendarNote[]
   calendarShares         CalendarShare[]
   contentRules           ContentRule[]
-  chatMessages           AiChatMessage[]
-  feedToken              FeedToken?
-  savedPrompts           SavedPrompt[]
+  legalDisclaimers       LegalDisclaimer[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1425,42 +1423,19 @@ model ContentRule {
   @@index([userId, isActive])
 }
 
-model AiChatMessage {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role      String
-  content   String
-  createdAt DateTime @default(now())
-
-  @@index([userId, createdAt(sort: Desc)])
-}
-
-model FeedToken {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token     String   @unique @default(cuid())
-  createdAt DateTime @default(now())
-
-  @@index([token])
-}
-
-model SavedPrompt {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  prompt      String
-  category    String?
-  isPublic    Boolean  @default(false)
-  usageCount  Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model LegalDisclaimer {
+  id         String     @id @default(cuid())
+  userId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  content    String
+  platforms  Platform[] @default([])
+  position   String     @default("append")
+  autoAppend Boolean    @default(false)
+  isActive   Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
   @@index([userId])
-  @@index([isPublic])
-  @@index([userId, createdAt(sort: Desc)])
-  @@index([isPublic, usageCount(sort: Desc)])
+  @@index([userId, isActive])
 }
