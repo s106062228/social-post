@@ -214,6 +214,7 @@ model User {
   calendarShares         CalendarShare[]
   contentRules           ContentRule[]
   legalDisclaimers       LegalDisclaimer[]
+  inboundWebhooks        InboundWebhook[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1438,4 +1439,37 @@ model LegalDisclaimer {
 
   @@index([userId])
   @@index([userId, isActive])
+}
+
+model InboundWebhook {
+  id               String               @id @default(cuid())
+  userId           String
+  user             User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String
+  secret           String
+  fieldMapping     Json                 @default("{}")
+  defaultPlatforms String[]             @default([])
+  isActive         Boolean              @default(true)
+  lastTriggeredAt  DateTime?
+  triggerCount     Int                  @default(0)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  logs             WebhookTriggerLog[]
+
+  @@index([userId])
+  @@index([userId, isActive])
+}
+
+model WebhookTriggerLog {
+  id          String         @id @default(cuid())
+  webhookId   String
+  webhook     InboundWebhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  success     Boolean
+  statusCode  Int
+  requestBody Json?
+  errorMessage String?
+  createdAt   DateTime       @default(now())
+
+  @@index([webhookId])
+  @@index([webhookId, createdAt(sort: Desc)])
 }

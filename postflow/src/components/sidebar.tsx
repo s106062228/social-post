@@ -57,6 +57,7 @@ import {
   StickyNote,
   Share2,
   ShieldCheck,
+  ArrowDownToLine,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -119,6 +120,7 @@ const navItems = [
   { href: "/api-explorer", label: "API Docs", icon: BookOpen },
   { href: "/changelog", label: "Changelog", icon: Newspaper },
   { href: "/legal-disclaimers", label: "Disclaimers", icon: FileText },
+  { href: "/inbound-webhooks", label: "Inbound Webhooks", icon: ArrowDownToLine },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
