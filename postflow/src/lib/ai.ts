@@ -1479,6 +1479,97 @@ export async function generateHeadlines(
   return [];
 }
 
+const VIDEO_SCRIPT_SYSTEM = `You are an expert video content creator and scriptwriter specializing in social media videos. Generate structured video scripts optimized for the specified platforms and duration.
+Always respond with valid JSON in this exact format: {"hook": "opening hook text", "body": "main body content", "callToAction": "CTA text", "captions": [{"platform": "PLATFORM_NAME", "content": "caption text"}], "estimatedDuration": 60}
+Guidelines:
+- hook: Attention-grabbing opening (first 3-5 seconds). Must be punchy and compelling.
+- body: Main content, talking points, or visual descriptions. Adjust detail to match the duration.
+- callToAction: Clear, specific CTA for the end of the video.
+- captions: Per-platform post captions to accompany the video. Include only the platforms requested.
+- estimatedDuration: Number of seconds the script would take to deliver (based on average speaking pace of ~130 words/min).
+Platform caption guidelines:
+- YOUTUBE (max 5000 chars): SEO-optimized description with timestamps if long, chapters, tags section
+- TIKTOK (max 2200 chars): Short, trendy caption with viral hashtags
+- INSTAGRAM (max 2200 chars): Engaging caption with call to action and hashtags
+- FACEBOOK (max 63206 chars): Descriptive post with context and engagement question
+- TWITTER (max 280 chars): Concise teaser with a link placeholder
+- LINKEDIN (max 3000 chars): Professional context and key takeaways`;
+
+export interface VideoScript {
+  hook: string;
+  body: string;
+  callToAction: string;
+  captions: { platform: string; content: string }[];
+  estimatedDuration: number;
+}
+
+export async function generateVideoScript(
+  topic: string,
+  duration: number,
+  platforms: string[],
+  tone?: string
+): Promise<VideoScript> {
+  const client = getClient();
+  const toneText = tone ? ` Tone: ${tone}.` : "";
+  const userContent = `Video topic: ${topic}\nTarget duration: ${duration} seconds${toneText}\nPlatforms: ${platforms.join(", ")}\n\nGenerate a complete video script with hook, body, CTA, and per-platform captions.`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 2048,
+    system: [
+      {
+        type: "text",
+        text: VIDEO_SCRIPT_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [{ role: "user", content: userContent }],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as {
+      hook?: unknown;
+      body?: unknown;
+      callToAction?: unknown;
+      captions?: unknown;
+      estimatedDuration?: unknown;
+    };
+    if (
+      typeof parsed.hook === "string" &&
+      typeof parsed.body === "string" &&
+      typeof parsed.callToAction === "string" &&
+      Array.isArray(parsed.captions) &&
+      parsed.captions.every(
+        (c) =>
+          typeof c === "object" &&
+          c !== null &&
+          typeof (c as Record<string, unknown>).platform === "string" &&
+          typeof (c as Record<string, unknown>).content === "string"
+      ) &&
+      typeof parsed.estimatedDuration === "number"
+    ) {
+      return {
+        hook: parsed.hook,
+        body: parsed.body,
+        callToAction: parsed.callToAction,
+        captions: parsed.captions as { platform: string; content: string }[],
+        estimatedDuration: parsed.estimatedDuration,
+      };
+    }
+  } catch {
+    // fall through
+  }
+  return {
+    hook: "",
+    body: "",
+    callToAction: "",
+    captions: [],
+    estimatedDuration: duration,
+  };
+}
+
 const CHAT_SYSTEM = `You are PostFlow's AI content strategy assistant. You help social media managers with content strategy, post ideas, understanding analytics, scheduling optimization, and improving social media performance.
 Be helpful, concise, and actionable. Give specific, practical advice. When the user asks for content ideas, generate examples. Keep responses focused and under 300 words unless more detail is requested.`;
 

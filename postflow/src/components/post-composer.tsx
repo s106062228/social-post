@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2 } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -31,6 +31,7 @@ import { PollBuilder, type PollData } from "@/components/poll-builder";
 import { HashtagResearchDialog } from "@/components/hashtag-research-dialog";
 import { HeadlineGeneratorDialog } from "@/components/headline-generator-dialog";
 import { PostOptimizationDialog } from "@/components/post-optimization-dialog";
+import { VideoScriptDialog } from "@/components/video-script-dialog";
 import type { PostOptimizationResult } from "@/lib/ai";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
@@ -175,6 +176,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [mediaUrlInput, setMediaUrlInput] = useState("");
   const [altTexts, setAltTexts] = useState<string[]>([]);
+  const [mediaType, setMediaType] = useState<"NONE" | "IMAGE" | "VIDEO">("NONE");
   const [showCaptionDialog, setShowCaptionDialog] = useState(false);
   const [threadItems, setThreadItems] = useState<ThreadItem[]>([]);
   const [poll, setPoll] = useState<PollData | null>(null);
@@ -187,6 +189,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
   // Headline generator dialog state
   const [showHeadlineDialog, setShowHeadlineDialog] = useState(false);
+
+  // Video script dialog state
+  const [showVideoScriptDialog, setShowVideoScriptDialog] = useState(false);
 
   // Optimize dialog state
   const [showOptimizeDialog, setShowOptimizeDialog] = useState(false);
@@ -346,7 +351,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
     try {
       const body: Record<string, unknown> = {
         content,
-        mediaType: mediaUrls.length > 0 ? "IMAGE" : "NONE",
+        mediaType: mediaUrls.length > 0 ? mediaType : "NONE",
         mediaUrls,
         tagIds: selectedTagIds,
       };
@@ -488,7 +493,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           content,
-          mediaType: mediaUrls.length > 0 ? "IMAGE" : "NONE",
+          mediaType: mediaUrls.length > 0 ? mediaType : "NONE",
           mediaUrls,
           tagIds: selectedTagIds,
         }),
@@ -901,6 +906,16 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
               <Type className="h-3 w-3" />
               Headlines
             </button>
+            {mediaType === "VIDEO" && (
+              <button
+                type="button"
+                onClick={() => setShowVideoScriptDialog(true)}
+                className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                <Film className="h-3 w-3" />
+                Video Script
+              </button>
+            )}
             <GrammarCheckButton
               content={content}
               onApply={(newContent) => setContent(newContent)}
@@ -979,7 +994,17 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
       {/* Media URLs */}
       <div className="flex flex-col gap-2">
-        <Label>Media URLs <span className="text-muted-foreground font-normal">(optional)</span></Label>
+        <div className="flex items-center justify-between">
+          <Label>Media URLs <span className="text-muted-foreground font-normal">(optional)</span></Label>
+          <select
+            value={mediaType}
+            onChange={(e) => setMediaType(e.target.value as "NONE" | "IMAGE" | "VIDEO")}
+            className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            <option value="IMAGE">Image</option>
+            <option value="VIDEO">Video</option>
+          </select>
+        </div>
         <div className="flex gap-2">
           <Input
             placeholder="https://example.com/image.jpg"
@@ -1098,6 +1123,14 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
             prev.trim() ? `${headline}\n\n${prev}` : headline
           );
         }}
+      />
+
+      {/* Video Script Dialog */}
+      <VideoScriptDialog
+        open={showVideoScriptDialog}
+        onOpenChange={setShowVideoScriptDialog}
+        platforms={selectedPlatforms}
+        onApply={(newContent) => setContent(newContent)}
       />
 
       {/* Post Optimization Dialog */}
