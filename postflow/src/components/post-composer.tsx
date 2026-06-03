@@ -26,6 +26,7 @@ import { GrammarCheckButton } from "@/components/grammar-check-button";
 import { SchedulePresetSelector } from "@/components/schedule-preset-selector";
 import { PerformancePredictionCard } from "@/components/performance-prediction-card";
 import { SmartScheduleSuggestions } from "@/components/smart-schedule-suggestions";
+import { NaturalLanguageScheduler } from "@/components/natural-language-scheduler";
 import { ThreadBuilder, type ThreadItem } from "@/components/thread-builder";
 import { PollBuilder, type PollData } from "@/components/poll-builder";
 import { HashtagResearchDialog } from "@/components/hashtag-research-dialog";
@@ -1499,6 +1500,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
             onSelect={setScheduledAt}
           />
         )}
+        <NaturalLanguageScheduler onDateParsed={setScheduledAt} />
       </div>
 
       {/* Reminder — only shown when a scheduled time is set */}

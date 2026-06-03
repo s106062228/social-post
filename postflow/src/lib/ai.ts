@@ -1570,6 +1570,69 @@ export async function generateVideoScript(
   };
 }
 
+const PARSE_DATE_SYSTEM = `You are a datetime parser. Given a natural language time expression and a reference datetime, output the exact ISO 8601 datetime the user means.
+Always respond with valid JSON in this exact format: {"datetime": "2024-01-15T14:00:00Z", "confidence": 0.95, "interpretation": "Next Monday at 2:00 PM UTC"}
+- datetime: ISO 8601 format in UTC. Use the reference date to resolve relative expressions.
+- confidence: number 0.0-1.0 (1.0 = unambiguous, 0.5 = best guess)
+- interpretation: human-readable explanation of what you understood
+If the input cannot be parsed as a future datetime, respond with: {"datetime": null, "confidence": 0, "interpretation": "Could not parse as a datetime"}
+Do not include any text outside of the JSON object.`;
+
+export interface ParsedDate {
+  datetime: string;
+  confidence: number;
+  interpretation: string;
+}
+
+export async function parseNaturalLanguageDate(
+  text: string,
+  timezone: string,
+  referenceDate: Date
+): Promise<ParsedDate | null> {
+  const client = getClient();
+  const refIso = referenceDate.toISOString();
+  const userContent = `Reference datetime (current time in UTC): ${refIso}\nUser timezone: ${timezone || "UTC"}\nParse this time expression: "${text}"`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 256,
+    system: [
+      {
+        type: "text",
+        text: PARSE_DATE_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [{ role: "user", content: userContent }],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const raw = block && block.type === "text" ? block.text.trim() : "";
+  try {
+    const parsed = JSON.parse(raw) as {
+      datetime?: unknown;
+      confidence?: unknown;
+      interpretation?: unknown;
+    };
+    if (
+      parsed.datetime === null ||
+      (typeof parsed.datetime === "string" &&
+        typeof parsed.confidence === "number" &&
+        typeof parsed.interpretation === "string")
+    ) {
+      if (!parsed.datetime) return null;
+      return {
+        datetime: parsed.datetime as string,
+        confidence: parsed.confidence as number,
+        interpretation: parsed.interpretation as string,
+      };
+    }
+  } catch {
+    // fall through
+  }
+  return null;
+}
+
 const CHAT_SYSTEM = `You are PostFlow's AI content strategy assistant. You help social media managers with content strategy, post ideas, understanding analytics, scheduling optimization, and improving social media performance.
 Be helpful, concise, and actionable. Give specific, practical advice. When the user asks for content ideas, generate examples. Keep responses focused and under 300 words unless more detail is requested.`;
 
