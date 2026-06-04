@@ -216,6 +216,7 @@ model User {
   legalDisclaimers       LegalDisclaimer[]
   inboundWebhooks        InboundWebhook[]
   contentDigestConfig    ContentDigestConfig?
+  workflowStages         WorkflowStage[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -300,6 +301,8 @@ model Post {
   pillar         ContentPillar? @relation(fields: [pillarId], references: [id])
   assigneeId     String?
   assignee       User?          @relation("PostAssignee", fields: [assigneeId], references: [id])
+  workflowStageId String?
+  workflowStage   WorkflowStage? @relation(fields: [workflowStageId], references: [id])
   publishResults PublishResult[]
   tags           PostTag[]
   versions       PostVersion[]
@@ -328,6 +331,7 @@ model Post {
   @@index([isEvergreen, lastRecycledAt])
   @@index([assigneeId])
   @@index([userId, tone])
+  @@index([userId, workflowStageId])
 }
 
 model ThreadPost {
@@ -1486,4 +1490,19 @@ model ContentDigestConfig {
   includeContent Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model WorkflowStage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  color     String   @default("#6366f1")
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts     Post[]
+
+  @@index([userId])
+  @@index([userId, order])
 }

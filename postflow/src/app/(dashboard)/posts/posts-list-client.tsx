@@ -25,6 +25,7 @@ import { AnalyzeToneButton } from "./analyze-tone-button";
 import { ToneBadge } from "./tone-badge";
 import { ArchivePostButton } from "./archive-post-button";
 import { AssigneeSelector } from "./assignee-selector";
+import { WorkflowStageSelector } from "./workflow-stage-selector";
 import { RepurposeDialog } from "@/components/repurpose-dialog";
 import { TranslateDialog } from "@/components/translate-dialog";
 import { ContentRefreshDialog } from "@/components/content-refresh-dialog";
@@ -75,6 +76,7 @@ export type PostListItem = {
   recycleInterval: number | null;
   assigneeId: string | null;
   assignee: { id: string; name: string | null; email: string } | null;
+  workflowStage: { id: string; name: string; color: string } | null;
   publishResults: PublishResult[];
   tags: PostTagItem[];
 };
@@ -372,6 +374,11 @@ export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
+                <WorkflowStageSelector
+                  postId={post.id}
+                  currentStageId={post.workflowStage?.id ?? null}
+                  onStageChanged={() => router.refresh()}
+                />
                 {users.length > 0 && (
                   <AssigneeSelector
                     postId={post.id}

@@ -23,12 +23,12 @@ const PLATFORMS: Platform[] = [Platform.FACEBOOK, Platform.INSTAGRAM, Platform.T
 export default async function PostsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; page?: string; search?: string; tag?: string; from?: string; to?: string; platform?: string; starred?: string; evergreen?: string; sentiment?: string; archived?: string; assignee?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; search?: string; tag?: string; from?: string; to?: string; platform?: string; starred?: string; evergreen?: string; sentiment?: string; archived?: string; assignee?: string; workflowStageId?: string; noStage?: string }>;
 }) {
   const session = await auth();
   const userId = session!.user!.id;
 
-  const { status: statusFilter, page: pageStr, search: searchQuery, tag: tagFilter, from: fromFilter, to: toFilter, platform: platformFilter, starred: starredFilter, evergreen: evergreenFilter, sentiment: sentimentFilter, archived: archivedFilter, assignee: assigneeFilter } = await searchParams;
+  const { status: statusFilter, page: pageStr, search: searchQuery, tag: tagFilter, from: fromFilter, to: toFilter, platform: platformFilter, starred: starredFilter, evergreen: evergreenFilter, sentiment: sentimentFilter, archived: archivedFilter, assignee: assigneeFilter, workflowStageId: workflowStageIdFilter, noStage: noStageFilter } = await searchParams;
   const page = Math.max(1, parseInt(pageStr ?? "1", 10));
   const limit = 20;
   const skip = (page - 1) * limit;
@@ -66,6 +66,8 @@ export default async function PostsPage({
     ...(onlyStarred ? { starred: true } : {}),
     ...(onlyEvergreen ? { isEvergreen: true } : {}),
     ...(sentimentEnum ? { sentiment: sentimentEnum } : {}),
+    ...(workflowStageIdFilter ? { workflowStageId: workflowStageIdFilter } : {}),
+    ...(noStageFilter === "true" ? { workflowStageId: null } : {}),
   };
 
   const [posts, total, userTags, allUsers] = await Promise.all([
@@ -84,6 +86,7 @@ export default async function PostsPage({
           },
         },
         assignee: { select: { id: true, name: true, email: true } },
+        workflowStage: { select: { id: true, name: true, color: true } },
       },
     }),
     prisma.post.count({ where }),

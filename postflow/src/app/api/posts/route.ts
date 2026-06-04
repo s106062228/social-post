@@ -55,6 +55,8 @@ const listPostsSchema = z.object({
   archived: z.enum(["true", "false"]).optional(),
   assignee: z.enum(["me"]).optional(),
   collectionId: z.string().optional(),
+  workflowStageId: z.string().optional(),
+  noStage: z.enum(["true", "false"]).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
@@ -85,7 +87,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { status, search, tag, from, to, platform, starred, evergreen, sentiment, tone, archived, assignee, collectionId, page, limit } = parsed.data;
+    const { status, search, tag, from, to, platform, starred, evergreen, sentiment, tone, archived, assignee, collectionId, workflowStageId, noStage, page, limit } = parsed.data;
     const skip = (page - 1) * limit;
 
     const where = {
@@ -118,6 +120,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ...(collectionId
         ? { collections: { some: { collectionId } } }
         : {}),
+      ...(workflowStageId ? { workflowStageId } : {}),
+      ...(noStage === "true" ? { workflowStageId: null } : {}),
     };
 
     const [posts, total] = await Promise.all([
@@ -152,6 +156,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             select: {
               tag: { select: { id: true, name: true, color: true } },
             },
+          },
+          workflowStage: {
+            select: { id: true, name: true, color: true },
           },
         },
       }),

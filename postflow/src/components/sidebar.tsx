@@ -101,6 +101,7 @@ const navItems = [
   { href: "/engagement-goals", label: "Engagement Goals", icon: TrendingUp },
   { href: "/snippets", label: "Snippets", icon: BookMarked },
   { href: "/checklist", label: "Checklist", icon: CheckSquare },
+  { href: "/workflow-stages", label: "Workflow Stages", icon: Workflow },
   { href: "/integrations", label: "Integrations", icon: Zap },
   { href: "/zapier", label: "Zapier", icon: Workflow },
   { href: "/bio-pages", label: "Bio Pages", icon: Link2 },
