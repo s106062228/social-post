@@ -1962,3 +1962,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Milestones page in dashboard (`/milestones`) — new milestone celebration cards (yellow highlight, "Celebrate!" button); growth projection cards with next milestone ETA; milestone threshold badge strip; milestone history table
 - [x] Add "Milestones" to sidebar navigation (icon: `Milestone`)
 - [x] Unit tests for follower-milestones utility (getMilestonesCrossed, getNextMilestone, formatMilestone, projectGrowth, computeGrowthRate — 13 tests) and API endpoints (GET milestones auth/rate-limit/empty/shape, POST celebrate auth/rate-limit/404/ownership/success, GET growth-projection auth/rate-limit/empty/shape — 12 tests)
+
+### Phase 208: Smart Lists & Advanced Post Query Builder
+- [ ] `SmartList` model in Prisma (id, userId, name, description?, filters Json, pinned Boolean default false, createdAt, updatedAt) + migration (`20260815000000_add_smart_lists`) — stores saved multi-criteria post filter queries per user
+- [ ] CRUD API for smart lists (`GET /api/smart-lists`, `POST /api/smart-lists`, `PATCH /api/smart-lists/[id]`, `DELETE /api/smart-lists/[id]`) — auth + rate limit + zod validation; max 20 smart lists per user
+- [ ] `GET /api/smart-lists/[id]/posts` endpoint — auth + rate limit + ownership check; applies saved filters (status[], platform[], sentiment, tags[], starred, evergreen, archived, contentContains, scheduledFrom, scheduledTo, contentCategory, workflowStageId) against the user's posts; supports `?page=&limit=`; returns `{posts, total, smartList}`
+- [ ] Smart lists management page in dashboard (`/smart-lists`) — list of smart lists with description, pinned badge, "View Posts" count chip; create/edit dialog with multi-criteria filter builder (status checkboxes, platform pills, sentiment dropdown, tag selector, date range pickers, content search input, boolean toggles for starred/evergreen/archived); inline post count preview on save
+- [ ] "Save as Smart List" button in posts page — opens name+description dialog, captures all active URL filter params as filters JSON, POSTs to smart lists endpoint; toast feedback
+- [ ] Smart list quick-access dropdown in posts page header — lists pinned smart lists first then all others; selecting one applies all filters to the page URL; "Manage" link at bottom
+- [ ] Add "Smart Lists" to sidebar navigation (icon: `ListFilter`)
+- [ ] Unit tests for smart lists API (GET list auth/rate-limit/empty/shape, POST create/max-limit/invalid-filters, PATCH update/ownership, DELETE success/ownership, GET posts auth/filters/pagination/ownership — 16 tests)
