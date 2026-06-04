@@ -215,6 +215,7 @@ model User {
   contentRules           ContentRule[]
   legalDisclaimers       LegalDisclaimer[]
   inboundWebhooks        InboundWebhook[]
+  contentDigestConfig    ContentDigestConfig?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1472,4 +1473,17 @@ model WebhookTriggerLog {
 
   @@index([webhookId])
   @@index([webhookId, createdAt(sort: Desc)])
+}
+
+model ContentDigestConfig {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enabled        Boolean  @default(false)
+  dayOfWeek      Int      @default(1)
+  hourUTC        Int      @default(9)
+  lookAheadDays  Int      @default(7)
+  includeContent Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

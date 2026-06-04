@@ -19,6 +19,7 @@ import type { EvergreenRecycleJobData } from "./workers/evergreen-recycle";
 import type { CoachingScanJobData } from "./workers/coaching";
 import type { EngagementGoalScanJobData } from "./workers/engagement-goals";
 import type { TokenHealthScanJobData } from "./workers/token-health";
+import type { ContentDigestJobData } from "./workers/content-digest";
 
 // ── Queue singletons ────────────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -869,6 +870,51 @@ export async function scheduleTokenHealthScan(): Promise<void> {
     { pattern: "0 7 * * *" },
     {
       name: "token-health-scan-daily",
+      data: { triggeredAt: new Date().toISOString() },
+      opts: {
+        attempts: 2,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { count: 5 },
+        removeOnFail: { count: 10 },
+      },
+    }
+  );
+}
+
+// ── Content Digest Queue ───────────────────────────────────────────────────────
+
+let contentDigestQueue: Queue<ContentDigestJobData> | null = null;
+
+function getContentDigestQueue(): Queue<ContentDigestJobData> {
+  if (!contentDigestQueue) {
+    contentDigestQueue = new Queue<ContentDigestJobData>(
+      QUEUE_NAMES.CONTENT_DIGEST,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 2,
+          backoff: { type: "exponential", delay: 5000 },
+          removeOnComplete: { count: 5 },
+          removeOnFail: { count: 10 },
+        },
+      }
+    );
+  }
+  return contentDigestQueue;
+}
+
+/**
+ * Registers (or replaces) the hourly content digest cron job.
+ * Runs at the top of every hour. The worker checks each user's
+ * configured dayOfWeek/hourUTC to determine if their digest is due.
+ */
+export async function scheduleContentDigest(): Promise<void> {
+  const queue = getContentDigestQueue();
+  await queue.upsertJobScheduler(
+    "content-digest-hourly",
+    { pattern: "0 * * * *" },
+    {
+      name: "content-digest-hourly",
       data: { triggeredAt: new Date().toISOString() },
       opts: {
         attempts: 2,
