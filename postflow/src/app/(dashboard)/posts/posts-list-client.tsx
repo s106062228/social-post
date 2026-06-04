@@ -32,6 +32,7 @@ import { PostReportCardDialog } from "@/components/post-report-card-dialog";
 import { ComparePostsButton } from "./compare-posts-button";
 import { AutoTagButton } from "./auto-tag-button";
 import { BulkAutoTagButton } from "./bulk-auto-tag-button";
+import { BulkValidateButton } from "./bulk-validate-button";
 import { ExternalReviewDialog } from "@/components/external-review-dialog";
 import { computeScore, scoreLabel } from "@/lib/content-score";
 import { QualityScoreBadge } from "@/components/quality-score-badge";
@@ -292,6 +293,10 @@ export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
             <BulkAutoTagButton
               selectedIds={Array.from(selected)}
               onDone={() => setSelected(new Set())}
+            />
+            <BulkValidateButton
+              selectedIds={Array.from(selected)}
+              onDone={() => { setSelected(new Set()); router.refresh(); }}
             />
             <Button
               variant="destructive"
