@@ -217,6 +217,7 @@ model User {
   inboundWebhooks        InboundWebhook[]
   contentDigestConfig    ContentDigestConfig?
   workflowStages         WorkflowStage[]
+  followerMilestones     FollowerMilestone[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -253,6 +254,7 @@ model SocialAccount {
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
   audienceMetrics      AudienceMetric[]
+  followerMilestones   FollowerMilestone[]
 
   @@unique([userId, platform, platformAccountId])
   @@index([userId])
@@ -1505,4 +1507,21 @@ model WorkflowStage {
 
   @@index([userId])
   @@index([userId, order])
+}
+
+model FollowerMilestone {
+  id         String        @id @default(cuid())
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId  String
+  account    SocialAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  platform   Platform
+  milestone  Int
+  achievedAt DateTime      @default(now())
+  celebrated Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+
+  @@unique([accountId, milestone])
+  @@index([userId])
+  @@index([accountId])
 }

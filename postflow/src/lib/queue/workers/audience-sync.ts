@@ -4,6 +4,11 @@ import { prisma } from "@/lib/db";
 import { decryptToken } from "@/lib/encryption";
 import { createRedisConnection, QUEUE_NAMES } from "../connection";
 import { workerLogger } from "@/lib/logger";
+import {
+  getMilestonesCrossed,
+  formatMilestone,
+} from "@/lib/follower-milestones";
+import { createNotification } from "@/lib/notifications";
 
 // ── Job payload ────────────────────────────────────────────────────────────────
 
@@ -95,8 +100,10 @@ export function createAudienceSyncWorker(): Worker<AudienceSyncJobData> {
         where: { isActive: true },
         select: {
           id: true,
+          userId: true,
           platform: true,
           platformAccountId: true,
+          accountName: true,
           encryptedToken: true,
         },
       });
@@ -138,6 +145,62 @@ export function createAudienceSyncWorker(): Worker<AudienceSyncJobData> {
               followingCount: counts.followingCount,
             },
           });
+
+          // Milestone detection — compare with previous metric
+          if (counts.followersCount !== null) {
+            const recentMetrics = await prisma.audienceMetric.findMany({
+              where: { accountId: account.id },
+              orderBy: { syncedAt: "desc" },
+              take: 2,
+            });
+            if (recentMetrics.length >= 2) {
+              const previousCount = recentMetrics[1].followersCount ?? 0;
+              const crossed = getMilestonesCrossed(
+                previousCount,
+                counts.followersCount
+              );
+              for (const milestone of crossed) {
+                try {
+                  await prisma.followerMilestone.upsert({
+                    where: {
+                      accountId_milestone: {
+                        accountId: account.id,
+                        milestone,
+                      },
+                    },
+                    create: {
+                      userId: account.userId,
+                      accountId: account.id,
+                      platform: account.platform,
+                      milestone,
+                      achievedAt: new Date(),
+                    },
+                    update: {},
+                  });
+                  createNotification({
+                    userId: account.userId,
+                    type: "follower_milestone" as Parameters<typeof createNotification>[0]["type"],
+                    title: `🎉 ${formatMilestone(milestone)} followers on ${account.platform}!`,
+                    body: `${account.accountName} reached ${formatMilestone(milestone)} followers on ${account.platform}.`,
+                    entityId: account.id,
+                    entityType: "social_account",
+                  });
+                } catch (milestoneErr) {
+                  workerLogger.warn(
+                    {
+                      accountId: account.id,
+                      milestone,
+                      err:
+                        milestoneErr instanceof Error
+                          ? milestoneErr.message
+                          : String(milestoneErr),
+                    },
+                    "Failed to record follower milestone"
+                  );
+                }
+              }
+            }
+          }
 
           synced++;
         } catch (err) {

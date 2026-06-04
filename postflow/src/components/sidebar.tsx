@@ -59,6 +59,7 @@ import {
   ShieldCheck,
   ArrowDownToLine,
   PieChart,
+  Milestone,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -124,6 +125,7 @@ const navItems = [
   { href: "/legal-disclaimers", label: "Disclaimers", icon: FileText },
   { href: "/inbound-webhooks", label: "Inbound Webhooks", icon: ArrowDownToLine },
   { href: "/portfolio", label: "Portfolio", icon: PieChart },
+  { href: "/milestones", label: "Milestones", icon: Milestone },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

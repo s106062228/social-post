@@ -1951,3 +1951,14 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `WorkflowStageSelector` client component (`src/app/(dashboard)/posts/workflow-stage-selector.tsx`) — colored pill button per post row showing assigned stage; dropdown to assign/unassign; optimistic UI with rollback; closes on outside click; hidden when user has no stages configured
 - [x] Add "Workflow Stages" to sidebar navigation (icon: `Workflow`)
 - [x] Unit tests for workflow stages API (GET list, POST create, POST max-limit, POST invalid color, PATCH update, PATCH ownership, DELETE unassigns then deletes, workflow-stage PATCH assign/unassign, auth + rate limit — 14 tests)
+
+### Phase 207: Follower Milestone Tracking & Growth Celebration
+- [x] `FollowerMilestone` model in Prisma (id, userId, accountId, platform, milestone Int, achievedAt, celebrated Boolean default false, createdAt) + `@@unique([accountId, milestone])` + migration (`20260814000000_add_follower_milestones`) — tracks per-account follower count milestones
+- [x] Follower milestones utility (`src/lib/follower-milestones.ts`) — `MILESTONE_THRESHOLDS` array (100…1M), `getMilestonesCrossed(prev, current)`, `getNextMilestone(count)`, `formatMilestone(count)`, `projectGrowth(metrics, days)` (linear regression), `computeGrowthRate(metrics)` (followers/day)
+- [x] Update BullMQ audience sync worker to detect milestone crossings after each follower count update; upserts FollowerMilestone records; fires in-app notifications via `createNotification`
+- [x] `GET /api/milestones` endpoint — auth + rate limit; returns all FollowerMilestones for current user with account name; sorted by achievedAt desc
+- [x] `POST /api/milestones/[id]/celebrate` endpoint — auth + rate limit + ownership check; sets `celebrated = true`; returns `{celebrated: true}`
+- [x] `GET /api/analytics/growth-projection` endpoint — auth + rate limit; queries last 90 days AudienceMetric per active account; calls `projectGrowth` and `computeGrowthRate`; returns `{accounts: [{accountId, accountName, platform, currentFollowers, growthRatePerDay, projections: [{days, projected}], nextMilestone, daysToNextMilestone}]}`
+- [x] Milestones page in dashboard (`/milestones`) — new milestone celebration cards (yellow highlight, "Celebrate!" button); growth projection cards with next milestone ETA; milestone threshold badge strip; milestone history table
+- [x] Add "Milestones" to sidebar navigation (icon: `Milestone`)
+- [x] Unit tests for follower-milestones utility (getMilestonesCrossed, getNextMilestone, formatMilestone, projectGrowth, computeGrowthRate — 13 tests) and API endpoints (GET milestones auth/rate-limit/empty/shape, POST celebrate auth/rate-limit/404/ownership/success, GET growth-projection auth/rate-limit/empty/shape — 12 tests)
