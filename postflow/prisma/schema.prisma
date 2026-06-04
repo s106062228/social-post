@@ -218,6 +218,7 @@ model User {
   contentDigestConfig    ContentDigestConfig?
   workflowStages         WorkflowStage[]
   followerMilestones     FollowerMilestone[]
+  smartLists             SmartList[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1524,4 +1525,19 @@ model FollowerMilestone {
   @@unique([accountId, milestone])
   @@index([userId])
   @@index([accountId])
+}
+
+model SmartList {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  filters     Json     @default("{}")
+  pinned      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, pinned])
 }

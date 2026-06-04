@@ -16,6 +16,8 @@ import { PostsListClient } from "./posts-list-client";
 import { DateRangeFilter } from "./date-range-filter";
 import { SaveFilterButton } from "./save-filter-button";
 import { FilterPresetSelector } from "./filter-preset-selector";
+import { SaveSmartListButton } from "./save-smart-list-button";
+import { SmartListSelector } from "./smart-list-selector";
 import { ScheduleConflictBanner } from "@/components/schedule-conflict-banner";
 
 const PLATFORMS: Platform[] = [Platform.FACEBOOK, Platform.INSTAGRAM, Platform.THREADS];
@@ -161,6 +163,21 @@ export default async function PostsPage({
               evergreen: evergreenFilter,
               from: fromFilter,
               to: toFilter,
+            }}
+          />
+          <SmartListSelector />
+          <SaveSmartListButton
+            filters={{
+              statuses: statusFilter ? [statusFilter] : undefined,
+              platforms: platformFilter ? [platformFilter] : undefined,
+              sentiment: sentimentFilter,
+              starred: starredFilter === "true" ? true : undefined,
+              evergreen: evergreenFilter === "true" ? true : undefined,
+              archived: archivedFilter === "true" ? true : undefined,
+              contentContains: search || undefined,
+              scheduledFrom: fromFilter,
+              scheduledTo: toFilter,
+              tagIds: tagFilter ? [tagFilter] : undefined,
             }}
           />
           <Button variant="outline" asChild>

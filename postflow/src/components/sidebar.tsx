@@ -60,6 +60,7 @@ import {
   ArrowDownToLine,
   PieChart,
   Milestone,
+  ListFilter,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -126,6 +127,7 @@ const navItems = [
   { href: "/inbound-webhooks", label: "Inbound Webhooks", icon: ArrowDownToLine },
   { href: "/portfolio", label: "Portfolio", icon: PieChart },
   { href: "/milestones", label: "Milestones", icon: Milestone },
+  { href: "/smart-lists", label: "Smart Lists", icon: ListFilter },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
