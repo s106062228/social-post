@@ -62,6 +62,7 @@ import {
   Milestone,
   ListFilter,
   MessageCircleReply,
+  AtSign,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -131,6 +132,7 @@ const navItems = [
   { href: "/smart-lists", label: "Smart Lists", icon: ListFilter },
   { href: "/response-templates", label: "Response Templates", icon: MessageCircleReply },
   { href: "/auto-reply-rules", label: "Auto-Reply Rules", icon: Zap },
+  { href: "/brand-mentions", label: "Brand Mentions", icon: AtSign },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

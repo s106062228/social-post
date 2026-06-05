@@ -221,6 +221,7 @@ model User {
   smartLists             SmartList[]
   responseTemplates      ResponseTemplate[]
   autoReplyRules         AutoReplyRule[]
+  brandMentions          BrandMention[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -322,6 +323,7 @@ model Post {
   poll           PostPoll?
   checklistRecord PostChecklistRecord?
   collections    CollectionPost[]
+  brandMentions  BrandMention[]        @relation("BrandMentionRelatedPost")
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -1576,4 +1578,32 @@ model AutoReplyRule {
 
   @@index([userId])
   @@index([userId, isActive])
+}
+
+enum MentionSentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+model BrandMention {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mentionUrl     String?
+  platform       String?
+  authorName     String?
+  content        String
+  sentiment      MentionSentiment @default(NEUTRAL)
+  notes          String?
+  responseStatus String           @default("none")
+  relatedPostId  String?
+  relatedPost    Post?            @relation("BrandMentionRelatedPost", fields: [relatedPostId], references: [id], onDelete: SetNull)
+  mentionedAt    DateTime
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([userId, mentionedAt(sort: Desc)])
+  @@index([userId, sentiment])
+  @@index([userId, responseStatus])
 }
