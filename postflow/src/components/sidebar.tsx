@@ -133,6 +133,7 @@ const navItems = [
   { href: "/response-templates", label: "Response Templates", icon: MessageCircleReply },
   { href: "/auto-reply-rules", label: "Auto-Reply Rules", icon: Zap },
   { href: "/brand-mentions", label: "Brand Mentions", icon: AtSign },
+  { href: "/hashtag-campaigns", label: "Hashtag Campaigns", icon: Hash },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

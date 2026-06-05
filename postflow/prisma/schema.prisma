@@ -222,6 +222,7 @@ model User {
   responseTemplates      ResponseTemplate[]
   autoReplyRules         AutoReplyRule[]
   brandMentions          BrandMention[]
+  hashtagCampaigns       HashtagCampaign[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1606,4 +1607,23 @@ model BrandMention {
   @@index([userId, mentionedAt(sort: Desc)])
   @@index([userId, sentiment])
   @@index([userId, responseStatus])
+}
+
+model HashtagCampaign {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  hashtags        String[]  @default([])
+  startDate       DateTime
+  endDate         DateTime?
+  targetPlatforms String[]  @default([])
+  goal            String?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([userId, isActive])
+  @@index([userId, startDate])
 }

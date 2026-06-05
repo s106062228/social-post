@@ -2005,3 +2005,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `MentionStatsCard` component (`src/components/mention-stats-card.tsx`) — sentiment distribution donut chart (Recharts PieChart with green/grey/red segments), response rate progress bar (replied/total), 30-day volume sparkline (Recharts AreaChart), summary counts (total/positive/negative); period shown in card header
 - [x] Add "Brand Mentions" to sidebar navigation (icon: `AtSign`)
 - [x] Unit tests for brand mentions API (GET list auth/rate-limit/empty/shape, GET list filters, POST create/max-limit/missing-content, PATCH update/ownership, DELETE success/ownership, GET stats auth/rate-limit/shape/counts — 14 tests)
+
+### Phase 213: Hashtag Campaign Tracking & Performance Attribution
+- [x] `HashtagCampaign` model in Prisma (id, userId, name, hashtags[], startDate, endDate?, targetPlatforms[], goal?, isActive Boolean default true, createdAt, updatedAt) + migration (`20260818000000_add_hashtag_campaigns`)
+- [x] CRUD API for hashtag campaigns (`GET /api/hashtag-campaigns`, `POST /api/hashtag-campaigns`, `PATCH /api/hashtag-campaigns/[id]`, `DELETE /api/hashtag-campaigns/[id]`) — auth + rate limit + zod validation; max 50 campaigns per user
+- [x] `GET /api/hashtag-campaigns/[id]/performance` endpoint — auth + rate limit + ownership; finds PUBLISHED posts containing campaign hashtags within date range; aggregates PostInsights; returns totalPosts, totalImpressions, totalReach, totalLikes, totalComments, totalShares, avgEngagement, byHashtag[], byPlatform[], topPosts[], dailyActivity[]
+- [x] Hashtag campaigns list page in dashboard (`/hashtag-campaigns`) — campaign cards with hashtag chips, date range, active/paused toggle, delete, "View Performance" button
+- [x] Campaign performance detail page (`/hashtag-campaigns/[id]`) — KPI cards, by-hashtag table, by-platform table, top posts list, daily activity table
+- [x] Add "Hashtag Campaigns" to sidebar navigation (icon: `Hash`)
+- [x] Unit tests for hashtag campaigns API (GET list, POST create, POST max-limit, POST invalid body, PATCH update, PATCH ownership, DELETE success, DELETE ownership, GET performance auth, GET performance not-found, GET performance zero posts, GET performance with matching posts, GET performance no hashtags — 13 tests)
