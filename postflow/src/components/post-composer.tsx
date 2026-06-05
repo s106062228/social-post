@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -33,6 +33,7 @@ import { HashtagResearchDialog } from "@/components/hashtag-research-dialog";
 import { HeadlineGeneratorDialog } from "@/components/headline-generator-dialog";
 import { PostOptimizationDialog } from "@/components/post-optimization-dialog";
 import { VideoScriptDialog } from "@/components/video-script-dialog";
+import { ContentSeriesDialog } from "@/components/content-series-dialog";
 import type { PostOptimizationResult } from "@/lib/ai";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
@@ -193,6 +194,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
   // Video script dialog state
   const [showVideoScriptDialog, setShowVideoScriptDialog] = useState(false);
+  const [showSeriesDialog, setShowSeriesDialog] = useState(false);
 
   // Optimize dialog state
   const [showOptimizeDialog, setShowOptimizeDialog] = useState(false);
@@ -917,6 +919,14 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
                 Video Script
               </button>
             )}
+            <button
+              type="button"
+              onClick={() => setShowSeriesDialog(true)}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <Layers className="h-3 w-3" />
+              Series
+            </button>
             <GrammarCheckButton
               content={content}
               onApply={(newContent) => setContent(newContent)}
@@ -1131,6 +1141,14 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         open={showVideoScriptDialog}
         onOpenChange={setShowVideoScriptDialog}
         platforms={selectedPlatforms}
+        onApply={(newContent) => setContent(newContent)}
+      />
+
+      {/* Content Series Dialog */}
+      <ContentSeriesDialog
+        open={showSeriesDialog}
+        onOpenChange={setShowSeriesDialog}
+        selectedPlatforms={selectedPlatforms}
         onApply={(newContent) => setContent(newContent)}
       />
 

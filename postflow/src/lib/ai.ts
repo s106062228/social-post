@@ -1663,3 +1663,118 @@ export async function chatWithAssistant(
   const block = response.content.find((b) => b.type === "text");
   return block && block.type === "text" ? block.text : "Sorry, I could not generate a response. Please try again.";
 }
+
+const CONTENT_SERIES_SYSTEM = `You are a social media content strategist specializing in creating cohesive content series. When given a topic, create a multi-part series of interconnected posts that build on each other and tell a complete story or educational journey.
+
+Always respond with valid JSON in this exact format:
+{
+  "seriesTitle": "Title for the entire series",
+  "description": "Brief overview of what this series covers",
+  "posts": [
+    {
+      "postNumber": 1,
+      "title": "Short title for this post",
+      "content": "The full post content ready to publish",
+      "hookLine": "Opening line that grabs attention",
+      "schedulingTip": "e.g. 'Kick off the series on Monday morning'",
+      "keyTakeaway": "The main point readers should take away"
+    }
+  ]
+}
+
+Each post should:
+- Stand alone as a complete post but reference the broader series context
+- End with a teaser or CTA pointing to the next post where appropriate
+- Be optimized for the specified platforms and character limits
+- Match the requested tone
+- Build progressively on the previous post's content`;
+
+export interface ContentSeriesPost {
+  postNumber: number;
+  title: string;
+  content: string;
+  hookLine: string;
+  schedulingTip: string;
+  keyTakeaway: string;
+}
+
+export interface ContentSeriesResult {
+  seriesTitle: string;
+  description: string;
+  posts: ContentSeriesPost[];
+}
+
+export async function generateContentSeries(
+  topic: string,
+  postCount: number,
+  platforms: string[],
+  tone?: string | null,
+  seriesType?: string | null
+): Promise<ContentSeriesResult> {
+  const client = getClient();
+
+  const userContent = `Create a ${postCount}-part content series about: "${topic}"
+Platforms: ${platforms.join(", ")}
+${tone ? `Tone: ${tone}` : ""}
+${seriesType ? `Series type: ${seriesType}` : "Series type: educational/informational"}
+
+Generate exactly ${postCount} posts that form a cohesive series.`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 4096,
+    system: [
+      {
+        type: "text",
+        text: CONTENT_SERIES_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [{ role: "user", content: userContent }],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const raw = block && block.type === "text" ? block.text.trim() : "";
+
+  try {
+    const parsed = JSON.parse(raw) as {
+      seriesTitle?: unknown;
+      description?: unknown;
+      posts?: unknown[];
+    };
+
+    if (
+      typeof parsed.seriesTitle === "string" &&
+      typeof parsed.description === "string" &&
+      Array.isArray(parsed.posts)
+    ) {
+      return {
+        seriesTitle: parsed.seriesTitle,
+        description: parsed.description,
+        posts: parsed.posts
+          .filter(
+            (p): p is Record<string, unknown> =>
+              p !== null && typeof p === "object"
+          )
+          .map((p, idx) => ({
+            postNumber: typeof p.postNumber === "number" ? p.postNumber : idx + 1,
+            title: typeof p.title === "string" ? p.title : `Post ${idx + 1}`,
+            content: typeof p.content === "string" ? p.content : "",
+            hookLine: typeof p.hookLine === "string" ? p.hookLine : "",
+            schedulingTip:
+              typeof p.schedulingTip === "string" ? p.schedulingTip : "",
+            keyTakeaway:
+              typeof p.keyTakeaway === "string" ? p.keyTakeaway : "",
+          })),
+      };
+    }
+  } catch {
+    // fall through
+  }
+
+  return {
+    seriesTitle: topic,
+    description: `A ${postCount}-part series about ${topic}`,
+    posts: [],
+  };
+}
