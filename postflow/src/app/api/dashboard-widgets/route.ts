@@ -32,6 +32,7 @@ export const WIDGET_KEYS = [
   "trending_hashtags",
   "posting_frequency",
   "time_content_matrix",
+  "campaign_comparison",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -70,6 +71,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   trending_hashtags: "Emerging Hashtag Trends",
   posting_frequency: "Posting Frequency & Pacing",
   time_content_matrix: "Time × Content Matrix",
+  campaign_comparison: "Campaign Performance Comparison",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {

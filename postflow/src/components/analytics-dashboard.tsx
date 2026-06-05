@@ -46,6 +46,7 @@ import { PersonaPerformanceCard } from "@/components/persona-performance-card";
 import { TrendingHashtagsCard } from "@/components/trending-hashtags-card";
 import { PostingFrequencyCard } from "@/components/posting-frequency-card";
 import { TimeContentMatrixCard } from "@/components/time-content-matrix-card";
+import { CampaignComparisonCard } from "@/components/campaign-comparison-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -565,6 +566,9 @@ export function AnalyticsDashboard() {
 
       {/* Content Type × Time Performance Matrix */}
       {isVisible("time_content_matrix") && <TimeContentMatrixCard />}
+
+      {/* Campaign Performance Comparison */}
+      {isVisible("campaign_comparison") && <CampaignComparisonCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
