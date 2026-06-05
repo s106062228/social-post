@@ -8,6 +8,7 @@ import { apiLimiter, rateLimitHeaders } from "@/lib/rate-limit";
 import { getTokenWithRefresh } from "@/lib/auth/token-manager";
 import { facebookAdapter } from "@/lib/platforms/facebook";
 import { instagramAdapter } from "@/lib/platforms/instagram";
+import { logActivity } from "@/lib/activity-log";
 import type { PlatformAdapter } from "@/lib/platforms/types";
 
 // Only platforms that support fetchComments
@@ -19,6 +20,58 @@ const commentAdapters: Partial<Record<Platform, PlatformAdapter>> = {
 const syncSchema = z.object({
   platformPostIds: z.array(z.string()).max(20).optional(),
 });
+
+async function checkAndAutoReply(
+  userId: string,
+  commentId: string,
+  commentContent: string,
+  platformPostId: string,
+  platform: Platform,
+  token: string,
+  adapter: PlatformAdapter
+) {
+  try {
+    const rules = await prisma.autoReplyRule.findMany({
+      where: {
+        userId,
+        isActive: true,
+        ...(platform ? { OR: [{ platform: platform as string }, { platform: null }] } : {}),
+      },
+      include: { template: true },
+    });
+
+    for (const rule of rules) {
+      const contentLower = commentContent.toLowerCase();
+      const matched = rule.triggerKeywords.some((kw) =>
+        contentLower.includes(kw.toLowerCase())
+      );
+
+      if (matched && adapter.addComment) {
+        try {
+          await adapter.addComment(platformPostId, rule.template.content, token);
+          await prisma.socialComment.update({
+            where: { id: commentId },
+            data: { isReplied: true },
+          });
+          await prisma.autoReplyRule.update({
+            where: { id: rule.id },
+            data: { matchCount: { increment: 1 } },
+          });
+          await logActivity(userId, "inbox.auto_reply", commentId, "SocialComment", {
+            ruleId: rule.id,
+            ruleName: rule.name,
+          });
+          // Only apply the first matching rule
+          break;
+        } catch {
+          // Auto-reply failure is non-fatal
+        }
+      }
+    }
+  } catch {
+    // Auto-reply rule check is non-fatal
+  }
+}
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -54,6 +107,11 @@ export async function POST(req: NextRequest) {
     if (accounts.length === 0) {
       return NextResponse.json({ synced: 0, platforms: [] });
     }
+
+    // Check if user has any active auto-reply rules (skip rule checking if none)
+    const hasActiveRules = await prisma.autoReplyRule.count({
+      where: { userId, isActive: true },
+    });
 
     // Get recently published posts (up to 20)
     const publishResults = await prisma.publishResult.findMany({
@@ -95,7 +153,7 @@ export async function POST(req: NextRequest) {
         );
 
         for (const comment of comments) {
-          await prisma.socialComment.upsert({
+          const upsertResult = await prisma.socialComment.upsert({
             where: { platformCommentId: comment.platformCommentId },
             create: {
               userId,
@@ -114,6 +172,20 @@ export async function POST(req: NextRequest) {
               fetchedAt: new Date(),
             },
           });
+
+          // Check auto-reply rules for newly created comments
+          if (hasActiveRules > 0 && !upsertResult.isReplied) {
+            await checkAndAutoReply(
+              userId,
+              upsertResult.id,
+              comment.content,
+              result.platformPostId,
+              result.platform,
+              token,
+              adapter
+            );
+          }
+
           synced++;
         }
         platformsUsed.add(result.platform);

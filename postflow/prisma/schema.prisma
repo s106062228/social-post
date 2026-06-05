@@ -219,6 +219,8 @@ model User {
   workflowStages         WorkflowStage[]
   followerMilestones     FollowerMilestone[]
   smartLists             SmartList[]
+  responseTemplates      ResponseTemplate[]
+  autoReplyRules         AutoReplyRule[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1540,4 +1542,38 @@ model SmartList {
 
   @@index([userId])
   @@index([userId, pinned])
+}
+
+model ResponseTemplate {
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  content     String
+  category    String?
+  usageCount  Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  autoReplyRules AutoReplyRule[]
+
+  @@index([userId])
+  @@index([userId, category])
+}
+
+model AutoReplyRule {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  triggerKeywords String[]         @default([])
+  templateId      String
+  template        ResponseTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  platform        String?
+  isActive        Boolean          @default(true)
+  matchCount      Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([userId, isActive])
 }

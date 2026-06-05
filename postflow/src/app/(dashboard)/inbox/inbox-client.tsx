@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import { Platform } from "@prisma/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,7 @@ import {
   Reply,
   Eye,
   EyeOff,
+  ChevronDown,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,14 @@ interface SocialComment {
   platform: Platform;
   postedAt: Date | string;
   fetchedAt: Date | string;
+}
+
+interface ResponseTemplate {
+  id: string;
+  name: string;
+  content: string;
+  category: string | null;
+  usageCount: number;
 }
 
 interface Props {
@@ -62,6 +71,29 @@ export function InboxClient({ initialComments, totalUnread: initialUnread, lastS
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(
     lastSynced ? new Date(lastSynced) : null
   );
+  const [templates, setTemplates] = useState<ResponseTemplate[]>([]);
+  const [showTemplateMenu, setShowTemplateMenu] = useState(false);
+
+  const loadTemplates = useCallback(async () => {
+    try {
+      const res = await fetch("/api/response-templates");
+      const data = (await res.json()) as { templates?: ResponseTemplate[] };
+      setTemplates(data.templates ?? []);
+    } catch {
+      // silent
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadTemplates();
+  }, [loadTemplates]);
+
+  async function insertTemplate(template: ResponseTemplate) {
+    setReplyText(template.content);
+    setShowTemplateMenu(false);
+    // Increment usage count fire-and-forget
+    void fetch(`/api/response-templates/${template.id}/use`, { method: "POST" });
+  }
 
   async function handleSync() {
     startSync(async () => {
@@ -79,7 +111,6 @@ export function InboxClient({ initialComments, totalUnread: initialUnread, lastS
             : "No new comments found",
         });
         setLastSyncTime(new Date());
-        // Reload comments
         const listRes = await fetch("/api/inbox/comments?limit=50");
         const listData = await listRes.json() as { comments: SocialComment[]; totalUnread: number };
         setComments(listData.comments);
@@ -128,8 +159,15 @@ export function InboxClient({ initialComments, totalUnread: initialUnread, lastS
   }
 
   function handleReply(commentId: string) {
-    setReplyingTo(replyingTo === commentId ? null : commentId);
-    setReplyText("");
+    if (replyingTo === commentId) {
+      setReplyingTo(null);
+      setReplyText("");
+      setShowTemplateMenu(false);
+    } else {
+      setReplyingTo(commentId);
+      setReplyText("");
+      setShowTemplateMenu(false);
+    }
   }
 
   async function handleSendReply(comment: SocialComment) {
@@ -154,6 +192,7 @@ export function InboxClient({ initialComments, totalUnread: initialUnread, lastS
         setUnreadCount((prev) => (comment.isRead ? prev : Math.max(0, prev - 1)));
         setReplyingTo(null);
         setReplyText("");
+        setShowTemplateMenu(false);
         toast({ title: "Reply sent!" });
       } catch {
         toast({ title: "Reply failed", variant: "destructive" });
@@ -360,7 +399,7 @@ export function InboxClient({ initialComments, totalUnread: initialUnread, lastS
                           className="min-h-[80px] text-sm"
                           maxLength={2200}
                         />
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap items-center">
                           <Button
                             size="sm"
                             onClick={() => handleSendReply(comment)}
@@ -371,10 +410,49 @@ export function InboxClient({ initialComments, totalUnread: initialUnread, lastS
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => setReplyingTo(null)}
+                            onClick={() => {
+                              setReplyingTo(null);
+                              setShowTemplateMenu(false);
+                            }}
                           >
                             Cancel
                           </Button>
+                          {templates.length > 0 && (
+                            <div className="relative ml-auto">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setShowTemplateMenu((v) => !v)}
+                                className="text-xs"
+                              >
+                                Insert Template
+                                <ChevronDown className="ml-1 h-3 w-3" />
+                              </Button>
+                              {showTemplateMenu && (
+                                <div className="absolute right-0 top-8 z-10 w-64 rounded-md border bg-popover shadow-md">
+                                  <div className="p-1">
+                                    {templates.map((t) => (
+                                      <button
+                                        key={t.id}
+                                        className="flex w-full flex-col items-start gap-0.5 rounded px-3 py-2 text-left text-sm hover:bg-accent"
+                                        onClick={() => void insertTemplate(t)}
+                                      >
+                                        <span className="font-medium">{t.name}</span>
+                                        {t.category && (
+                                          <span className="text-xs text-muted-foreground">
+                                            {t.category}
+                                          </span>
+                                        )}
+                                        <span className="text-xs text-muted-foreground line-clamp-1">
+                                          {t.content}
+                                        </span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}

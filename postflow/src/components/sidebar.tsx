@@ -61,6 +61,7 @@ import {
   PieChart,
   Milestone,
   ListFilter,
+  MessageCircleReply,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -128,6 +129,8 @@ const navItems = [
   { href: "/portfolio", label: "Portfolio", icon: PieChart },
   { href: "/milestones", label: "Milestones", icon: Milestone },
   { href: "/smart-lists", label: "Smart Lists", icon: ListFilter },
+  { href: "/response-templates", label: "Response Templates", icon: MessageCircleReply },
+  { href: "/auto-reply-rules", label: "Auto-Reply Rules", icon: Zap },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
