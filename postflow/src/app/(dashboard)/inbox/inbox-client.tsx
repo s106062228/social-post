@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { InboxStatsCard } from "@/components/inbox-stats-card";
 
 interface SocialComment {
   id: string;
@@ -240,6 +241,9 @@ export function InboxClient({ initialComments, totalUnread: initialUnread, lastS
           </Button>
         </div>
       </div>
+
+      {/* Analytics summary */}
+      <InboxStatsCard />
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-2">

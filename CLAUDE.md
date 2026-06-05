@@ -1983,3 +1983,9 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] "Insert Template" selector in inbox reply area — compact dropdown button listing user's response templates; selecting one fills the reply textarea with template content and increments usageCount via `POST /api/response-templates/[id]/use`
 - [x] Add "Response Templates" and "Auto-Reply Rules" to sidebar navigation (icon: `MessageCircleReply` and `Zap`)
 - [x] Unit tests for response templates API (GET list, POST create, POST max-limit, POST invalid body, PATCH update, PATCH ownership, DELETE success, DELETE not-found, auth, rate limit — 12 tests) and auto-reply rules API (GET list, POST create, POST max-limit, PATCH update, PATCH ownership, DELETE, toggle — auth, rate limit — 10 tests)
+
+### Phase 210: Inbox Comment Analytics & Response Rate Tracking
+- [x] `GET /api/inbox/stats` endpoint — auth + rate limit; returns `{totalComments, unreadCount, repliedCount, autoRepliedCount (sum of AutoReplyRule matchCounts), responseRate (0–100), platformBreakdown: [{platform, total, unread, replied}][], dailyVolume: [{date, count}][] (last 30 days based on postedAt)}`
+- [x] `InboxStatsCard` component (`src/components/inbox-stats-card.tsx`) — KPI summary row (total/unread/replied/response-rate), per-platform breakdown table, 30-day comment volume sparkline using Recharts AreaChart; loading skeleton; "No comments yet" empty state
+- [x] Integrate `InboxStatsCard` into inbox page — fetched on mount in `InboxClient`; displayed in a collapsible section at the top of the inbox
+- [x] Unit tests for `GET /api/inbox/stats` (auth 401, rate limit 429, empty state zeros, totalComments count, unreadCount, repliedCount, autoRepliedCount from rule matchCounts, responseRate calculation, platformBreakdown shape, dailyVolume 30 entries — 10 tests)
