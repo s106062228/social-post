@@ -223,6 +223,7 @@ model User {
   autoReplyRules         AutoReplyRule[]
   brandMentions          BrandMention[]
   hashtagCampaigns       HashtagCampaign[]
+  collaborations         Collaboration[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -325,6 +326,7 @@ model Post {
   checklistRecord PostChecklistRecord?
   collections    CollectionPost[]
   brandMentions  BrandMention[]        @relation("BrandMentionRelatedPost")
+  collaborations CollaborationPost[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -1626,4 +1628,43 @@ model HashtagCampaign {
   @@index([userId])
   @@index([userId, isActive])
   @@index([userId, startDate])
+}
+
+enum CollaborationStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Collaboration {
+  id            String              @id @default(cuid())
+  userId        String
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  partnerName   String
+  partnerHandle String?
+  platform      Platform?
+  deliverables  String[]
+  startDate     DateTime?
+  endDate       DateTime?
+  budget        Float?
+  notes         String?
+  status        CollaborationStatus @default(ACTIVE)
+  posts         CollaborationPost[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([userId])
+  @@index([userId, status])
+}
+
+model CollaborationPost {
+  collaborationId String
+  collaboration   Collaboration @relation(fields: [collaborationId], references: [id], onDelete: Cascade)
+  postId          String
+  post            Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  addedAt         DateTime      @default(now())
+
+  @@id([collaborationId, postId])
+  @@index([postId])
 }

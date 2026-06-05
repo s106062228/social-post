@@ -2014,3 +2014,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Campaign performance detail page (`/hashtag-campaigns/[id]`) — KPI cards, by-hashtag table, by-platform table, top posts list, daily activity table
 - [x] Add "Hashtag Campaigns" to sidebar navigation (icon: `Hash`)
 - [x] Unit tests for hashtag campaigns API (GET list, POST create, POST max-limit, POST invalid body, PATCH update, PATCH ownership, DELETE success, DELETE ownership, GET performance auth, GET performance not-found, GET performance zero posts, GET performance with matching posts, GET performance no hashtags — 13 tests)
+
+### Phase 214: Influencer Collaboration & Partnership Tracker
+- [x] `Collaboration` model in Prisma (id, userId, name, partnerName, partnerHandle?, platform?, deliverables[], startDate?, endDate?, budget?, notes?, status: CollaborationStatus) + `CollaborationPost` join table (collaborationId, postId, addedAt) + `CollaborationStatus` enum (ACTIVE/COMPLETED/CANCELLED) + migration (`20260819000000_add_collaborations`)
+- [x] CRUD API for collaborations (`GET /api/collaborations`, `POST /api/collaborations`, `GET /api/collaborations/[id]`, `PATCH /api/collaborations/[id]`, `DELETE /api/collaborations/[id]`) — auth + rate limit + zod validation; max 50 collaborations per user
+- [x] Post membership API (`POST /api/collaborations/[id]/posts` to add a post, `DELETE /api/collaborations/[id]/posts/[postId]` to remove) — auth + ownership check
+- [x] `GET /api/collaborations/[id]/performance` endpoint — auth + rate limit + ownership; aggregates PostInsights from linked PUBLISHED posts; returns totalPosts, totalImpressions, totalReach, totalLikes, totalComments, totalShares, totalEngagement, avgEngagement, topPosts (top 5 by engagement)
+- [x] Collaborations list page in dashboard (`/collaborations`) — card list with partner name, platform badge, status badge (Active/Completed/Cancelled), dates, budget, post count; inline create form; delete button
+- [x] Collaboration detail page (`/collaborations/[id]`) — details card (dates, budget, deliverables, notes), performance KPI card (posts, engagement, reach), linked posts list with remove button, add-post form
+- [x] Add "Collaborations" to sidebar navigation (icon: `Handshake`)
+- [x] Unit tests for collaborations API (GET list auth/rate-limit/empty/shape, POST create/max-limit/invalid-body/success, PATCH update/not-found/success, DELETE auth/not-found/success, GET performance auth/not-found — 15 tests)
