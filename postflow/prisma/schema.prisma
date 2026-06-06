@@ -235,6 +235,7 @@ model User {
   clientPortals          ClientPortal[]
   audiencePersonas       AudiencePersona[]
   promotions             PostPromotion[]
+  linkHealthChecks       LinkHealthCheck[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -343,6 +344,7 @@ model Post {
   collaborations CollaborationPost[]
   externalReviews  ExternalReview[]
   promotions       PostPromotion[]
+  linkHealthChecks LinkHealthCheck[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -613,6 +615,24 @@ model PostInsights {
   syncedAt       DateTime      @default(now())
 
   @@index([publishResultId])
+}
+
+model LinkHealthCheck {
+  id           String   @id @default(cuid())
+  postId       String
+  post         Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url          String
+  statusCode   Int?
+  isHealthy    Boolean
+  errorMessage String?
+  checkedAt    DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  @@unique([postId, url])
+  @@index([postId, checkedAt(sort: Desc)])
+  @@index([userId])
 }
 
 model ShareLink {
