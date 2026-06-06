@@ -225,6 +225,13 @@ model User {
   hashtagCampaigns       HashtagCampaign[]
   collaborations         Collaboration[]
   auditReports           AuditReport[]
+  chatMessages           AiChatMessage[]
+  feedToken              FeedToken?
+  savedPrompts           SavedPrompt[]
+  externalReviews        ExternalReview[]
+  socialComments         SocialComment[]
+  clientPortals          ClientPortal[]
+  audiencePersonas       AudiencePersona[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -262,6 +269,7 @@ model SocialAccount {
   updatedAt            DateTime         @updatedAt
   audienceMetrics      AudienceMetric[]
   followerMilestones   FollowerMilestone[]
+  socialComments       SocialComment[]
 
   @@unique([userId, platform, platformAccountId])
   @@index([userId])
@@ -312,6 +320,8 @@ model Post {
   assignee       User?          @relation("PostAssignee", fields: [assigneeId], references: [id])
   workflowStageId String?
   workflowStage   WorkflowStage? @relation(fields: [workflowStageId], references: [id])
+  targetPersonaId  String?
+  targetPersona    AudiencePersona? @relation(fields: [targetPersonaId], references: [id], onDelete: SetNull)
   publishResults PublishResult[]
   tags           PostTag[]
   versions       PostVersion[]
@@ -328,6 +338,7 @@ model Post {
   collections    CollectionPost[]
   brandMentions  BrandMention[]        @relation("BrandMentionRelatedPost")
   collaborations CollaborationPost[]
+  externalReviews  ExternalReview[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -1438,6 +1449,140 @@ model ContentRule {
 
   @@index([userId])
   @@index([userId, isActive])
+}
+
+enum ExternalReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model ExternalReview {
+  id            String               @id @default(cuid())
+  postId        String
+  post          Post                 @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewerEmail String
+  reviewerName  String?
+  token         String               @unique @default(cuid())
+  message       String?
+  status        ExternalReviewStatus @default(PENDING)
+  feedback      String?
+  respondedAt   DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime             @default(now())
+
+  @@index([postId])
+  @@index([userId])
+  @@index([token])
+}
+
+model SocialComment {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId         String
+  account           SocialAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  platformPostId    String
+  platformCommentId String        @unique
+  authorName        String
+  authorHandle      String
+  authorAvatarUrl   String?
+  content           String
+  isRead            Boolean       @default(false)
+  isReplied         Boolean       @default(false)
+  platform          Platform
+  postedAt          DateTime
+  fetchedAt         DateTime      @default(now())
+  createdAt         DateTime      @default(now())
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([userId, platform])
+  @@index([userId, postedAt(sort: Desc)])
+}
+
+model ClientPortal {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug          String    @unique
+  title         String
+  description   String?
+  accentColor   String    @default("#6366f1")
+  showCalendar  Boolean   @default(true)
+  showAnalytics Boolean   @default(true)
+  showPosts     Boolean   @default(true)
+  isPublished   Boolean   @default(false)
+  expiresAt     DateTime?
+  views         Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([slug])
+}
+
+model AudiencePersona {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String
+  description      String?
+  ageRange         String?
+  primaryPlatforms String[] @default([])
+  interests        String[] @default([])
+  painPoints       String[] @default([])
+  goals            String[] @default([])
+  contentTypes     String[] @default([])
+  notes            String?
+  posts            Post[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model AiChatMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model FeedToken {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique @default(cuid())
+  createdAt DateTime @default(now())
+
+  @@index([token])
+}
+
+model SavedPrompt {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  prompt      String
+  category    String?
+  isPublic    Boolean  @default(false)
+  usageCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isPublic])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([isPublic, usageCount(sort: Desc)])
 }
 
 model LegalDisclaimer {

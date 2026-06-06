@@ -51,6 +51,11 @@ jest.mock("@/lib/db", () => ({
     publishResult: {
       findMany: jest.fn(),
     },
+    autoReplyRule: {
+      count: jest.fn().mockResolvedValue(0),
+      findMany: jest.fn().mockResolvedValue([]),
+      update: jest.fn(),
+    },
   },
 }));
 
@@ -110,7 +115,7 @@ const MOCK_COMMENT = {
   content: "Nice post!",
   isRead: false,
   isReplied: false,
-  platform: "FACEBOOK",
+  platform: "FACEBOOK" as const,
   postedAt: new Date("2026-01-01T10:00:00Z"),
   fetchedAt: new Date("2026-01-02T10:00:00Z"),
   createdAt: new Date("2026-01-02T10:00:00Z"),
@@ -375,7 +380,7 @@ describe("POST /api/inbox/comments/[id]/reply", () => {
     mockAuth.mockResolvedValueOnce(AUTHED);
     mockSocialComment.findFirst.mockResolvedValueOnce({
       ...MOCK_COMMENT,
-      account: { id: "account-1", encryptedToken: "enc", platform: "FACEBOOK" },
+      account: { id: "account-1", encryptedToken: "enc", platform: "FACEBOOK" as const },
     });
     mockSocialComment.update.mockResolvedValueOnce({
       ...MOCK_COMMENT,
