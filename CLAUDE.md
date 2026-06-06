@@ -2032,3 +2032,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Add `"campaign_comparison"` widget key and label `"Campaign Performance Comparison"` to `WIDGET_KEYS` and `WIDGET_LABELS` in dashboard-widgets route; integrate `CampaignComparisonCard` into analytics dashboard below `TimeContentMatrixCard`
 - [x] Add "Campaign ROI" to sidebar navigation (icon: `GitCompare`)
 - [x] Unit tests for campaign-comparison endpoint (auth 401, rate limit 429, invalid period 400, valid periods accepted, empty state shape, content campaign engagement aggregation, hashtag campaign attribution, hashtag campaign with no hashtags, collaboration costPerEngagement calculation, collaboration without budget, topCampaign highest engagement, aggregate totals — 12 tests)
+
+### Phase 216: Social Media Account Audit & Strategy Report
+- [x] `AuditReport` model in Prisma (id, userId, period String, generatedAt DateTime, accountHealth Json, contentMix Json, postingPatterns Json, engagementBenchmarks Json, consistencyScore Json, topContent Json, recommendations String[], overallScore Int, createdAt) + migration (`20260820000000_add_audit_reports`)
+- [x] `POST /api/analytics/audit` endpoint — auth + rate limit; runs comprehensive audit aggregating: account-health, content-mix (30d), posting-frequency (30d), consistency (30d), benchmarks (30d), leaderboard (top 10), writing-stats (30d); computes overall score (weighted avg); optionally generates AI recommendations when ANTHROPIC_API_KEY set; stores AuditReport in DB; returns full report
+- [x] `GET /api/analytics/audit` endpoint — auth + rate limit; lists user's AuditReports ordered by generatedAt desc (last 10)
+- [x] `GET /api/analytics/audit/[id]` endpoint — auth + rate limit + ownership check; returns full stored AuditReport
+- [x] `AuditScoreRing` component (`src/components/audit-score-ring.tsx`) — SVG ring chart displaying 0–100 overall audit score with colour (green ≥75 / yellow ≥50 / red <50), score label, and grade letter
+- [x] Audit reports page in dashboard (`/audit-reports`) — "Run New Audit" button triggers POST (shows loading state up to 30s); displays most recent audit as full-page report with sections: Overall Score (AuditScoreRing), Account Health summary, Content Mix pie, Posting Frequency table, Consistency score bar, Engagement vs Benchmarks table, Top Posts list, AI Recommendations bullet list; past audit history list below
+- [x] Add "Audit" to sidebar navigation (icon: `ClipboardList`)
+- [x] Unit tests for audit endpoints (POST auth, POST rate limit, POST response shape, POST stores report, GET list auth, GET list shape, GET detail auth, GET detail not-found, GET detail ownership, overall score bounds — 10 tests)

@@ -224,6 +224,7 @@ model User {
   brandMentions          BrandMention[]
   hashtagCampaigns       HashtagCampaign[]
   collaborations         Collaboration[]
+  auditReports           AuditReport[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1667,4 +1668,23 @@ model CollaborationPost {
 
   @@id([collaborationId, postId])
   @@index([postId])
+}
+
+model AuditReport {
+  id                   String   @id @default(cuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  period               String
+  generatedAt          DateTime @default(now())
+  accountHealth        Json
+  contentMix           Json
+  postingPatterns      Json
+  engagementBenchmarks Json
+  consistencyScore     Json
+  topContent           Json
+  recommendations      String[]
+  overallScore         Int
+  createdAt            DateTime @default(now())
+
+  @@index([userId, generatedAt(sort: Desc)])
 }

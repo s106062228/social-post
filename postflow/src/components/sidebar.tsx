@@ -65,6 +65,7 @@ import {
   AtSign,
   Handshake,
   GitCompare,
+  ClipboardList,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -138,6 +139,7 @@ const navItems = [
   { href: "/hashtag-campaigns", label: "Hashtag Campaigns", icon: Hash },
   { href: "/collaborations", label: "Collaborations", icon: Handshake },
   { href: "/campaign-comparison", label: "Campaign ROI", icon: GitCompare },
+  { href: "/audit-reports", label: "Audit", icon: ClipboardList },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
