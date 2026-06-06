@@ -33,6 +33,7 @@ export const WIDGET_KEYS = [
   "posting_frequency",
   "time_content_matrix",
   "campaign_comparison",
+  "promotion_roi",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -72,6 +73,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   posting_frequency: "Posting Frequency & Pacing",
   time_content_matrix: "Time × Content Matrix",
   campaign_comparison: "Campaign Performance Comparison",
+  promotion_roi: "Paid Promotion ROI",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {

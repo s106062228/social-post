@@ -234,6 +234,7 @@ model User {
   socialComments         SocialComment[]
   clientPortals          ClientPortal[]
   audiencePersonas       AudiencePersona[]
+  promotions             PostPromotion[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -341,6 +342,7 @@ model Post {
   brandMentions  BrandMention[]        @relation("BrandMentionRelatedPost")
   collaborations CollaborationPost[]
   externalReviews  ExternalReview[]
+  promotions       PostPromotion[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -1871,4 +1873,38 @@ model TestimonialPage {
   updatedAt        DateTime @updatedAt
 
   @@index([userId])
+}
+enum PromotionStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model PostPromotion {
+  id           String          @id @default(cuid())
+  userId       String
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId       String?
+  post         Post?           @relation(fields: [postId], references: [id], onDelete: SetNull)
+  platform     Platform
+  campaignName String
+  budget       Float
+  spend        Float           @default(0)
+  currency     String          @default("USD")
+  startDate    DateTime
+  endDate      DateTime?
+  goal         String?
+  status       PromotionStatus @default(PLANNED)
+  impressions  Int?
+  clicks       Int?
+  conversions  Int?
+  notes        String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([userId, status])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([postId])
 }
