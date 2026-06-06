@@ -229,6 +229,7 @@ model User {
   feedToken              FeedToken?
   savedPrompts           SavedPrompt[]
   testimonials           Testimonial[]
+  testimonialPages       TestimonialPage[]
   externalReviews        ExternalReview[]
   socialComments         SocialComment[]
   clientPortals          ClientPortal[]
@@ -1847,9 +1848,27 @@ model Testimonial {
   sourceUrl   String?
   imageUrl    String?
   isFeatured  Boolean  @default(false)
+  source      String   @default("manual")
+  approved    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([userId, isFeatured])
   @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, approved])
+}
+
+model TestimonialPage {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug             String   @unique
+  title            String
+  welcomeMessage   String?
+  thankYouMessage  String?
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([userId])
 }

@@ -5,35 +5,31 @@ import { prisma } from "@/lib/db";
 import { handleRouteError } from "@/lib/errors";
 import { apiLimiter, rateLimitHeaders } from "@/lib/rate-limit";
 
-const patchSchema = z.object({
-  authorName: z.string().min(1).max(200).optional(),
-  authorTitle: z.string().max(200).optional().nullable(),
-  company: z.string().max(200).optional().nullable(),
-  content: z.string().min(1).max(5000).optional(),
-  rating: z.number().int().min(1).max(5).optional().nullable(),
-  sourceUrl: z.string().url().max(2000).optional().nullable(),
-  imageUrl: z.string().url().max(2000).optional().nullable(),
-  isFeatured: z.boolean().optional(),
-  approved: z.boolean().optional(),
+const updateSchema = z.object({
+  slug: z
+    .string()
+    .min(3)
+    .max(50)
+    .regex(/^[a-z0-9-]+$/, "Slug must be lowercase letters, numbers, and hyphens only")
+    .optional(),
+  title: z.string().min(1).max(200).optional(),
+  welcomeMessage: z.string().max(2000).optional().nullable(),
+  thankYouMessage: z.string().max(2000).optional().nullable(),
+  isActive: z.boolean().optional(),
 });
 
 const select = {
   id: true,
-  authorName: true,
-  authorTitle: true,
-  company: true,
-  content: true,
-  rating: true,
-  sourceUrl: true,
-  imageUrl: true,
-  isFeatured: true,
-  source: true,
-  approved: true,
+  slug: true,
+  title: true,
+  welcomeMessage: true,
+  thankYouMessage: true,
+  isActive: true,
   createdAt: true,
   updatedAt: true,
 } as const;
 
-// ── PATCH /api/testimonials/[id] ──────────────────────────────────────────────
+// ── PATCH /api/testimonial-pages/[id] ─────────────────────────────────────────
 
 export async function PATCH(
   request: NextRequest,
@@ -60,7 +56,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const parsed = patchSchema.safeParse(body);
+    const parsed = updateSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Validation error", issues: parsed.error.issues },
@@ -70,34 +66,43 @@ export async function PATCH(
 
     const { id } = await params;
 
-    const existing = await prisma.testimonial.findUnique({ where: { id } });
+    const existing = await prisma.testimonialPage.findUnique({ where: { id } });
     if (!existing || existing.userId !== session.user.id) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    const item = await prisma.testimonial.update({
+    if (parsed.data.slug && parsed.data.slug !== existing.slug) {
+      const slugTaken = await prisma.testimonialPage.findUnique({
+        where: { slug: parsed.data.slug },
+      });
+      if (slugTaken) {
+        return NextResponse.json({ error: "Slug is already taken" }, { status: 409 });
+      }
+    }
+
+    const page = await prisma.testimonialPage.update({
       where: { id },
       data: {
-        ...(parsed.data.authorName !== undefined && { authorName: parsed.data.authorName }),
-        ...(parsed.data.authorTitle !== undefined && { authorTitle: parsed.data.authorTitle }),
-        ...(parsed.data.company !== undefined && { company: parsed.data.company }),
-        ...(parsed.data.content !== undefined && { content: parsed.data.content }),
-        ...(parsed.data.rating !== undefined && { rating: parsed.data.rating }),
-        ...(parsed.data.sourceUrl !== undefined && { sourceUrl: parsed.data.sourceUrl }),
-        ...(parsed.data.imageUrl !== undefined && { imageUrl: parsed.data.imageUrl }),
-        ...(parsed.data.isFeatured !== undefined && { isFeatured: parsed.data.isFeatured }),
-        ...(parsed.data.approved !== undefined && { approved: parsed.data.approved }),
+        ...(parsed.data.slug !== undefined && { slug: parsed.data.slug }),
+        ...(parsed.data.title !== undefined && { title: parsed.data.title }),
+        ...(parsed.data.welcomeMessage !== undefined && {
+          welcomeMessage: parsed.data.welcomeMessage,
+        }),
+        ...(parsed.data.thankYouMessage !== undefined && {
+          thankYouMessage: parsed.data.thankYouMessage,
+        }),
+        ...(parsed.data.isActive !== undefined && { isActive: parsed.data.isActive }),
       },
       select,
     });
 
-    return NextResponse.json({ item });
+    return NextResponse.json({ page });
   } catch (err) {
     return handleRouteError(err);
   }
 }
 
-// ── DELETE /api/testimonials/[id] ─────────────────────────────────────────────
+// ── DELETE /api/testimonial-pages/[id] ────────────────────────────────────────
 
 export async function DELETE(
   _request: NextRequest,
@@ -119,12 +124,12 @@ export async function DELETE(
 
     const { id } = await params;
 
-    const existing = await prisma.testimonial.findUnique({ where: { id } });
+    const existing = await prisma.testimonialPage.findUnique({ where: { id } });
     if (!existing || existing.userId !== session.user.id) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    await prisma.testimonial.delete({ where: { id } });
+    await prisma.testimonialPage.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
   } catch (err) {

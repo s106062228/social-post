@@ -11,6 +11,11 @@ import {
   Star,
   ExternalLink,
   Image as ImageIcon,
+  Check,
+  X,
+  Copy,
+  Globe,
+  Power,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +27,7 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +41,19 @@ interface Testimonial {
   sourceUrl: string | null;
   imageUrl: string | null;
   isFeatured: boolean;
+  source: string;
+  approved: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface TestimonialPage {
+  id: string;
+  slug: string;
+  title: string;
+  welcomeMessage: string | null;
+  thankYouMessage: string | null;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -76,6 +95,26 @@ export default function TestimonialsPage() {
   const [convertingId, setConvertingId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
+  // Pending review tab
+  const [pendingItems, setPendingItems] = useState<Testimonial[]>([]);
+  const [loadingPending, setLoadingPending] = useState(false);
+  const [pendingLoaded, setPendingLoaded] = useState(false);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+
+  // Collection pages tab
+  const [pages, setPages] = useState<TestimonialPage[]>([]);
+  const [loadingPages, setLoadingPages] = useState(false);
+  const [pagesLoaded, setPagesLoaded] = useState(false);
+  const [showPageForm, setShowPageForm] = useState(false);
+  const [pageSlug, setPageSlug] = useState("");
+  const [pageTitle, setPageTitle] = useState("");
+  const [pageWelcomeMessage, setPageWelcomeMessage] = useState("");
+  const [pageThankYouMessage, setPageThankYouMessage] = useState("");
+  const [creatingPage, setCreatingPage] = useState(false);
+  const [togglingPageId, setTogglingPageId] = useState<string | null>(null);
+  const [deletingPageId, setDeletingPageId] = useState<string | null>(null);
+
   const fetchItems = useCallback(async () => {
     try {
       const qs = filterFeatured ? "?featured=true" : "";
@@ -93,6 +132,36 @@ export default function TestimonialsPage() {
   useEffect(() => {
     void fetchItems();
   }, [fetchItems]);
+
+  const fetchPending = useCallback(async () => {
+    setLoadingPending(true);
+    try {
+      const res = await fetch("/api/testimonials?approved=false");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = (await res.json()) as { items: Testimonial[] };
+      setPendingItems(data.items);
+      setPendingLoaded(true);
+    } catch {
+      toast.error("Failed to load pending submissions");
+    } finally {
+      setLoadingPending(false);
+    }
+  }, []);
+
+  const fetchPages = useCallback(async () => {
+    setLoadingPages(true);
+    try {
+      const res = await fetch("/api/testimonial-pages");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = (await res.json()) as { pages: TestimonialPage[] };
+      setPages(data.pages);
+      setPagesLoaded(true);
+    } catch {
+      toast.error("Failed to load collection pages");
+    } finally {
+      setLoadingPages(false);
+    }
+  }, []);
 
   function resetForm() {
     setAuthorName("");
@@ -186,33 +255,170 @@ export default function TestimonialsPage() {
     }
   }
 
+  async function handleApprove(id: string) {
+    setApprovingId(id);
+    try {
+      const res = await fetch(`/api/testimonials/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ approved: true }),
+      });
+      if (!res.ok) throw new Error("Failed to approve");
+      toast.success("Testimonial approved");
+      setPendingItems((prev) => prev.filter((i) => i.id !== id));
+      if (filterFeatured === false) await fetchItems();
+    } catch {
+      toast.error("Failed to approve");
+    } finally {
+      setApprovingId(null);
+    }
+  }
+
+  async function handleReject(id: string) {
+    setRejectingId(id);
+    try {
+      const res = await fetch(`/api/testimonials/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to reject");
+      toast.success("Submission rejected");
+      setPendingItems((prev) => prev.filter((i) => i.id !== id));
+    } catch {
+      toast.error("Failed to reject");
+    } finally {
+      setRejectingId(null);
+    }
+  }
+
+  function resetPageForm() {
+    setPageSlug("");
+    setPageTitle("");
+    setPageWelcomeMessage("");
+    setPageThankYouMessage("");
+  }
+
+  async function handleCreatePage() {
+    if (!pageSlug.trim() || !pageTitle.trim()) return;
+    setCreatingPage(true);
+    try {
+      const res = await fetch("/api/testimonial-pages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: pageSlug.trim(),
+          title: pageTitle.trim(),
+          welcomeMessage: pageWelcomeMessage.trim() || null,
+          thankYouMessage: pageThankYouMessage.trim() || null,
+        }),
+      });
+      if (!res.ok) {
+        const err = (await res.json()) as { error?: string };
+        throw new Error(err.error ?? "Failed to create page");
+      }
+      const data = (await res.json()) as { page: TestimonialPage };
+      setPages((prev) => [data.page, ...prev]);
+      toast.success("Collection page created");
+      resetPageForm();
+      setShowPageForm(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to create page");
+    } finally {
+      setCreatingPage(false);
+    }
+  }
+
+  async function handleTogglePageActive(page: TestimonialPage) {
+    setTogglingPageId(page.id);
+    try {
+      const res = await fetch(`/api/testimonial-pages/${page.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !page.isActive }),
+      });
+      if (!res.ok) throw new Error("Failed to update");
+      const data = (await res.json()) as { page: TestimonialPage };
+      setPages((prev) => prev.map((p) => (p.id === page.id ? data.page : p)));
+      toast.success(data.page.isActive ? "Page activated" : "Page deactivated");
+    } catch {
+      toast.error("Failed to update page");
+    } finally {
+      setTogglingPageId(null);
+    }
+  }
+
+  async function handleDeletePage(id: string) {
+    setDeletingPageId(id);
+    try {
+      const res = await fetch(`/api/testimonial-pages/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete");
+      toast.success("Collection page deleted");
+      setPages((prev) => prev.filter((p) => p.id !== id));
+    } catch {
+      toast.error("Failed to delete page");
+    } finally {
+      setDeletingPageId(null);
+    }
+  }
+
+  function handleCopyLink(slug: string) {
+    const url = `${window.location.origin}/t/${slug}`;
+    void navigator.clipboard.writeText(url).then(
+      () => toast.success("Link copied to clipboard"),
+      () => toast.error("Failed to copy link")
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Testimonials</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Collect customer quotes and turn them into social proof posts
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={filterFeatured ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilterFeatured((v) => !v)}
-          >
-            <Star className="h-4 w-4 mr-2" />
-            Featured only
-          </Button>
-          <Button onClick={() => setShowForm((v) => !v)} size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Testimonial
-          </Button>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold">Testimonials</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Collect customer quotes and turn them into social proof posts
+        </p>
       </div>
 
-      {/* Add form */}
+      <Tabs defaultValue="all">
+        <TabsList>
+          <TabsTrigger value="all">All Testimonials</TabsTrigger>
+          <TabsTrigger
+            value="pending"
+            onClick={() => {
+              if (!pendingLoaded) void fetchPending();
+            }}
+          >
+            Pending Review
+            {pendingLoaded && pendingItems.length > 0 && (
+              <Badge variant="secondary" className="ml-2 text-xs">
+                {pendingItems.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger
+            value="pages"
+            onClick={() => {
+              if (!pagesLoaded) void fetchPages();
+            }}
+          >
+            Collection Pages
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="all" className="space-y-6 pt-4">
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              variant={filterFeatured ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterFeatured((v) => !v)}
+            >
+              <Star className="h-4 w-4 mr-2" />
+              Featured only
+            </Button>
+            <Button onClick={() => setShowForm((v) => !v)} size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Testimonial
+            </Button>
+          </div>
+
+          {/* Add form */}
       {showForm && (
         <Card>
           <CardContent className="pt-6 space-y-4">
@@ -432,6 +638,226 @@ export default function TestimonialsPage() {
           ))}
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="pending" className="space-y-4 pt-4">
+          {loadingPending ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : pendingItems.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground">
+              <Check className="h-10 w-10 mx-auto mb-3 opacity-30" />
+              <p className="text-lg font-medium">No pending submissions</p>
+              <p className="text-sm">
+                Public testimonial submissions awaiting your review will show up here
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {pendingItems.map((item) => (
+                <Card key={item.id} className="flex flex-col overflow-hidden">
+                  <CardHeader className="pb-2 pt-4 px-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm leading-tight truncate">
+                          {item.authorName}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {[item.authorTitle, item.company].filter(Boolean).join(" · ")}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="shrink-0 text-xs">
+                        Public submission
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="px-4 pb-2 flex-1 space-y-2">
+                    <StarRating rating={item.rating} />
+                    <div className="relative">
+                      <Quote className="h-4 w-4 text-muted-foreground/30 absolute -left-1 -top-1" />
+                      <p className="text-sm pl-4 italic line-clamp-4">{item.content}</p>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="px-4 pb-4 pt-2 flex gap-2">
+                    <Button
+                      size="sm"
+                      className="flex-1"
+                      disabled={approvingId === item.id || rejectingId === item.id}
+                      onClick={() => handleApprove(item.id)}
+                    >
+                      {approvingId === item.id ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <Check className="h-3 w-3 mr-1" />
+                      )}
+                      Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 text-destructive hover:text-destructive"
+                      disabled={approvingId === item.id || rejectingId === item.id}
+                      onClick={() => handleReject(item.id)}
+                    >
+                      {rejectingId === item.id ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <X className="h-3 w-3 mr-1" />
+                      )}
+                      Reject
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="pages" className="space-y-4 pt-4">
+          <div className="flex items-center justify-end">
+            <Button size="sm" onClick={() => setShowPageForm((v) => !v)}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Page
+            </Button>
+          </div>
+
+          {showPageForm && (
+            <Card>
+              <CardContent className="pt-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Slug *</label>
+                    <Input
+                      placeholder="my-customers"
+                      value={pageSlug}
+                      onChange={(e) => setPageSlug(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Lowercase letters, numbers, and hyphens — used in the public URL
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Title *</label>
+                    <Input
+                      placeholder="Share your experience"
+                      value={pageTitle}
+                      onChange={(e) => setPageTitle(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Welcome message (optional)</label>
+                  <Textarea
+                    placeholder="Tell visitors what this page is for..."
+                    value={pageWelcomeMessage}
+                    onChange={(e) => setPageWelcomeMessage(e.target.value)}
+                    rows={2}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Thank you message (optional)</label>
+                  <Textarea
+                    placeholder="Shown after a successful submission..."
+                    value={pageThankYouMessage}
+                    onChange={(e) => setPageThankYouMessage(e.target.value)}
+                    rows={2}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleCreatePage}
+                    disabled={!pageSlug.trim() || !pageTitle.trim() || creatingPage}
+                  >
+                    {creatingPage && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Create
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowPageForm(false);
+                      resetPageForm();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {loadingPages ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : pages.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground">
+              <Globe className="h-10 w-10 mx-auto mb-3 opacity-30" />
+              <p className="text-lg font-medium">No collection pages yet</p>
+              <p className="text-sm">
+                Create a public page where customers can submit their own testimonials
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {pages.map((page) => (
+                <Card key={page.id}>
+                  <CardHeader className="pb-2 pt-4 px-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm leading-tight truncate">{page.title}</p>
+                        <p className="text-xs text-muted-foreground truncate">/t/{page.slug}</p>
+                      </div>
+                      <Badge variant={page.isActive ? "default" : "outline"} className="shrink-0 text-xs">
+                        {page.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="px-4 pb-2">
+                    {page.welcomeMessage && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">{page.welcomeMessage}</p>
+                    )}
+                  </CardContent>
+                  <CardFooter className="px-4 pb-4 pt-2 flex gap-2 flex-wrap">
+                    <Button size="sm" variant="outline" onClick={() => handleCopyLink(page.slug)}>
+                      <Copy className="h-3 w-3 mr-1" />
+                      Copy Link
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={togglingPageId === page.id}
+                      onClick={() => handleTogglePageActive(page)}
+                    >
+                      {togglingPageId === page.id ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : page.isActive ? (
+                        <Power className="h-3 w-3 mr-1" />
+                      ) : (
+                        <Globe className="h-3 w-3 mr-1" />
+                      )}
+                      {page.isActive ? "Deactivate" : "Activate"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive"
+                      disabled={deletingPageId === page.id}
+                      onClick={() => handleDeletePage(page.id)}
+                    >
+                      {deletingPageId === page.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3 w-3" />
+                      )}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -28,6 +28,8 @@ const select = {
   sourceUrl: true,
   imageUrl: true,
   isFeatured: true,
+  source: true,
+  approved: true,
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -52,10 +54,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const featuredParam = request.nextUrl.searchParams.get("featured");
     const featured = featuredParam === "true" ? true : featuredParam === "false" ? false : undefined;
 
+    const approvedParam = request.nextUrl.searchParams.get("approved");
+    const approved = approvedParam === "true" ? true : approvedParam === "false" ? false : undefined;
+
     const items = await prisma.testimonial.findMany({
       where: {
         userId: session.user.id,
         ...(featured !== undefined && { isFeatured: featured }),
+        ...(approved !== undefined && { approved }),
       },
       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
       select,
