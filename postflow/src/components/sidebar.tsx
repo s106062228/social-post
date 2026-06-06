@@ -66,6 +66,7 @@ import {
   Handshake,
   GitCompare,
   ClipboardList,
+  Quote,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -140,6 +141,7 @@ const navItems = [
   { href: "/collaborations", label: "Collaborations", icon: Handshake },
   { href: "/campaign-comparison", label: "Campaign ROI", icon: GitCompare },
   { href: "/audit-reports", label: "Audit", icon: ClipboardList },
+  { href: "/testimonials", label: "Testimonials", icon: Quote },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
