@@ -48,6 +48,7 @@ import { PostingFrequencyCard } from "@/components/posting-frequency-card";
 import { TimeContentMatrixCard } from "@/components/time-content-matrix-card";
 import { CampaignComparisonCard } from "@/components/campaign-comparison-card";
 import { PromotionRoiCard } from "@/components/promotion-roi-card";
+import { ViralPostsCard } from "@/components/viral-posts-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -573,6 +574,9 @@ export function AnalyticsDashboard() {
 
       {/* Paid Promotion ROI */}
       {isVisible("promotion_roi") && <PromotionRoiCard />}
+
+      {/* Viral Post Detection */}
+      {isVisible("viral_posts") && <ViralPostsCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
