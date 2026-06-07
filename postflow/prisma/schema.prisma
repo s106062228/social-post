@@ -237,6 +237,7 @@ model User {
   promotions             PostPromotion[]
   linkHealthChecks       LinkHealthCheck[]
   customFields           CustomField[]
+  postLocks              PostLock[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -347,6 +348,7 @@ model Post {
   promotions       PostPromotion[]
   linkHealthChecks LinkHealthCheck[]
   customFieldValues PostCustomFieldValue[]
+  postLock          PostLock?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -1964,4 +1966,17 @@ model PostCustomFieldValue {
   @@unique([postId, fieldId])
   @@index([postId])
   @@index([fieldId])
+}
+
+model PostLock {
+  id        String   @id @default(cuid())
+  postId    String   @unique
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lockedAt  DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([userId])
+  @@index([expiresAt])
 }
