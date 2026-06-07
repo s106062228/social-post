@@ -35,6 +35,7 @@ export const WIDGET_KEYS = [
   "campaign_comparison",
   "promotion_roi",
   "viral_posts",
+  "period_comparison",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -76,6 +77,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   campaign_comparison: "Campaign Performance Comparison",
   promotion_roi: "Paid Promotion ROI",
   viral_posts: "Viral Post Detection",
+  period_comparison: "Period-over-Period Comparison",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {

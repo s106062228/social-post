@@ -49,6 +49,7 @@ import { TimeContentMatrixCard } from "@/components/time-content-matrix-card";
 import { CampaignComparisonCard } from "@/components/campaign-comparison-card";
 import { PromotionRoiCard } from "@/components/promotion-roi-card";
 import { ViralPostsCard } from "@/components/viral-posts-card";
+import { PeriodComparisonCard } from "@/components/period-comparison-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -577,6 +578,9 @@ export function AnalyticsDashboard() {
 
       {/* Viral Post Detection */}
       {isVisible("viral_posts") && <ViralPostsCard />}
+
+      {/* Period-over-Period Comparison */}
+      {isVisible("period_comparison") && <PeriodComparisonCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
