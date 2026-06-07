@@ -1778,3 +1778,121 @@ Generate exactly ${postCount} posts that form a cohesive series.`;
     posts: [],
   };
 }
+
+// ── Phase 222: Social Bio Generator ──────────────────────────────────────────
+
+export const PLATFORM_BIO_LIMITS: Record<string, number> = {
+  FACEBOOK: 255,
+  INSTAGRAM: 150,
+  TWITTER: 160,
+  THREADS: 150,
+  LINKEDIN: 220,
+  TIKTOK: 80,
+  PINTEREST: 160,
+  YOUTUBE: 500,
+  REDDIT: 200,
+  BLUESKY: 300,
+  MASTODON: 500,
+  TELEGRAM: 255,
+  TUMBLR: 200,
+  WORDPRESS: 200,
+  MEDIUM: 160,
+  GHOST: 300,
+  DEVTO: 200,
+  HASHNODE: 200,
+  NOSTR: 200,
+  PIXELFED: 500,
+  VIMEO: 200,
+  BEEHIIV: 200,
+  GOOGLE_BUSINESS: 750,
+};
+
+export interface SocialBio {
+  platform: string;
+  bio: string;
+  charCount: number;
+  charLimit: number;
+}
+
+const BIO_SYSTEM = `You are a social media profile optimization expert. Generate engaging, platform-optimized bios/descriptions for social media profiles.
+Always respond with valid JSON in this exact format: {"bios": [{"platform": "PLATFORM_NAME", "bio": "bio text here"}]}
+Guidelines per platform:
+- Twitter/X (160 chars): Short, punchy, personality-driven. Can use emojis. Show what makes you unique.
+- Instagram (150 chars): Value-driven, use line breaks if helpful, 1-2 emojis max, clear CTA.
+- LinkedIn (220 chars): Professional, achievement-focused, industry keywords.
+- TikTok (80 chars): Ultra-brief, energetic, relatable. 1 emoji max.
+- Facebook (255 chars): Conversational, community-focused, slightly longer.
+- Threads (150 chars): Casual, authentic, conversation-starting.
+- Pinterest (160 chars): Inspire-focused, keyword-rich for discovery.
+- YouTube (500 chars): Channel description, what viewers will get, posting schedule hint.
+- Bluesky (300 chars): Open, tech-friendly tone. Concise and genuine.
+- Mastodon (500 chars): Community-focused, mention interests, use #hashtags.
+- Other platforms: Adapt to platform culture, stay within the given limit.
+Never exceed the stated character limits. Adjust bio length to fit within limits.`;
+
+export async function generateSocialBios(
+  name: string,
+  description: string,
+  platforms: string[],
+  niche?: string | null,
+  keywords?: string[] | null
+): Promise<SocialBio[]> {
+  const client = getClient();
+
+  const platformLimits = platforms.map((p) => {
+    const limit = PLATFORM_BIO_LIMITS[p.toUpperCase()] ?? 200;
+    return `${p}: max ${limit} characters`;
+  });
+
+  const userContent = `Generate optimized social media bios for:
+Name/Brand: ${name}
+Description: ${description}
+${niche ? `Niche/Industry: ${niche}` : ""}
+${keywords && keywords.length > 0 ? `Key keywords: ${keywords.join(", ")}` : ""}
+
+Platforms with character limits:
+${platformLimits.join("\n")}
+
+Generate a platform-optimized bio for each platform listed above. Stay strictly within the character limit for each.`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 2048,
+    system: [
+      {
+        type: "text",
+        text: BIO_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [{ role: "user", content: userContent }],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const raw = block && block.type === "text" ? block.text.trim() : "";
+
+  try {
+    const parsed = JSON.parse(raw) as { bios?: unknown[] };
+
+    if (Array.isArray(parsed.bios)) {
+      return parsed.bios
+        .filter(
+          (b): b is Record<string, unknown> =>
+            b !== null && typeof b === "object"
+        )
+        .map((b) => {
+          const platform =
+            typeof b.platform === "string" ? b.platform.toUpperCase() : "";
+          const limit = PLATFORM_BIO_LIMITS[platform] ?? 200;
+          const bio =
+            typeof b.bio === "string" ? b.bio.slice(0, limit) : "";
+          return { platform, bio, charCount: bio.length, charLimit: limit };
+        })
+        .filter((b) => b.platform && b.bio);
+    }
+  } catch {
+    // fall through
+  }
+
+  return [];
+}

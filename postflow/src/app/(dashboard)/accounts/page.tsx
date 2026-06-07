@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Users, AlertCircle } from "lucide-react";
 import { DisconnectAccountButton } from "./disconnect-account-button";
+import { GenerateBiosButton } from "./generate-bios-button";
 
 export default async function AccountsPage({
   searchParams,
@@ -107,13 +108,20 @@ export default async function AccountsPage({
     process.env.VIMEO_CLIENT_ID && process.env.VIMEO_CLIENT_SECRET
   );
 
+  const connectedPlatforms = accounts.map((a) => a.platform as string);
+
   return (
     <div className="flex flex-col gap-8 p-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Connected Accounts</h1>
-        <p className="text-muted-foreground">
-          Connect your social media accounts to start publishing posts.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Connected Accounts</h1>
+          <p className="text-muted-foreground">
+            Connect your social media accounts to start publishing posts.
+          </p>
+        </div>
+        {process.env.ANTHROPIC_API_KEY && (
+          <GenerateBiosButton connectedPlatforms={connectedPlatforms} />
+        )}
       </div>
 
       {/* Alerts */}
