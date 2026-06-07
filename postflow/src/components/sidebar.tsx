@@ -68,6 +68,7 @@ import {
   ClipboardList,
   Quote,
   BadgeDollarSign,
+  Tags,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -144,6 +145,7 @@ const navItems = [
   { href: "/audit-reports", label: "Audit", icon: ClipboardList },
   { href: "/testimonials", label: "Testimonials", icon: Quote },
   { href: "/promotions", label: "Promotions", icon: BadgeDollarSign },
+  { href: "/custom-fields", label: "Custom Fields", icon: Tags },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

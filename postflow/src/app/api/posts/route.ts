@@ -90,6 +90,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { status, search, tag, from, to, platform, starred, evergreen, sentiment, tone, archived, assignee, collectionId, workflowStageId, noStage, page, limit } = parsed.data;
     const skip = (page - 1) * limit;
 
+    // Extract customField[key]=value filters from raw search params
+    const customFieldFilters: Array<{ key: string; value: string }> = [];
+    for (const [rawKey, value] of request.nextUrl.searchParams.entries()) {
+      const match = rawKey.match(/^customField\[([^\]]+)\]$/);
+      if (match && match[1] && value) {
+        customFieldFilters.push({ key: match[1], value });
+      }
+    }
+
     const where = {
       // When assignee=me, show posts assigned to current user (regardless of ownership)
       ...(assignee === "me"
@@ -122,6 +131,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         : {}),
       ...(workflowStageId ? { workflowStageId } : {}),
       ...(noStage === "true" ? { workflowStageId: null } : {}),
+      ...(customFieldFilters.length > 0
+        ? {
+            AND: customFieldFilters.map((cf) => ({
+              customFieldValues: {
+                some: {
+                  value: cf.value,
+                  field: { key: cf.key, userId: session.user.id },
+                },
+              },
+            })),
+          }
+        : {}),
     };
 
     const [posts, total] = await Promise.all([

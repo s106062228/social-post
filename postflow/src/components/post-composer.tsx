@@ -183,6 +183,18 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [threadItems, setThreadItems] = useState<ThreadItem[]>([]);
   const [poll, setPoll] = useState<PollData | null>(null);
 
+  // Custom field state
+  const [customFields, setCustomFields] = useState<Array<{
+    id: string;
+    key: string;
+    label: string;
+    fieldType: string;
+    options: string[];
+    defaultValue: string | null;
+    isRequired: boolean;
+  }>>([]);
+  const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
+
   // Content brief dialog state
   const [showBriefDialog, setShowBriefDialog] = useState(false);
 
@@ -241,6 +253,22 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       .then((r) => r.json())
       .then((data: { personas?: { id: string; name: string }[] }) => {
         if (data.personas) setAudiencePersonas(data.personas);
+      })
+      .catch(() => undefined);
+
+    fetch("/api/custom-fields")
+      .then((r) => r.json())
+      .then((data: { fields?: typeof customFields }) => {
+        if (data.fields) {
+          const activeFields = data.fields.filter((f) => f.isRequired || (f as unknown as { isActive: boolean }).isActive);
+          setCustomFields(activeFields);
+          // Pre-fill defaults
+          const defaults: Record<string, string> = {};
+          for (const f of activeFields) {
+            if (f.defaultValue) defaults[f.id] = f.defaultValue;
+          }
+          setCustomFieldValues(defaults);
+        }
       })
       .catch(() => undefined);
 
@@ -418,6 +446,18 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
             }),
           });
         }
+      }
+
+      // Save custom field values if any are set
+      const customFieldEntries = Object.entries(customFieldValues).filter(([, v]) => v.trim());
+      if (customFieldEntries.length > 0) {
+        await fetch(`/api/posts/${post.id}/custom-fields`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            values: customFieldEntries.map(([fieldId, value]) => ({ fieldId, value })),
+          }),
+        });
       }
 
       // Save platform-specific variants if any are enabled
@@ -1542,6 +1582,55 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
             <option value="180">3 hours before</option>
             <option value="1440">1 day before</option>
           </select>
+        </div>
+      )}
+
+      {/* Custom Fields */}
+      {customFields.length > 0 && (
+        <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Custom Fields</p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {customFields.map((field) => (
+              <div key={field.id}>
+                <label className="mb-1 block text-xs text-muted-foreground">
+                  {field.label}
+                  {field.isRequired && <span className="ml-1 text-destructive">*</span>}
+                </label>
+                {field.fieldType === "select" ? (
+                  <select
+                    value={customFieldValues[field.id] ?? ""}
+                    onChange={(e) =>
+                      setCustomFieldValues((prev) => ({ ...prev, [field.id]: e.target.value }))
+                    }
+                    className="w-full rounded-md border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="">— select —</option>
+                    {field.options.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type={
+                      field.fieldType === "number"
+                        ? "number"
+                        : field.fieldType === "date"
+                        ? "date"
+                        : field.fieldType === "url"
+                        ? "url"
+                        : "text"
+                    }
+                    value={customFieldValues[field.id] ?? ""}
+                    onChange={(e) =>
+                      setCustomFieldValues((prev) => ({ ...prev, [field.id]: e.target.value }))
+                    }
+                    placeholder={field.defaultValue ?? ""}
+                    className="w-full rounded-md border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

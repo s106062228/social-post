@@ -236,6 +236,7 @@ model User {
   audiencePersonas       AudiencePersona[]
   promotions             PostPromotion[]
   linkHealthChecks       LinkHealthCheck[]
+  customFields           CustomField[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -345,6 +346,7 @@ model Post {
   externalReviews  ExternalReview[]
   promotions       PostPromotion[]
   linkHealthChecks LinkHealthCheck[]
+  customFieldValues PostCustomFieldValue[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -1927,4 +1929,39 @@ model PostPromotion {
   @@index([userId, status])
   @@index([userId, createdAt(sort: Desc)])
   @@index([postId])
+}
+
+model CustomField {
+  id           String               @id @default(cuid())
+  userId       String
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key          String
+  label        String
+  fieldType    String               // "text" | "number" | "date" | "url" | "select"
+  options      String[]             @default([])
+  defaultValue String?
+  isRequired   Boolean              @default(false)
+  isActive     Boolean              @default(true)
+  order        Int                  @default(0)
+  values       PostCustomFieldValue[]
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@unique([userId, key])
+  @@index([userId])
+}
+
+model PostCustomFieldValue {
+  id        String      @id @default(cuid())
+  postId    String
+  post      Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  fieldId   String
+  field     CustomField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  value     String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([postId, fieldId])
+  @@index([postId])
+  @@index([fieldId])
 }
