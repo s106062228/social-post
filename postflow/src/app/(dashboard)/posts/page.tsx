@@ -20,6 +20,7 @@ import { SaveSmartListButton } from "./save-smart-list-button";
 import { SmartListSelector } from "./smart-list-selector";
 import { ScheduleConflictBanner } from "@/components/schedule-conflict-banner";
 import { BulkGenerateButton } from "./bulk-generate-button";
+import { ScheduleOptimizerDialog } from "@/components/schedule-optimizer-dialog";
 
 const PLATFORMS: Platform[] = [Platform.FACEBOOK, Platform.INSTAGRAM, Platform.THREADS];
 
@@ -182,6 +183,7 @@ export default async function PostsPage({
             }}
           />
           <BulkGenerateButton />
+          <ScheduleOptimizerDialog />
           <Button variant="outline" asChild>
             <Link
               href={`/api/posts/export${
