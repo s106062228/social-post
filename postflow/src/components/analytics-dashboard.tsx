@@ -50,6 +50,7 @@ import { CampaignComparisonCard } from "@/components/campaign-comparison-card";
 import { PromotionRoiCard } from "@/components/promotion-roi-card";
 import { ViralPostsCard } from "@/components/viral-posts-card";
 import { PeriodComparisonCard } from "@/components/period-comparison-card";
+import { CorrelationInsightsCard } from "@/components/correlation-insights-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -581,6 +582,9 @@ export function AnalyticsDashboard() {
 
       {/* Period-over-Period Comparison */}
       {isVisible("period_comparison") && <PeriodComparisonCard />}
+
+      {/* Performance Correlation Insights */}
+      {isVisible("correlations") && <CorrelationInsightsCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
