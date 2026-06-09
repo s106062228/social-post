@@ -34,6 +34,7 @@ import { dispatchWebhooks, type WebhookEvent } from "@/lib/webhook-dispatch";
 import { dispatchSlackNotifications, type IntegrationEvent } from "@/lib/slack-notify";
 import { dispatchDiscordNotifications } from "@/lib/discord-notify";
 import { substituteVariables } from "@/lib/caption-variables";
+import { getSyndicationRulesForPlatform, applyTransformations, type SyndicationTransformations } from "@/lib/syndication";
 
 // ── Job payload types ──────────────────────────────────────────────────────────
 
@@ -104,6 +105,7 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<void> {
       scheduledAt: true,
       firstComment: true,
       poll: true,
+      language: true,
     },
   });
   if (!post) {
@@ -232,6 +234,40 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<void> {
 
   // Check if all results for this post are done to update overall post status
   await reconcilePostStatus(postId);
+
+  // Syndication: after a successful publish, trigger any active syndication rules
+  try {
+    const rules = await getSyndicationRulesForPlatform(post.userId, account.platform);
+    for (const rule of rules) {
+      const transformations = rule.transformations as SyndicationTransformations;
+      const targetPlatforms = rule.targetPlatforms as Platform[];
+
+      for (const targetPlatform of targetPlatforms) {
+        const adaptedContent = applyTransformations(post.content, transformations, targetPlatform);
+        const scheduledAt =
+          rule.delayMinutes > 0
+            ? new Date(Date.now() + rule.delayMinutes * 60 * 1000)
+            : null;
+
+        await prisma.post.create({
+          data: {
+            userId: post.userId,
+            content: adaptedContent,
+            mediaType: post.mediaType,
+            mediaUrls: post.mediaUrls,
+            status: scheduledAt ? "SCHEDULED" : "DRAFT",
+            scheduledAt,
+            language: post.language ?? null,
+          },
+        });
+      }
+    }
+  } catch (syndicationError) {
+    publishLogger.warn(
+      { err: syndicationError, postId },
+      "Syndication failed"
+    );
+  }
 }
 
 /**
