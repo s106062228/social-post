@@ -69,6 +69,7 @@ import {
   Quote,
   BadgeDollarSign,
   Tags,
+  ListVideo,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -85,6 +86,7 @@ const navItems = [
   { href: "/accounts", label: "Accounts", icon: Users },
   { href: "/templates", label: "Templates", icon: LayoutTemplate },
   { href: "/schedules", label: "Schedules", icon: Repeat },
+  { href: "/sequences", label: "Sequences", icon: ListVideo },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
   { href: "/analytics/snapshots", label: "Snapshots", icon: Camera },
   { href: "/audience", label: "Audience", icon: TrendingUp },

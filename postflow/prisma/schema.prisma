@@ -238,6 +238,7 @@ model User {
   linkHealthChecks       LinkHealthCheck[]
   customFields           CustomField[]
   postLocks              PostLock[]
+  postSequences          PostSequence[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1979,4 +1980,47 @@ model PostLock {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+enum SequenceStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+model PostSequence {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  status      SequenceStatus @default(DRAFT)
+  startDate   DateTime?
+  timezone    String         @default("UTC")
+  steps       SequenceStep[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model SequenceStep {
+  id         String       @id @default(cuid())
+  sequenceId String
+  sequence   PostSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  stepOrder  Int          @default(0)
+  delayDays  Int          @default(0)
+  content    String
+  mediaType  MediaType    @default(NONE)
+  mediaUrls  String[]     @default([])
+  platforms  String[]     @default([])
+  postId     String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@index([sequenceId])
+  @@index([stepOrder])
 }

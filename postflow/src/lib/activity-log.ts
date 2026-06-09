@@ -30,7 +30,12 @@ export type ActivityAction =
   | "account.deleted"
   | "post.review_requested"
   | "post.review_responded"
-  | "comment.replied";
+  | "comment.replied"
+  | "sequence.created"
+  | "sequence.deleted"
+  | "sequence.started"
+  | "sequence.paused"
+  | "sequence.cancelled";
 
 export interface LogActivityOptions {
   userId: string;
