@@ -239,6 +239,7 @@ model User {
   customFields           CustomField[]
   postLocks              PostLock[]
   postSequences          PostSequence[]
+  syndicationRules       SyndicationRule[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -2023,4 +2024,21 @@ model SequenceStep {
 
   @@index([sequenceId])
   @@index([stepOrder])
+}
+
+model SyndicationRule {
+  id              String     @id @default(cuid())
+  userId          String
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  sourcePlatform  Platform
+  targetPlatforms Platform[]
+  transformations Json       @default("{}")
+  delayMinutes    Int        @default(0)
+  isActive        Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([userId, isActive])
 }
