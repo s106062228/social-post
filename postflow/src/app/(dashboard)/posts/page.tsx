@@ -19,6 +19,7 @@ import { FilterPresetSelector } from "./filter-preset-selector";
 import { SaveSmartListButton } from "./save-smart-list-button";
 import { SmartListSelector } from "./smart-list-selector";
 import { ScheduleConflictBanner } from "@/components/schedule-conflict-banner";
+import { BulkGenerateButton } from "./bulk-generate-button";
 
 const PLATFORMS: Platform[] = [Platform.FACEBOOK, Platform.INSTAGRAM, Platform.THREADS];
 
@@ -180,6 +181,7 @@ export default async function PostsPage({
               tagIds: tagFilter ? [tagFilter] : undefined,
             }}
           />
+          <BulkGenerateButton />
           <Button variant="outline" asChild>
             <Link
               href={`/api/posts/export${

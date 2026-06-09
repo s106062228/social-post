@@ -1896,3 +1896,69 @@ Generate a platform-optimized bio for each platform listed above. Stay strictly 
 
   return [];
 }
+
+export interface BulkGeneratedContent {
+  topic: string;
+  content: string;
+  charCount: number;
+}
+
+const BULK_GENERATE_SYSTEM = `You are a social media content writer. Generate unique, engaging post content for a list of topics.
+Always respond with valid JSON in this exact format: {"results": [{"topic": "topic1", "content": "post content here"}, ...]}
+Generate one unique post per topic. Make each post engaging, concise, and appropriate for the specified platforms and tone.
+Use relevant hashtags naturally within the content. Keep posts under 500 characters unless the platform allows longer.`;
+
+export async function bulkGenerateContent(
+  topics: string[],
+  platforms: string[],
+  tone?: string | null
+): Promise<BulkGeneratedContent[]> {
+  const client = getClient();
+
+  const userContent = `Generate social media posts for the following topics:
+Platforms: ${platforms.join(", ")}
+Tone: ${tone ?? "engaging and conversational"}
+
+Topics (generate one post per topic):
+${topics.map((t, i) => `${i + 1}. ${t}`).join("\n")}
+
+Respond with JSON containing a "results" array with one object per topic in order.`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 4096,
+    system: [
+      {
+        type: "text",
+        text: BULK_GENERATE_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [{ role: "user", content: userContent }],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const raw = block && block.type === "text" ? block.text.trim() : "";
+
+  try {
+    const parsed = JSON.parse(raw) as { results?: unknown[] };
+
+    if (Array.isArray(parsed.results)) {
+      return parsed.results
+        .filter(
+          (r): r is Record<string, unknown> =>
+            r !== null && typeof r === "object"
+        )
+        .map((r) => {
+          const topic = typeof r.topic === "string" ? r.topic : "";
+          const content = typeof r.content === "string" ? r.content : "";
+          return { topic, content, charCount: content.length };
+        })
+        .filter((r) => r.topic && r.content);
+    }
+  } catch {
+    // fall through
+  }
+
+  return [];
+}
