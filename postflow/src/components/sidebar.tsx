@@ -152,6 +152,7 @@ const navItems = [
   { href: "/promotions", label: "Promotions", icon: BadgeDollarSign },
   { href: "/custom-fields", label: "Custom Fields", icon: Tags },
   { href: "/syndication", label: "Syndication", icon: GitBranch },
+  { href: "/profile-optimizer", label: "Profile Optimizer", icon: Target },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
