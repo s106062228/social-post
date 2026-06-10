@@ -73,6 +73,7 @@ import {
   ListVideo,
   GitBranch,
   Swords,
+  NotebookPen,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -154,6 +155,7 @@ const navItems = [
   { href: "/custom-fields", label: "Custom Fields", icon: Tags },
   { href: "/syndication", label: "Syndication", icon: GitBranch },
   { href: "/competitors", label: "Competitors", icon: Swords },
+  { href: "/journal", label: "Journal", icon: NotebookPen },
   { href: "/profile-optimizer", label: "Profile Optimizer", icon: Target },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

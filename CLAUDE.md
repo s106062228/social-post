@@ -2194,3 +2194,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Integrate `CompetitiveBenchmarkCard` into analytics dashboard below `CorrelationInsightsCard`; add `"competitive_benchmark"` widget key and label `"Competitor Benchmarking"` to `WIDGET_KEYS` and `WIDGET_LABELS` in dashboard-widgets route; add to `DashboardCustomizeDialog`
 - [x] Add "Competitors" to sidebar navigation (icon: `Swords`)
 - [x] Unit tests for competitor accounts API and competitive benchmark endpoint (GET list auth/rate/empty/shape, POST create/max-limit/invalid-body/success, PATCH update/not-found/ownership, DELETE success/ownership, POST snapshot auth/rate/not-found/ownership/success/shape, GET benchmark auth/rate/empty/platform-grouping/user-vs-competitor-shape — 14 tests)
+
+### Phase 235: Content Performance Journal & Learnings Library
+- [x] `JournalEntryType` enum (SUCCESS/FAILURE/INSIGHT/HYPOTHESIS/EXPERIMENT) + `ContentJournalEntry` model in Prisma (id, userId, postId? FK to Post with SetNull, title, entryType, content, rating? Int 1-5, tags String[], isPublicToTeam Boolean) + migration (`20260904000000_add_content_journal`)
+- [x] CRUD API for journal entries (`GET /api/journal`, `POST /api/journal`, `GET /api/journal/[id]`, `PATCH /api/journal/[id]`, `DELETE /api/journal/[id]`) — auth + rate limit + zod validation; max 500 entries per user; `GET` supports `?entryType=&tag=&postId=&search=&page=&limit=` filters; POST validates postId ownership; returns 201 with created entry
+- [x] `GET /api/journal/stats` endpoint — auth + rate limit; returns `{total, byType: Record<JournalEntryType, number>, topTags: {tag, count}[], avgRating: number | null}`
+- [x] Journal dashboard page (`/journal`) — stats grid (count per entry type as filter buttons), create form (type selector chips, content textarea, 1–5 star rating, comma-separated tags), search + type/tag filters, expandable entry list with inline edit mode and star rating display
+- [x] `AddToJournalButton` component (`src/app/(dashboard)/posts/add-to-journal-button.tsx`) — ghost icon button per post row; opens modal dialog with linked post preview, entry type chips, content textarea, tags input; POSTs to `/api/journal` with `postId` linked
+- [x] Integrate `AddToJournalButton` into `PostsListClient` (post row actions bar)
+- [x] Add "Journal" to sidebar navigation (icon: `NotebookPen`)
+- [x] Unit tests for journal API (GET list auth/rate-limit/pagination/entryType-filter, POST create/max-limit/invalid-body/success/postId-ownership, GET single/not-found, PATCH update/ownership, DELETE success/ownership, GET stats auth/rate-limit/empty/shape — 23 tests)

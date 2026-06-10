@@ -242,6 +242,7 @@ model User {
   syndicationRules       SyndicationRule[]
   socialEvents           SocialEvent[]
   competitorAccounts     CompetitorAccount[]
+  journalEntries         ContentJournalEntry[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -353,6 +354,7 @@ model Post {
   linkHealthChecks LinkHealthCheck[]
   customFieldValues PostCustomFieldValue[]
   postLock          PostLock?
+  journalEntries    ContentJournalEntry[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -2103,4 +2105,33 @@ model CompetitorSnapshot {
 
   @@index([competitorId])
   @@index([competitorId, recordedAt])
+}
+
+enum JournalEntryType {
+  SUCCESS
+  FAILURE
+  INSIGHT
+  HYPOTHESIS
+  EXPERIMENT
+}
+
+model ContentJournalEntry {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId         String?
+  post           Post?            @relation(fields: [postId], references: [id], onDelete: SetNull)
+  title          String
+  entryType      JournalEntryType @default(INSIGHT)
+  content        String
+  rating         Int?
+  tags           String[]         @default([])
+  isPublicToTeam Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@index([postId])
+  @@index([entryType])
 }

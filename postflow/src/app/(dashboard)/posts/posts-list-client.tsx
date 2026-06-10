@@ -35,6 +35,7 @@ import { AutoTagButton } from "./auto-tag-button";
 import { BulkAutoTagButton } from "./bulk-auto-tag-button";
 import { BulkValidateButton } from "./bulk-validate-button";
 import { ExternalReviewDialog } from "@/components/external-review-dialog";
+import { AddToJournalButton } from "./add-to-journal-button";
 import { computeScore, scoreLabel } from "@/lib/content-score";
 import { QualityScoreBadge } from "@/components/quality-score-badge";
 
@@ -442,6 +443,10 @@ export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
                 >
                   <Send className="h-4 w-4" />
                 </Button>
+                <AddToJournalButton
+                  postId={post.id}
+                  postContentPreview={post.content.slice(0, 120)}
+                />
                 <DeletePostButton postId={post.id} status={post.status} />
               </div>
             </div>
