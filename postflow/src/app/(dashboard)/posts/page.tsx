@@ -21,6 +21,7 @@ import { SmartListSelector } from "./smart-list-selector";
 import { ScheduleConflictBanner } from "@/components/schedule-conflict-banner";
 import { BulkGenerateButton } from "./bulk-generate-button";
 import { ScheduleOptimizerDialog } from "@/components/schedule-optimizer-dialog";
+import { AtomizeContentButton } from "./atomize-content-button";
 
 const PLATFORMS: Platform[] = [Platform.FACEBOOK, Platform.INSTAGRAM, Platform.THREADS];
 
@@ -182,6 +183,7 @@ export default async function PostsPage({
               tagIds: tagFilter ? [tagFilter] : undefined,
             }}
           />
+          <AtomizeContentButton />
           <BulkGenerateButton />
           <ScheduleOptimizerDialog />
           <Button variant="outline" asChild>

@@ -1962,3 +1962,111 @@ Respond with JSON containing a "results" array with one object per topic in orde
 
   return [];
 }
+
+// ── Content Atomization ────────────────────────────────────────────────────
+
+export interface AtomizedPost {
+  content: string;
+  keyTakeaway: string;
+  suggestedPlatforms: string[];
+}
+
+export interface AtomizeResult {
+  posts: AtomizedPost[];
+  summary: string;
+  sourceTitle?: string;
+}
+
+const ATOMIZE_SYSTEM = `You are a social media content strategist specializing in content atomization.
+Your task is to break down long-form content (articles, blog posts, essays) into a series of concise, standalone social media posts that each deliver a single key insight or takeaway.
+Always respond with valid JSON in this exact format:
+{
+  "sourceTitle": "extracted title or null",
+  "summary": "1-2 sentence summary of the original content",
+  "posts": [
+    {
+      "content": "ready-to-publish post content with hashtags",
+      "keyTakeaway": "one sentence describing the core insight",
+      "suggestedPlatforms": ["FACEBOOK", "INSTAGRAM"]
+    }
+  ]
+}
+Guidelines:
+- Each post should be self-contained and deliver standalone value
+- Include relevant hashtags naturally within or at the end of each post
+- Vary the format: some posts as stats/facts, some as tips, some as quotes, some as questions
+- Ensure posts are adapted for social media (conversational, engaging, concise)
+- Suggest appropriate platforms based on content type (educational => LinkedIn, visual => Instagram, etc.)`;
+
+export async function atomizeContent(
+  longFormContent: string,
+  platforms: string[],
+  targetPostCount: number
+): Promise<AtomizeResult> {
+  const client = getClient();
+
+  const userContent = `Break down the following long-form content into exactly ${targetPostCount} social media posts.
+Target platforms: ${platforms.join(", ")}
+Adapt content style appropriately for these platforms.
+
+Long-form content to atomize:
+---
+${longFormContent}
+---
+
+Generate ${targetPostCount} posts. Respond with valid JSON only.`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 8192,
+    system: [
+      {
+        type: "text",
+        text: ATOMIZE_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [{ role: "user", content: userContent }],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const raw = block && block.type === "text" ? block.text.trim() : "";
+
+  try {
+    const parsed = JSON.parse(raw) as {
+      sourceTitle?: string | null;
+      summary?: string;
+      posts?: unknown[];
+    };
+
+    const posts: AtomizedPost[] = Array.isArray(parsed.posts)
+      ? parsed.posts
+          .filter(
+            (p): p is Record<string, unknown> =>
+              p !== null && typeof p === "object"
+          )
+          .map((p) => ({
+            content: typeof p.content === "string" ? p.content : "",
+            keyTakeaway:
+              typeof p.keyTakeaway === "string" ? p.keyTakeaway : "",
+            suggestedPlatforms: Array.isArray(p.suggestedPlatforms)
+              ? (p.suggestedPlatforms as unknown[]).filter(
+                  (s): s is string => typeof s === "string"
+                )
+              : [],
+          }))
+          .filter((p) => p.content)
+      : [];
+
+    return {
+      posts,
+      summary: typeof parsed.summary === "string" ? parsed.summary : "",
+      sourceTitle:
+        typeof parsed.sourceTitle === "string"
+          ? parsed.sourceTitle
+          : undefined,
+    };
+  } catch {
+    return { posts: [], summary: "" };
+  }
+}
