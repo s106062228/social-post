@@ -241,6 +241,7 @@ model User {
   postSequences          PostSequence[]
   syndicationRules       SyndicationRule[]
   socialEvents           SocialEvent[]
+  competitorAccounts     CompetitorAccount[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -2069,4 +2070,37 @@ model SocialEvent {
   @@index([userId])
   @@index([isGlobal])
   @@index([type])
+}
+
+model CompetitorAccount {
+  id         String               @id @default(cuid())
+  userId     String
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  platform   Platform
+  handle     String
+  profileUrl String?
+  notes      String?
+  snapshots  CompetitorSnapshot[]
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+
+  @@index([userId])
+  @@index([userId, platform])
+}
+
+model CompetitorSnapshot {
+  id                String            @id @default(cuid())
+  competitorId      String
+  competitor        CompetitorAccount @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  followersCount    Int?
+  avgEngagementRate Float?
+  postsPerWeek      Float?
+  avgLikes          Float?
+  avgComments       Float?
+  recordedAt        DateTime          @default(now())
+  createdAt         DateTime          @default(now())
+
+  @@index([competitorId])
+  @@index([competitorId, recordedAt])
 }
