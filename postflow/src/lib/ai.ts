@@ -2070,3 +2070,44 @@ Generate ${targetPostCount} posts. Respond with valid JSON only.`;
     return { posts: [], summary: "" };
   }
 }
+
+export async function generateEventContent(
+  title: string,
+  platforms: string[],
+  description?: string
+): Promise<string[]> {
+  const client = getClient();
+  if (!client) return [];
+
+  const platformList = platforms.join(", ");
+  const descText = description ? `\nContext: ${description}` : "";
+
+  try {
+    const message = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 1024,
+      system: [
+        {
+          type: "text",
+          text: "You are a social media content expert. Generate engaging post content for social media holidays and events. Keep posts authentic, engaging, and platform-appropriate.",
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [
+        {
+          role: "user",
+          content: `Generate 3 different social media post variants for this event:\nEvent: ${title}${descText}\nPlatforms: ${platformList}\n\nReturn JSON with this exact structure:\n{"variants": ["post 1 text", "post 2 text", "post 3 text"]}\n\nMake each variant unique in tone and style. Include relevant hashtags. Keep each under 280 characters if Twitter/X is included in the platforms.`,
+        },
+      ],
+    });
+
+    const text =
+      message.content[0].type === "text" ? message.content[0].text : "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return [];
+    const parsed = JSON.parse(jsonMatch[0]) as { variants?: string[] };
+    return Array.isArray(parsed.variants) ? parsed.variants : [];
+  } catch {
+    return [];
+  }
+}

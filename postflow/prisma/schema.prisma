@@ -240,6 +240,7 @@ model User {
   postLocks              PostLock[]
   postSequences          PostSequence[]
   syndicationRules       SyndicationRule[]
+  socialEvents           SocialEvent[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -2041,4 +2042,31 @@ model SyndicationRule {
 
   @@index([userId])
   @@index([userId, isActive])
+}
+
+enum EventType {
+  HOLIDAY
+  OBSERVANCE
+  AWARENESS_DAY
+  CUSTOM
+}
+
+model SocialEvent {
+  id          String    @id @default(cuid())
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  date        String
+  type        EventType @default(CUSTOM)
+  platforms   String[]  @default([])
+  categories  String[]  @default([])
+  isGlobal    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([date])
+  @@index([userId])
+  @@index([isGlobal])
+  @@index([type])
 }
