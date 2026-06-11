@@ -38,6 +38,7 @@ export const WIDGET_KEYS = [
   "period_comparison",
   "correlations",
   "competitive_benchmark",
+  "content_clusters",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -82,6 +83,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   period_comparison: "Period-over-Period Comparison",
   correlations: "Performance Correlation Insights",
   competitive_benchmark: "Competitor Benchmarking",
+  content_clusters: "Content Topic Clusters",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {

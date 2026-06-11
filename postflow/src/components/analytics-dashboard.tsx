@@ -52,6 +52,7 @@ import { ViralPostsCard } from "@/components/viral-posts-card";
 import { PeriodComparisonCard } from "@/components/period-comparison-card";
 import { CorrelationInsightsCard } from "@/components/correlation-insights-card";
 import { CompetitiveBenchmarkCard } from "@/components/competitive-benchmark-card";
+import { ContentClustersCard } from "@/components/content-clusters-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -589,6 +590,9 @@ export function AnalyticsDashboard() {
 
       {/* Competitor Benchmarking */}
       {isVisible("competitive_benchmark") && <CompetitiveBenchmarkCard />}
+
+      {/* Content Topic Clusters */}
+      {isVisible("content_clusters") && <ContentClustersCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
