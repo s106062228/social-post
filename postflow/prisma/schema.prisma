@@ -243,6 +243,7 @@ model User {
   socialEvents           SocialEvent[]
   competitorAccounts     CompetitorAccount[]
   journalEntries         ContentJournalEntry[]
+  dailyBriefings         DailyBriefing[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -2135,4 +2136,23 @@ model ContentJournalEntry {
   @@index([userId, createdAt])
   @@index([postId])
   @@index([entryType])
+}
+
+model DailyBriefing {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date           String   // YYYY-MM-DD — one per user per day
+  todayScheduled Int      @default(0)
+  weekScheduled  Int      @default(0)
+  yesterdayStats Json     // { published: Int, totalEngagement: Int, topPlatform: String? }
+  contentGaps    Json     // String[] of YYYY-MM-DD dates with no scheduled content in next 7 days
+  topHashtags    Json     // { tag: String, count: Int }[] top 5
+  summary        String
+  recommendations Json    // String[]
+  generatedAt    DateTime @default(now())
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([userId, date(sort: Desc)])
 }
