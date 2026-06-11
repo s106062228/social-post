@@ -2310,3 +2310,74 @@ Generate a morning briefing summary and 3 actionable recommendations for today.`
     return null;
   }
 }
+
+export interface HookOption {
+  hook: string;
+  style:
+    | "question"
+    | "statistic"
+    | "story"
+    | "controversy"
+    | "curiosity"
+    | "list";
+  explanation: string;
+}
+
+const HOOKS_SYSTEM = `You are an expert social media copywriter specialising in attention-grabbing opening lines.
+Given post content and target platforms, generate compelling hook / opening-line variations in different styles.
+Always respond with valid JSON in this exact format:
+{"hooks": [{"hook": "...", "style": "question|statistic|story|controversy|curiosity|list", "explanation": "..."}]}
+Generate exactly the requested number of hooks. Each hook should be a standalone opening line (not the full post).
+Styles:
+- question: starts with or implies a question to draw readers in
+- statistic: opens with a surprising fact or number
+- story: begins mid-action or with a personal/narrative hook
+- controversy: challenges conventional wisdom or makes a bold statement
+- curiosity: creates an information gap that makes readers want to continue
+- list: "X things/ways/reasons" opener`;
+
+export async function generateHooks(
+  content: string,
+  platforms: string[],
+  count: number = 5
+): Promise<HookOption[]> {
+  const client = getClient();
+
+  const prompt = `Post content:
+${content.trim()}
+
+Target platforms: ${platforms.join(", ")}
+
+Generate ${count} compelling opening hooks for this post. Each hook should be a punchy first line that would stop a reader from scrolling.`;
+
+  try {
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 800,
+      system: [
+        {
+          type: "text",
+          text: HOOKS_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const text =
+      response.content[0]?.type === "text" ? response.content[0].text : "";
+    const parsed = JSON.parse(text) as Partial<{ hooks: HookOption[] }>;
+    if (!Array.isArray(parsed.hooks)) return [];
+
+    const validStyles = ["question", "statistic", "story", "controversy", "curiosity", "list"] as const;
+    type HookStyle = (typeof validStyles)[number];
+
+    return parsed.hooks.slice(0, count).map((h) => ({
+      hook: typeof h.hook === "string" ? h.hook : "",
+      style: validStyles.includes(h.style as HookStyle) ? (h.style as HookStyle) : "curiosity",
+      explanation: typeof h.explanation === "string" ? h.explanation : "",
+    }));
+  } catch {
+    return [];
+  }
+}

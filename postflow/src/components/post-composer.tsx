@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -31,6 +31,7 @@ import { ThreadBuilder, type ThreadItem } from "@/components/thread-builder";
 import { PollBuilder, type PollData } from "@/components/poll-builder";
 import { HashtagResearchDialog } from "@/components/hashtag-research-dialog";
 import { HeadlineGeneratorDialog } from "@/components/headline-generator-dialog";
+import { HookGeneratorDialog } from "@/components/hook-generator-dialog";
 import { PostOptimizationDialog } from "@/components/post-optimization-dialog";
 import { VideoScriptDialog } from "@/components/video-script-dialog";
 import { ContentSeriesDialog } from "@/components/content-series-dialog";
@@ -203,6 +204,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
   // Headline generator dialog state
   const [showHeadlineDialog, setShowHeadlineDialog] = useState(false);
+
+  // Hook generator dialog state
+  const [showHooksDialog, setShowHooksDialog] = useState(false);
 
   // Video script dialog state
   const [showVideoScriptDialog, setShowVideoScriptDialog] = useState(false);
@@ -949,6 +953,15 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
               <Type className="h-3 w-3" />
               Headlines
             </button>
+            <button
+              type="button"
+              onClick={() => setShowHooksDialog(true)}
+              disabled={!content.trim()}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:pointer-events-none disabled:opacity-50"
+            >
+              <Zap className="h-3 w-3" />
+              Hooks
+            </button>
             {mediaType === "VIDEO" && (
               <button
                 type="button"
@@ -1172,6 +1185,19 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         onUseAsFirstLine={(headline) => {
           setContent((prev) =>
             prev.trim() ? `${headline}\n\n${prev}` : headline
+          );
+        }}
+      />
+
+      {/* Hook Generator Dialog */}
+      <HookGeneratorDialog
+        open={showHooksDialog}
+        onClose={() => setShowHooksDialog(false)}
+        content={content}
+        platforms={selectedPlatforms}
+        onPrependHook={(hook) => {
+          setContent((prev) =>
+            prev.trim() ? `${hook}\n\n${prev}` : hook
           );
         }}
       />
