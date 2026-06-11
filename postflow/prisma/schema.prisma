@@ -917,6 +917,7 @@ model ContentIdea {
   platform    Platform?
   notes       String?
   dueDate     DateTime?
+  score       Int?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 

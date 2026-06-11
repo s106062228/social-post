@@ -2204,3 +2204,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Integrate `AddToJournalButton` into `PostsListClient` (post row actions bar)
 - [x] Add "Journal" to sidebar navigation (icon: `NotebookPen`)
 - [x] Unit tests for journal API (GET list auth/rate-limit/pagination/entryType-filter, POST create/max-limit/invalid-body/success/postId-ownership, GET single/not-found, PATCH update/ownership, DELETE success/ownership, GET stats auth/rate-limit/empty/shape — 23 tests)
+
+### Phase 236: AI Content Idea Scoring & Prioritization
+- [x] Add `score Int?` field to `ContentIdea` model + Prisma migration (`20260905000000_add_idea_score`) — persists most recent AI score alongside the idea
+- [x] Add `scoreContentIdea(ideaTitle, platforms, ideaDescription?, existingTopics?)` to `src/lib/ai.ts` — calls `claude-haiku-4-5` to evaluate idea across 5 dimensions (Originality, Brand Fit, Audience Interest, Timeliness, Estimated Engagement); uses prompt caching on system block; returns `{overallScore, dimensions, topStrengths, topWeaknesses, recommendation: "pursue"|"refine"|"skip"}`
+- [x] `POST /api/ai/score-idea` endpoint — auth + rate limit + zod validation (`title: string`, `description?: string`, `platforms: Platform[]`); loads user's last 20 content ideas as originality context; calls `scoreContentIdea`; returns `{score}`; 503 when AI not configured; 500 when AI returns null
+- [x] Extend `PATCH /api/ideas/[id]` to accept optional `score` field (0–100 Int); include `score` in GET and POST idea responses
+- [x] `IdeaScoringDialog` component (`src/components/idea-scoring-dialog.tsx`) — modal showing animated score ring (green ≥70 / yellow ≥40 / red <40), 5-dimension score bars with explanations, strengths/weaknesses lists, recommendation badge (Pursue/Refine/Skip); "Save Score" button persists score via PATCH; "Regenerate" button re-runs scoring
+- [x] "Score" button (Sparkles icon) per idea card in the Ideas Kanban board (`/ideas`) — opens `IdeaScoringDialog`; score pill badge shown on cards when score is stored
+- [x] Unit tests for `POST /api/ai/score-idea` (auth, rate limit, AI disabled, missing title, empty platforms, invalid JSON, success shape, dimensions included, recommendation values, existing topics forwarded, AI returns null → 500, AI error → 500 — 12 tests)

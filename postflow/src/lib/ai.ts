@@ -2111,3 +2111,117 @@ export async function generateEventContent(
     return [];
   }
 }
+
+// ── Idea Scoring ──────────────────────────────────────────────────────────────
+
+export interface IdeaScoreDimension {
+  name: string;
+  score: number; // 0-100
+  explanation: string;
+}
+
+export interface IdeaScoreResult {
+  overallScore: number; // 0-100
+  dimensions: IdeaScoreDimension[];
+  topStrengths: string[];
+  topWeaknesses: string[];
+  recommendation: "pursue" | "refine" | "skip";
+}
+
+const SCORE_IDEA_SYSTEM = `You are a content strategy expert who evaluates social media content ideas. Assess ideas across 5 dimensions and provide actionable recommendations.
+
+Always respond with valid JSON in this exact format:
+{
+  "overallScore": 75,
+  "dimensions": [
+    {"name": "Originality", "score": 80, "explanation": "Brief explanation"},
+    {"name": "Brand Fit", "score": 70, "explanation": "Brief explanation"},
+    {"name": "Audience Interest", "score": 85, "explanation": "Brief explanation"},
+    {"name": "Timeliness", "score": 65, "explanation": "Brief explanation"},
+    {"name": "Estimated Engagement", "score": 75, "explanation": "Brief explanation"}
+  ],
+  "topStrengths": ["strength 1", "strength 2"],
+  "topWeaknesses": ["weakness 1", "weakness 2"],
+  "recommendation": "pursue"
+}
+
+The recommendation must be one of: "pursue" (score ≥70), "refine" (score 40-69), or "skip" (score <40).
+Each dimension score is 0-100. The overall score is the weighted average of all dimensions.`;
+
+export async function scoreContentIdea(
+  ideaTitle: string,
+  platforms: string[],
+  ideaDescription?: string,
+  existingTopics?: string[]
+): Promise<IdeaScoreResult | null> {
+  const client = getClient();
+  if (!client) return null;
+
+  const platformList = platforms.length > 0 ? platforms.join(", ") : "general social media";
+  const descText = ideaDescription ? `\nDescription: ${ideaDescription}` : "";
+  const topicsText =
+    existingTopics && existingTopics.length > 0
+      ? `\n\nExisting content topics for originality comparison:\n${existingTopics.slice(0, 20).join(", ")}`
+      : "";
+
+  try {
+    const message = await client.messages.create({
+      model: MODEL,
+      max_tokens: 1024,
+      system: [
+        {
+          type: "text",
+          text: SCORE_IDEA_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [
+        {
+          role: "user",
+          content: `Evaluate this content idea:\n\nTitle: ${ideaTitle}${descText}\nTarget platforms: ${platformList}${topicsText}\n\nScore it across all 5 dimensions and provide your assessment.`,
+        },
+      ],
+    });
+
+    const text =
+      message.content[0].type === "text" ? message.content[0].text : "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+
+    const parsed = JSON.parse(jsonMatch[0]) as {
+      overallScore?: number;
+      dimensions?: { name: string; score: number; explanation: string }[];
+      topStrengths?: string[];
+      topWeaknesses?: string[];
+      recommendation?: string;
+    };
+
+    const overallScore =
+      typeof parsed.overallScore === "number"
+        ? Math.max(0, Math.min(100, Math.round(parsed.overallScore)))
+        : 50;
+
+    const dimensions: IdeaScoreDimension[] = Array.isArray(parsed.dimensions)
+      ? parsed.dimensions.map((d) => ({
+          name: String(d.name || ""),
+          score: Math.max(0, Math.min(100, Math.round(Number(d.score) || 0))),
+          explanation: String(d.explanation || ""),
+        }))
+      : [];
+
+    const topStrengths = Array.isArray(parsed.topStrengths)
+      ? parsed.topStrengths.map(String)
+      : [];
+    const topWeaknesses = Array.isArray(parsed.topWeaknesses)
+      ? parsed.topWeaknesses.map(String)
+      : [];
+
+    const rec = parsed.recommendation;
+    const recommendation: "pursue" | "refine" | "skip" =
+      rec === "pursue" || rec === "refine" || rec === "skip" ? rec : "refine";
+
+    return { overallScore, dimensions, topStrengths, topWeaknesses, recommendation };
+  } catch {
+    return null;
+  }
+}

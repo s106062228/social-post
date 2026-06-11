@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Lightbulb, Plus, Trash2, ArrowRight, Loader2 } from "lucide-react";
+import { Lightbulb, Plus, Trash2, ArrowRight, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { IdeaScoringDialog } from "@/components/idea-scoring-dialog";
 
 type IdeaStatus = "IDEA" | "RESEARCHING" | "DRAFTING" | "REVIEW" | "DONE";
 type Platform = "FACEBOOK" | "INSTAGRAM" | "THREADS";
@@ -26,6 +27,7 @@ interface ContentIdea {
   platform: Platform | null;
   notes: string | null;
   dueDate: string | null;
+  score: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -52,6 +54,20 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   THREADS: "Threads",
 };
 
+function ScorePill({ score }: { score: number }) {
+  const color =
+    score >= 70
+      ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+      : score >= 40
+      ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+      : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300";
+  return (
+    <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-semibold ${color}`}>
+      {score}
+    </span>
+  );
+}
+
 export default function IdeasPage() {
   const router = useRouter();
   const [ideas, setIdeas] = useState<ContentIdea[]>([]);
@@ -64,6 +80,7 @@ export default function IdeasPage() {
   const [movingId, setMovingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [convertingId, setConvertingId] = useState<string | null>(null);
+  const [scoringIdea, setScoringIdea] = useState<ContentIdea | null>(null);
 
   const fetchIdeas = useCallback(async () => {
     try {
@@ -158,6 +175,13 @@ export default function IdeasPage() {
       toast.error("Failed to convert idea to post");
       setConvertingId(null);
     }
+  }
+
+  function handleScoreSaved(ideaId: string, newScore: number) {
+    setIdeas((prev) =>
+      prev.map((i) => (i.id === ideaId ? { ...i, score: newScore } : i))
+    );
+    setScoringIdea(null);
   }
 
   const ideasByStatus = (status: IdeaStatus) =>
@@ -263,9 +287,14 @@ export default function IdeasPage() {
                     <Card key={idea.id} className="shadow-sm">
                       <CardContent className="p-3 flex flex-col gap-2">
                         <div className="flex items-start justify-between gap-2">
-                          <p className="text-sm font-medium leading-snug break-words flex-1">
-                            {idea.title}
-                          </p>
+                          <div className="flex-1 flex items-start gap-1.5 min-w-0">
+                            <p className="text-sm font-medium leading-snug break-words flex-1">
+                              {idea.title}
+                            </p>
+                            {idea.score !== null && (
+                              <ScorePill score={idea.score} />
+                            )}
+                          </div>
                           <button
                             onClick={() => handleDelete(idea.id)}
                             disabled={deletingId === idea.id}
@@ -303,7 +332,7 @@ export default function IdeasPage() {
                         )}
 
                         {/* Actions */}
-                        <div className="flex gap-1 pt-1">
+                        <div className="flex gap-1 flex-wrap pt-1">
                           {NEXT_STATUS[idea.status] !== null && (
                             <Button
                               size="sm"
@@ -338,6 +367,15 @@ export default function IdeasPage() {
                               </>
                             )}
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 px-2 text-xs text-purple-600 hover:text-purple-700 dark:text-purple-400"
+                            onClick={() => setScoringIdea(idea)}
+                          >
+                            <Sparkles className="mr-1 h-3 w-3" />
+                            Score
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -347,6 +385,21 @@ export default function IdeasPage() {
             );
           })}
         </div>
+      )}
+
+      {/* AI Scoring Dialog */}
+      {scoringIdea && (
+        <IdeaScoringDialog
+          ideaId={scoringIdea.id}
+          ideaTitle={scoringIdea.title}
+          ideaDescription={scoringIdea.description}
+          platforms={scoringIdea.platform ? [scoringIdea.platform] : ["FACEBOOK", "INSTAGRAM", "THREADS"]}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setScoringIdea(null);
+          }}
+          onScoreSaved={(score) => handleScoreSaved(scoringIdea.id, score)}
+        />
       )}
     </div>
   );

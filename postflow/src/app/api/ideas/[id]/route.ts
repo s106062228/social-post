@@ -13,6 +13,7 @@ const patchSchema = z.object({
   platform: z.nativeEnum(Platform).optional().nullable(),
   notes: z.string().max(5000).optional().nullable(),
   dueDate: z.string().datetime().optional().nullable(),
+  score: z.number().int().min(0).max(100).optional().nullable(),
 });
 
 // ── PATCH /api/ideas/[id] ─────────────────────────────────────────────────────
@@ -57,7 +58,7 @@ export async function PATCH(
       );
     }
 
-    const { title, description, status, platform, notes, dueDate } = parsed.data;
+    const { title, description, status, platform, notes, dueDate, score } = parsed.data;
 
     const updated = await prisma.contentIdea.update({
       where: { id },
@@ -68,6 +69,7 @@ export async function PATCH(
         ...(platform !== undefined ? { platform: platform ?? null } : {}),
         ...(notes !== undefined ? { notes: notes?.trim() ?? null } : {}),
         ...(dueDate !== undefined ? { dueDate: dueDate ? new Date(dueDate) : null } : {}),
+        ...(score !== undefined ? { score: score ?? null } : {}),
       },
       select: {
         id: true,
@@ -77,6 +79,7 @@ export async function PATCH(
         platform: true,
         notes: true,
         dueDate: true,
+        score: true,
         createdAt: true,
         updatedAt: true,
       },
