@@ -24,6 +24,7 @@ import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { UpcomingPostsCard } from "@/components/upcoming-posts-card";
 import { FailedPostsAlert } from "@/components/failed-posts-alert";
 import { PlatformPublishBreakdown } from "@/components/platform-publish-breakdown";
+import { DailyBriefingCard } from "@/components/daily-briefing-card";
 import { Platform } from "@prisma/client";
 
 export default async function DashboardPage() {
@@ -266,6 +267,9 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Daily AI Briefing */}
+      <DailyBriefingCard />
 
       {/* Failed posts alert */}
       {failedCount > 0 && <FailedPostsAlert posts={failedForCard} />}

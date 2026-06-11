@@ -2225,3 +2225,88 @@ export async function scoreContentIdea(
     return null;
   }
 }
+
+// ── Daily Briefing ─────────────────────────────────────────────────────────────
+
+export interface DailyBriefingData {
+  todayScheduled: number;
+  weekScheduled: number;
+  yesterdayStats: {
+    published: number;
+    totalEngagement: number;
+    topPlatform: string | null;
+  };
+  contentGaps: string[]; // YYYY-MM-DD dates with no scheduled content
+  topHashtags: { tag: string; count: number }[];
+}
+
+export interface DailyBriefingResult {
+  summary: string;
+  recommendations: string[];
+}
+
+const BRIEFING_SYSTEM = `You are a social media manager assistant generating a concise morning briefing.
+Always respond with valid JSON in this exact format:
+{
+  "summary": "2-3 sentence overview of the day ahead and recent performance",
+  "recommendations": ["actionable tip 1", "actionable tip 2", "actionable tip 3"]
+}
+Be specific, actionable, and encouraging. Keep each recommendation under 100 characters.`;
+
+export async function generateDailyBriefing(
+  data: DailyBriefingData
+): Promise<DailyBriefingResult | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+
+  const client = getClient();
+
+  const gapsText =
+    data.contentGaps.length > 0
+      ? `Content gaps detected on: ${data.contentGaps.join(", ")}.`
+      : "No content gaps in the next 7 days.";
+
+  const hashtagsText =
+    data.topHashtags.length > 0
+      ? `Top hashtags used: ${data.topHashtags.map((h) => `${h.tag} (${h.count}x)`).join(", ")}.`
+      : "No hashtag data available.";
+
+  const prompt = `Morning briefing data:
+- Posts scheduled today: ${data.todayScheduled}
+- Posts scheduled this week: ${data.weekScheduled}
+- Yesterday: ${data.yesterdayStats.published} posts published, ${data.yesterdayStats.totalEngagement} total engagements${data.yesterdayStats.topPlatform ? `, top platform: ${data.yesterdayStats.topPlatform}` : ""}
+- ${gapsText}
+- ${hashtagsText}
+
+Generate a morning briefing summary and 3 actionable recommendations for today.`;
+
+  try {
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 400,
+      system: [
+        {
+          type: "text",
+          text: BRIEFING_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const text =
+      response.content[0]?.type === "text" ? response.content[0].text : "";
+    const parsed = JSON.parse(text) as Partial<DailyBriefingResult>;
+
+    return {
+      summary:
+        typeof parsed.summary === "string"
+          ? parsed.summary
+          : "Ready for a productive social media day!",
+      recommendations: Array.isArray(parsed.recommendations)
+        ? parsed.recommendations.slice(0, 3).map(String)
+        : [],
+    };
+  } catch {
+    return null;
+  }
+}

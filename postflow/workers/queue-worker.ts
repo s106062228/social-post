@@ -37,6 +37,7 @@ import { createCoachingWorker } from "../src/lib/queue/workers/coaching";
 import { createEngagementGoalWorker } from "../src/lib/queue/workers/engagement-goals";
 import { createTokenHealthWorker } from "../src/lib/queue/workers/token-health";
 import { createContentDigestWorker } from "../src/lib/queue/workers/content-digest";
+import { createDailyBriefingWorker } from "../src/lib/queue/workers/daily-briefing";
 import {
   scheduleTokenExpiryCheck,
   scheduleExpiringTokenRefreshes,
@@ -52,6 +53,7 @@ import {
   scheduleEngagementGoalScan,
   scheduleTokenHealthScan,
   scheduleContentDigest,
+  scheduleDailyBriefing,
 } from "../src/lib/queue/scheduler";
 import { workerLogger } from "../src/lib/logger";
 
@@ -75,6 +77,7 @@ const coachingWorker = createCoachingWorker();
 const engagementGoalWorker = createEngagementGoalWorker();
 const tokenHealthWorker = createTokenHealthWorker();
 const contentDigestWorker = createContentDigestWorker();
+const dailyBriefingWorker = createDailyBriefingWorker();
 
 workerLogger.info("Publish worker started");
 workerLogger.info("Token refresh worker started");
@@ -94,6 +97,7 @@ workerLogger.info("Coaching worker started");
 workerLogger.info("Engagement goal worker started");
 workerLogger.info("Token health worker started");
 workerLogger.info("Content digest worker started");
+workerLogger.info("Daily briefing worker started");
 
 // ── Register repeatable cron jobs ─────────────────────────────────────────────
 
@@ -201,6 +205,14 @@ async function registerCronJobs(): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     workerLogger.error({ err: message }, "Failed to register content digest cron");
   }
+
+  try {
+    await scheduleDailyBriefing();
+    workerLogger.info("Registered daily briefing cron (08:00 UTC)");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    workerLogger.error({ err: message }, "Failed to register daily briefing cron");
+  }
 }
 
 // ── Initial token refresh scan ────────────────────────────────────────────
@@ -249,6 +261,7 @@ async function shutdown(signal: string): Promise<void> {
     engagementGoalWorker.close(),
     tokenHealthWorker.close(),
     contentDigestWorker.close(),
+    dailyBriefingWorker.close(),
   ]);
 
   workerLogger.info("All workers stopped. Exiting.");

@@ -20,6 +20,7 @@ import type { CoachingScanJobData } from "./workers/coaching";
 import type { EngagementGoalScanJobData } from "./workers/engagement-goals";
 import type { TokenHealthScanJobData } from "./workers/token-health";
 import type { ContentDigestJobData } from "./workers/content-digest";
+import type { DailyBriefingJobData } from "./workers/daily-briefing";
 
 // ── Queue singletons ────────────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -915,6 +916,50 @@ export async function scheduleContentDigest(): Promise<void> {
     { pattern: "0 * * * *" },
     {
       name: "content-digest-hourly",
+      data: { triggeredAt: new Date().toISOString() },
+      opts: {
+        attempts: 2,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { count: 5 },
+        removeOnFail: { count: 10 },
+      },
+    }
+  );
+}
+
+// ── Daily Briefing Queue ───────────────────────────────────────────────────────
+
+let dailyBriefingQueue: Queue<DailyBriefingJobData> | null = null;
+
+function getDailyBriefingQueue(): Queue<DailyBriefingJobData> {
+  if (!dailyBriefingQueue) {
+    dailyBriefingQueue = new Queue<DailyBriefingJobData>(
+      QUEUE_NAMES.DAILY_BRIEFING,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 2,
+          backoff: { type: "exponential", delay: 5000 },
+          removeOnComplete: { count: 5 },
+          removeOnFail: { count: 10 },
+        },
+      }
+    );
+  }
+  return dailyBriefingQueue;
+}
+
+/**
+ * Registers (or replaces) the daily briefing cron job.
+ * Runs at 08:00 UTC every day.
+ */
+export async function scheduleDailyBriefing(): Promise<void> {
+  const queue = getDailyBriefingQueue();
+  await queue.upsertJobScheduler(
+    "daily-briefing-daily",
+    { pattern: "0 8 * * *" },
+    {
+      name: "daily-briefing-daily",
       data: { triggeredAt: new Date().toISOString() },
       opts: {
         attempts: 2,
