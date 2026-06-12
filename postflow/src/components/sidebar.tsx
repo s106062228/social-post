@@ -128,6 +128,7 @@ const navItems = [
   { href: "/feed-widgets", label: "Feed Widgets", icon: LayoutGrid },
   { href: "/content-pillars", label: "Pillars", icon: Layers },
   { href: "/short-links", label: "Short Links", icon: Scissors },
+  { href: "/affiliate-links", label: "Affiliates", icon: Link2 },
   { href: "/blackout-periods", label: "Blackouts", icon: CalendarOff },
   { href: "/brand-kit", label: "Brand Kit", icon: Palette },
   { href: "/content-rules", label: "Content Rules", icon: ShieldCheck },
