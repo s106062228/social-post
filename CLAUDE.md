@@ -2275,3 +2275,13 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Autopilot page in dashboard (`/autopilot`) — `AutopilotClient` component with `CreateRuleForm` (trigger/action selectors, condition-specific inputs) and `RuleCard` per rule (trigger/action colour badges, trigger count, last triggered time, toggle/delete buttons); empty state with description
 - [x] Add "Autopilot" to sidebar navigation (icon: `Bot`) before Settings entry
 - [x] Unit tests for autopilot rules API (GET 401/429/empty/shape, POST 401/429/max-limit/missing-name/201, PATCH 401/403/success, DELETE 401/404/204, toggle 401/true→false/false→true — 14 tests)
+
+### Phase 244: AI Competitor Content Intelligence
+- [x] `CompetitorContentAnalysis` model in Prisma (id, userId, competitorName, platform?, content, analysis Json, createdAt) + migration (`20260913000000_add_competitor_content_analysis`) — stores AI analysis results for competitor posts
+- [x] Add `analyzeCompetitorContent(content, platform?, brandKitContext?)` to `src/lib/ai.ts` — calls `claude-haiku-4-5` to analyze competitor post content; returns `CompetitorAnalysisResult` with contentStrategy, strengths, weaknesses, keyTechniques, toneStyle, targetAudience, estimatedEngagementScore (0–100), actionableInsights; uses prompt caching on system block; returns null when AI not configured
+- [x] `GET /api/competitor-intelligence` endpoint — auth + rate limit; returns last 50 analyses with content truncated to 200 chars; returns `{analyses}`
+- [x] `POST /api/competitor-intelligence` endpoint — auth + rate limit + zod validation (`competitorName: string min 1 max 100`, `content: string min 10 max 10000`, `platform?: Platform`); optionally includes brand kit context; calls `analyzeCompetitorContent`; max 200 analyses per user; returns 503 when AI not configured; returns created analysis with status 201
+- [x] `DELETE /api/competitor-intelligence/[id]` endpoint — auth + rate limit + ownership check; returns 204
+- [x] Competitor intelligence page in dashboard (`/competitor-intelligence`) — split layout with analysis form (competitor name, platform selector, content textarea) on left and analysis result display on right (engagement score bar, content strategy, strengths/weaknesses grid, key techniques chips, tone/audience, actionable insights); history list below with click-to-view, delete, score badge
+- [x] Add "Competitor Intel" to sidebar navigation (icon: `Brain`)
+- [x] Unit tests for competitor intelligence API (GET: auth, rate limit, empty, content truncated; POST: auth, rate limit, AI disabled, invalid body, content too short, success shape, AI returns null; DELETE: auth, not-found, ownership, 204 — 12 tests)

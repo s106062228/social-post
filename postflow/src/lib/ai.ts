@@ -2381,3 +2381,79 @@ Generate ${count} compelling opening hooks for this post. Each hook should be a 
     return [];
   }
 }
+
+const COMPETITOR_ANALYSIS_SYSTEM = `You are a social media strategy expert. Analyze competitor post content and provide strategic insights.
+Always respond with valid JSON in this exact format:
+{
+  "contentStrategy": "brief description of their content strategy",
+  "strengths": ["strength1", "strength2", "strength3"],
+  "weaknesses": ["weakness1", "weakness2"],
+  "keyTechniques": ["technique1", "technique2", "technique3"],
+  "toneStyle": "description of their tone and writing style",
+  "targetAudience": "who this content appears to target",
+  "estimatedEngagementScore": 75,
+  "actionableInsights": ["insight1", "insight2", "insight3"]
+}
+estimatedEngagementScore should be 0-100 based on content quality and engagement potential.`;
+
+export interface CompetitorAnalysisResult {
+  contentStrategy: string;
+  strengths: string[];
+  weaknesses: string[];
+  keyTechniques: string[];
+  toneStyle: string;
+  targetAudience: string;
+  estimatedEngagementScore: number;
+  actionableInsights: string[];
+}
+
+export async function analyzeCompetitorContent(
+  content: string,
+  platform?: string | null,
+  brandKitContext?: string | null
+): Promise<CompetitorAnalysisResult | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  const client = getClient();
+
+  let userContent = `Competitor Post Content:\n${content}`;
+  if (platform) userContent += `\nPlatform: ${platform}`;
+  if (brandKitContext) userContent += `\nMy Brand Context (for comparison):\n${brandKitContext}`;
+  userContent += `\n\nAnalyze this competitor content.`;
+
+  try {
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 1024,
+      system: [
+        {
+          type: "text",
+          text: COMPETITOR_ANALYSIS_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userContent }],
+    });
+
+    const block = response.content.find((b) => b.type === "text");
+    const text = block && block.type === "text" ? block.text : "{}";
+    const parsed = JSON.parse(text) as CompetitorAnalysisResult;
+    if (parsed.contentStrategy && Array.isArray(parsed.strengths)) {
+      return {
+        contentStrategy: parsed.contentStrategy,
+        strengths: parsed.strengths,
+        weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],
+        keyTechniques: Array.isArray(parsed.keyTechniques) ? parsed.keyTechniques : [],
+        toneStyle: parsed.toneStyle ?? "",
+        targetAudience: parsed.targetAudience ?? "",
+        estimatedEngagementScore:
+          typeof parsed.estimatedEngagementScore === "number"
+            ? Math.max(0, Math.min(100, parsed.estimatedEngagementScore))
+            : 50,
+        actionableInsights: Array.isArray(parsed.actionableInsights) ? parsed.actionableInsights : [],
+      };
+    }
+  } catch {
+    // fall through
+  }
+  return null;
+}
