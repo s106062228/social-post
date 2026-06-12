@@ -244,6 +244,7 @@ model User {
   competitorAccounts     CompetitorAccount[]
   journalEntries         ContentJournalEntry[]
   dailyBriefings         DailyBriefing[]
+  hashtagRotations       HashtagRotation[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -2155,4 +2156,20 @@ model DailyBriefing {
   @@unique([userId, date])
   @@index([userId])
   @@index([userId, date(sort: Desc)])
+}
+
+model HashtagRotation {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  groupIds     String[] // ordered list of HashtagGroup ids
+  currentIndex Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
 }

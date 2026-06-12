@@ -136,6 +136,19 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
   const [audiencePersonas, setAudiencePersonas] = useState<{ id: string; name: string }[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([]);
+  const [hashtagRotations, setHashtagRotations] = useState<{
+    id: string;
+    name: string;
+    isActive: boolean;
+    currentIndex: number;
+    groupIds: string[];
+  }[]>([]);
+  const [rotationPreview, setRotationPreview] = useState<{
+    rotationId: string;
+    groupName: string;
+    hashtags: string[];
+  } | null>(null);
+  const [rotationInserting, setRotationInserting] = useState(false);
   const [snippets, setSnippets] = useState<ContentSnippet[]>([]);
   const [captionVariables, setCaptionVariables] = useState<CaptionVariable[]>([]);
   const [accountGroups, setAccountGroups] = useState<AccountGroup[]>([]);
@@ -229,6 +242,13 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       .then((r) => r.json())
       .then((data: { groups?: HashtagGroup[] }) => {
         if (data.groups) setHashtagGroups(data.groups);
+      })
+      .catch(() => undefined);
+
+    fetch("/api/hashtag-rotations")
+      .then((r) => r.json())
+      .then((data: { rotations?: typeof hashtagRotations }) => {
+        if (data.rotations) setHashtagRotations(data.rotations);
       })
       .catch(() => undefined);
 
@@ -854,6 +874,95 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
               </option>
             ))}
           </select>
+        </div>
+      )}
+
+      {/* Hashtag rotation insertion */}
+      {hashtagRotations.filter((r) => r.isActive).length > 0 && (
+        <div className="flex flex-col gap-2">
+          <Label>Use Hashtag Rotation</Label>
+          <select
+            id="hashtag-rotation-select"
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            defaultValue=""
+            onChange={async (e) => {
+              const rotationId = e.target.value;
+              if (!rotationId) { setRotationPreview(null); return; }
+              e.target.value = "";
+              try {
+                const res = await fetch(`/api/hashtag-rotations/${rotationId}/current`);
+                if (res.ok) {
+                  const data = (await res.json()) as {
+                    group: { name: string; hashtags: string[] };
+                  };
+                  setRotationPreview({
+                    rotationId,
+                    groupName: data.group.name,
+                    hashtags: data.group.hashtags,
+                  });
+                }
+              } catch {
+                // ignore preview fetch errors
+              }
+            }}
+          >
+            <option value="" disabled>Select a rotation…</option>
+            {hashtagRotations
+              .filter((r) => r.isActive)
+              .map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
+          </select>
+          {rotationPreview && (
+            <div className="rounded-md border bg-muted/50 p-3 flex flex-col gap-2">
+              <p className="text-xs font-medium text-muted-foreground">
+                Next: {rotationPreview.groupName}
+              </p>
+              <p className="text-xs text-muted-foreground line-clamp-2">
+                {rotationPreview.hashtags.join(" ")}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={rotationInserting}
+                  className="rounded bg-primary px-3 py-1 text-xs text-primary-foreground disabled:opacity-50"
+                  onClick={async () => {
+                    setRotationInserting(true);
+                    try {
+                      const r2 = await fetch(
+                        `/api/hashtag-rotations/${rotationPreview.rotationId}/next`,
+                        { method: "POST" }
+                      );
+                      if (r2.ok) {
+                        const d2 = (await r2.json()) as {
+                          group: { hashtags: string[] };
+                        };
+                        const suffix = d2.group.hashtags.join(" ");
+                        setContent((prev) =>
+                          prev.trim() ? `${prev.trimEnd()}\n\n${suffix}` : suffix
+                        );
+                        setRotationPreview(null);
+                        toast({ title: "Hashtags inserted & rotation advanced", variant: "success" });
+                      }
+                    } finally {
+                      setRotationInserting(false);
+                    }
+                  }}
+                >
+                  {rotationInserting ? "Inserting…" : "Insert & Advance"}
+                </button>
+                <button
+                  type="button"
+                  className="rounded px-3 py-1 text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => setRotationPreview(null)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

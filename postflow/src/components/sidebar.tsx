@@ -74,6 +74,7 @@ import {
   GitBranch,
   Swords,
   NotebookPen,
+  RefreshCw,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -102,6 +103,7 @@ const navItems = [
   { href: "/activity", label: "Activity", icon: Activity },
   { href: "/media", label: "Media", icon: ImageIcon },
   { href: "/hashtags", label: "Hashtags", icon: Hash },
+  { href: "/hashtag-rotations", label: "Hashtag Rotations", icon: RefreshCw },
   { href: "/queue", label: "Queue", icon: ListOrdered },
   { href: "/webhooks", label: "Webhooks", icon: Webhook },
   { href: "/approvals", label: "Approvals", icon: ClipboardCheck },
