@@ -21,6 +21,7 @@ import type { EngagementGoalScanJobData } from "./workers/engagement-goals";
 import type { TokenHealthScanJobData } from "./workers/token-health";
 import type { ContentDigestJobData } from "./workers/content-digest";
 import type { DailyBriefingJobData } from "./workers/daily-briefing";
+import type { AutopilotScanJobData } from "./workers/autopilot";
 
 // ── Queue singletons ────────────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -960,6 +961,50 @@ export async function scheduleDailyBriefing(): Promise<void> {
     { pattern: "0 8 * * *" },
     {
       name: "daily-briefing-daily",
+      data: { triggeredAt: new Date().toISOString() },
+      opts: {
+        attempts: 2,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { count: 5 },
+        removeOnFail: { count: 10 },
+      },
+    }
+  );
+}
+
+// ── Autopilot Scan Queue ──────────────────────────────────────────────────────
+
+let autopilotScanQueue: Queue<AutopilotScanJobData> | null = null;
+
+function getAutopilotScanQueue(): Queue<AutopilotScanJobData> {
+  if (!autopilotScanQueue) {
+    autopilotScanQueue = new Queue<AutopilotScanJobData>(
+      QUEUE_NAMES.AUTOPILOT_SCAN,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 2,
+          backoff: { type: "exponential", delay: 5000 },
+          removeOnComplete: { count: 5 },
+          removeOnFail: { count: 10 },
+        },
+      }
+    );
+  }
+  return autopilotScanQueue;
+}
+
+/**
+ * Registers (or replaces) the autopilot scan cron job.
+ * Runs every hour.
+ */
+export async function scheduleAutopilotScan(): Promise<void> {
+  const queue = getAutopilotScanQueue();
+  await queue.upsertJobScheduler(
+    "autopilot-scan-hourly",
+    { pattern: "0 * * * *" },
+    {
+      name: "autopilot-scan-hourly",
       data: { triggeredAt: new Date().toISOString() },
       opts: {
         attempts: 2,

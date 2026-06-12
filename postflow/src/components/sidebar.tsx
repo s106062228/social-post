@@ -160,6 +160,7 @@ const navItems = [
   { href: "/journal", label: "Journal", icon: NotebookPen },
   { href: "/profile-optimizer", label: "Profile Optimizer", icon: Target },
   { href: "/contests", label: "Contests", icon: Trophy },
+  { href: "/autopilot", label: "Autopilot", icon: Bot },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

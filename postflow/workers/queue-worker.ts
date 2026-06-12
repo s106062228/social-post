@@ -38,6 +38,7 @@ import { createEngagementGoalWorker } from "../src/lib/queue/workers/engagement-
 import { createTokenHealthWorker } from "../src/lib/queue/workers/token-health";
 import { createContentDigestWorker } from "../src/lib/queue/workers/content-digest";
 import { createDailyBriefingWorker } from "../src/lib/queue/workers/daily-briefing";
+import { createAutopilotWorker } from "../src/lib/queue/workers/autopilot";
 import {
   scheduleTokenExpiryCheck,
   scheduleExpiringTokenRefreshes,
@@ -54,6 +55,7 @@ import {
   scheduleTokenHealthScan,
   scheduleContentDigest,
   scheduleDailyBriefing,
+  scheduleAutopilotScan,
 } from "../src/lib/queue/scheduler";
 import { workerLogger } from "../src/lib/logger";
 
@@ -78,6 +80,7 @@ const engagementGoalWorker = createEngagementGoalWorker();
 const tokenHealthWorker = createTokenHealthWorker();
 const contentDigestWorker = createContentDigestWorker();
 const dailyBriefingWorker = createDailyBriefingWorker();
+const autopilotWorker = createAutopilotWorker();
 
 workerLogger.info("Publish worker started");
 workerLogger.info("Token refresh worker started");
@@ -98,6 +101,7 @@ workerLogger.info("Engagement goal worker started");
 workerLogger.info("Token health worker started");
 workerLogger.info("Content digest worker started");
 workerLogger.info("Daily briefing worker started");
+workerLogger.info("Autopilot scan worker started");
 
 // ── Register repeatable cron jobs ─────────────────────────────────────────────
 
@@ -213,6 +217,14 @@ async function registerCronJobs(): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     workerLogger.error({ err: message }, "Failed to register daily briefing cron");
   }
+
+  try {
+    await scheduleAutopilotScan();
+    workerLogger.info("Registered autopilot scan cron (hourly)");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    workerLogger.error({ err: message }, "Failed to register autopilot scan cron");
+  }
 }
 
 // ── Initial token refresh scan ────────────────────────────────────────────
@@ -262,6 +274,7 @@ async function shutdown(signal: string): Promise<void> {
     tokenHealthWorker.close(),
     contentDigestWorker.close(),
     dailyBriefingWorker.close(),
+    autopilotWorker.close(),
   ]);
 
   workerLogger.info("All workers stopped. Exiting.");
