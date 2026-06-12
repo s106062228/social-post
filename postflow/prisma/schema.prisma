@@ -245,6 +245,7 @@ model User {
   journalEntries         ContentJournalEntry[]
   dailyBriefings         DailyBriefing[]
   hashtagRotations       HashtagRotation[]
+  contests               Contest[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -357,6 +358,7 @@ model Post {
   customFieldValues PostCustomFieldValue[]
   postLock          PostLock?
   journalEntries    ContentJournalEntry[]
+  contests       Contest[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -2172,4 +2174,53 @@ model HashtagRotation {
 
   @@index([userId])
   @@index([userId, createdAt(sort: Desc)])
+}
+
+enum ContestStatus {
+  DRAFT
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
+model Contest {
+  id               String        @id @default(cuid())
+  userId           String
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String
+  description      String?
+  platform         Platform?
+  postId           String?
+  post             Post?         @relation(fields: [postId], references: [id], onDelete: SetNull)
+  startDate        DateTime?
+  endDate          DateTime?
+  prizeDescription String?
+  requiredAction   String        @default("comment")
+  winnersCount     Int           @default(1)
+  status           ContestStatus @default(DRAFT)
+  entries          ContestEntry[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+}
+
+model ContestEntry {
+  id                String    @id @default(cuid())
+  contestId         String
+  contest           Contest   @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  participantName   String
+  participantHandle String
+  platform          Platform?
+  entryType         String    @default("manual")
+  metadata          Json?
+  isWinner          Boolean   @default(false)
+  pickedAt          DateTime?
+  createdAt         DateTime  @default(now())
+
+  @@index([contestId])
+  @@index([contestId, isWinner])
+  @@index([contestId, createdAt(sort: Desc)])
 }
