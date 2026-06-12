@@ -159,6 +159,7 @@ const navItems = [
   { href: "/competitors", label: "Competitors", icon: Swords },
   { href: "/journal", label: "Journal", icon: NotebookPen },
   { href: "/profile-optimizer", label: "Profile Optimizer", icon: Target },
+  { href: "/contests", label: "Contests", icon: Trophy },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
