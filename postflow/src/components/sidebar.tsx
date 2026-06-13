@@ -76,6 +76,7 @@ import {
   NotebookPen,
   RefreshCw,
   Brain,
+  TableProperties,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -96,6 +97,7 @@ const navItems = [
   { href: "/sequences", label: "Sequences", icon: ListVideo },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
   { href: "/analytics/snapshots", label: "Snapshots", icon: Camera },
+  { href: "/analytics/data-table", label: "Data Table", icon: TableProperties },
   { href: "/audience", label: "Audience", icon: TrendingUp },
   { href: "/account-health", label: "Account Health", icon: HeartPulse },
   { href: "/account-comparison", label: "Compare Accounts", icon: BarChart3 },
