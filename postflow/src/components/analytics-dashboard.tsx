@@ -24,7 +24,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart2, CheckCircle2, XCircle, Clock, TrendingUp, Settings2 } from "lucide-react";
+import { BarChart2, CheckCircle2, XCircle, Clock, TrendingUp, Settings2, FileDown } from "lucide-react";
 import { BestTimesCard } from "@/components/best-times-card";
 import { WordCloudCard } from "@/components/word-cloud-card";
 import { ConsistencyCard } from "@/components/consistency-card";
@@ -134,6 +134,7 @@ export function AnalyticsDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [customizeOpen, setCustomizeOpen] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const { widgets, setWidgets, isVisible } = useWidgetConfig();
 
   const fetchData = useCallback(async (p: Period) => {
@@ -159,6 +160,27 @@ export function AnalyticsDashboard() {
     setPeriod(p);
   };
 
+  const handleExportPdf = async () => {
+    setPdfLoading(true);
+    try {
+      const res = await fetch(`/api/analytics/export-pdf?period=${period}`);
+      if (!res.ok) throw new Error("Export failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `postflow-report-${new Date().toISOString().slice(0, 10)}-${period}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Failed to export PDF. Please try again.");
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-8 p-8">
       {/* Header */}
@@ -179,6 +201,16 @@ export function AnalyticsDashboard() {
               }
             }}
           />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void handleExportPdf()}
+            disabled={pdfLoading}
+            className="gap-2"
+          >
+            <FileDown className="h-4 w-4" />
+            {pdfLoading ? "Exporting…" : "Export PDF"}
+          </Button>
           <Button
             variant="outline"
             size="sm"

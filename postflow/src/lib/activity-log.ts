@@ -35,7 +35,8 @@ export type ActivityAction =
   | "sequence.deleted"
   | "sequence.started"
   | "sequence.paused"
-  | "sequence.cancelled";
+  | "sequence.cancelled"
+  | "analytics.exported";
 
 export interface LogActivityOptions {
   userId: string;

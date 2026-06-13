@@ -77,3 +77,7 @@ export const oauthLimiter = (ip: string) =>
 /** Auth/register: 5 attempts per minute per IP */
 export const authLimiter = (ip: string) =>
   rateLimit(`auth:${ip}`, { limit: 5, windowMs: 60_000 });
+
+/** PDF export: 10 requests per hour per user */
+export const pdfExportLimiter = (id: string) =>
+  rateLimit(`pdf-export:${id}`, { limit: 10, windowMs: 3_600_000 });
