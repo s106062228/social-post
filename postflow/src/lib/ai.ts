@@ -2507,3 +2507,104 @@ export async function analyzeCommentSentiment(
   }
   return null;
 }
+
+export interface PerformanceExplanationResult {
+  explanation: string;
+  keyFactors: { factor: string; impact: "positive" | "negative" | "neutral"; description: string }[];
+  actionItems: string[];
+}
+
+export interface InsightsSummary {
+  impressions: number;
+  reach: number;
+  likes: number;
+  comments: number;
+  shares: number;
+}
+
+const EXPLAIN_PERFORMANCE_SYSTEM = `You are a social media performance analyst. Given a post's content and engagement metrics, explain why it performed the way it did in plain language.
+
+Respond with JSON only:
+{
+  "explanation": "<2-3 sentence plain English explanation of why the post performed the way it did>",
+  "keyFactors": [
+    {"factor": "<factor name>", "impact": "positive" | "negative" | "neutral", "description": "<one sentence explanation>"}
+  ],
+  "actionItems": ["<actionable improvement 1>", "<actionable improvement 2>", "<actionable improvement 3>"]
+}
+
+Rules:
+- explanation: 2-3 sentences, conversational, specific to the data provided
+- keyFactors: 3-5 factors that drove performance (timing, content type, hashtags, media, engagement hooks, brevity, emotional appeal, platform-fit, etc.)
+- actionItems: 2-4 concrete next steps to improve or replicate this performance
+- Compare metrics to historical averages when provided to give context
+- Be honest: if performance was poor, explain why clearly; if great, explain what worked`;
+
+export async function explainPostPerformance(
+  content: string,
+  insights: InsightsSummary,
+  historicalAvg?: Partial<InsightsSummary> | null,
+  platform?: string | null
+): Promise<PerformanceExplanationResult | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  const client = getClient();
+
+  let userMsg = `Post Content:\n${content.slice(0, 1000)}\n\nEngagement Metrics:\n`;
+  userMsg += `- Impressions: ${insights.impressions}\n`;
+  userMsg += `- Reach: ${insights.reach}\n`;
+  userMsg += `- Likes: ${insights.likes}\n`;
+  userMsg += `- Comments: ${insights.comments}\n`;
+  userMsg += `- Shares: ${insights.shares}\n`;
+
+  if (historicalAvg) {
+    userMsg += `\nHistorical Average (last 30 posts):\n`;
+    if (historicalAvg.impressions != null) userMsg += `- Avg Impressions: ${Math.round(historicalAvg.impressions)}\n`;
+    if (historicalAvg.reach != null) userMsg += `- Avg Reach: ${Math.round(historicalAvg.reach)}\n`;
+    if (historicalAvg.likes != null) userMsg += `- Avg Likes: ${Math.round(historicalAvg.likes)}\n`;
+    if (historicalAvg.comments != null) userMsg += `- Avg Comments: ${Math.round(historicalAvg.comments)}\n`;
+    if (historicalAvg.shares != null) userMsg += `- Avg Shares: ${Math.round(historicalAvg.shares)}\n`;
+  }
+
+  if (platform) userMsg += `\nPlatform: ${platform}`;
+  userMsg += `\n\nAnalyze this post's performance.`;
+
+  try {
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 1024,
+      system: [
+        {
+          type: "text",
+          text: EXPLAIN_PERFORMANCE_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userMsg }],
+    });
+
+    const block = response.content.find((b) => b.type === "text");
+    const text = block && block.type === "text" ? block.text : "{}";
+    const parsed = JSON.parse(text) as Partial<PerformanceExplanationResult>;
+
+    if (typeof parsed.explanation === "string" && Array.isArray(parsed.keyFactors)) {
+      return {
+        explanation: parsed.explanation,
+        keyFactors: (parsed.keyFactors as { factor?: string; impact?: string; description?: string }[])
+          .filter((f) => typeof f.factor === "string")
+          .map((f) => ({
+            factor: f.factor ?? "",
+            impact: (["positive", "negative", "neutral"].includes(f.impact ?? "")
+              ? f.impact
+              : "neutral") as "positive" | "negative" | "neutral",
+            description: f.description ?? "",
+          })),
+        actionItems: Array.isArray(parsed.actionItems)
+          ? (parsed.actionItems as unknown[]).filter((i): i is string => typeof i === "string")
+          : [],
+      };
+    }
+  } catch {
+    // fall through
+  }
+  return null;
+}

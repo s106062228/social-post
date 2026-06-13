@@ -14,6 +14,7 @@ import { ArrowLeft, Clock, RotateCcw, Loader2, GitCompare } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { PostComments } from "@/components/post-comments";
 import { PostInsightsPanel } from "@/components/post-insights-panel";
+import { PerformanceExplanationCard } from "@/components/performance-explanation-card";
 import { VersionDiffViewer } from "@/components/version-diff-viewer";
 import { SeoAnalysisCard } from "@/components/seo-analysis-card";
 import { LinkHealthCard } from "@/components/link-health-card";
@@ -117,6 +118,8 @@ export default function PostVersionsPage() {
       </div>
 
       <PostInsightsPanel postId={postId} />
+
+      <PerformanceExplanationCard postId={postId} />
 
       <SeoAnalysisCard postId={postId} />
 
