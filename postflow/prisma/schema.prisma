@@ -249,6 +249,7 @@ model User {
   autopilotRules         AutopilotRule[]
   competitorContentAnalyses CompetitorContentAnalysis[]
   affiliateLinks            AffiliateLink[]
+  influencerProfiles        InfluencerProfile[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -1818,6 +1819,39 @@ model HashtagCampaign {
   @@index([userId])
   @@index([userId, isActive])
   @@index([userId, startDate])
+}
+
+enum OutreachStatus {
+  PROSPECT
+  CONTACTED
+  RESPONDED
+  NEGOTIATING
+  AGREED
+  COMPLETED
+  DECLINED
+}
+
+model InfluencerProfile {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  handle          String
+  platform        Platform?
+  followerCount   Int?
+  engagementRate  Float?
+  niche           String?
+  email           String?
+  profileUrl      String?
+  outreachStatus  OutreachStatus @default(PROSPECT)
+  notes           String?
+  lastContactedAt DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([userId, outreachStatus])
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 enum CollaborationStatus {

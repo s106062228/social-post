@@ -77,6 +77,7 @@ import {
   RefreshCw,
   Brain,
   TableProperties,
+  UserSearch,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -153,6 +154,7 @@ const navItems = [
   { href: "/auto-reply-rules", label: "Auto-Reply Rules", icon: Zap },
   { href: "/brand-mentions", label: "Brand Mentions", icon: AtSign },
   { href: "/hashtag-campaigns", label: "Hashtag Campaigns", icon: Hash },
+  { href: "/influencer-profiles", label: "Influencers", icon: UserSearch },
   { href: "/collaborations", label: "Collaborations", icon: Handshake },
   { href: "/campaign-comparison", label: "Campaign ROI", icon: GitCompare },
   { href: "/audit-reports", label: "Audit", icon: ClipboardList },

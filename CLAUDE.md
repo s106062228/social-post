@@ -2322,3 +2322,11 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Analytics data table page in dashboard (`/analytics/data-table`) — renders `PostsDataTable` with page header and description
 - [x] Add "Data Table" to sidebar navigation (icon: `TableProperties`) after Snapshots entry
 - [x] Unit tests for posts-table and export endpoints (auth, rate limit, invalid sort, empty state, row shape, content truncation, platform filter, period filter, all-period no date filter, pagination, DB error, CSV content-type, content-disposition, header row, data rows, CSV escaping — 18 tests)
+
+### Phase 249: Influencer Research & Outreach Tracker
+- [x] `InfluencerProfile` model in Prisma (id, userId, name, handle, platform?, followerCount Int?, engagementRate Float?, niche?, email?, profileUrl?, outreachStatus: OutreachStatus enum PROSPECT/CONTACTED/RESPONDED/NEGOTIATING/AGREED/COMPLETED/DECLINED, notes?, lastContactedAt?, createdAt, updatedAt) + migration (`20260916000000_add_influencer_profiles`)
+- [x] CRUD API for influencer profiles (`GET /api/influencer-profiles`, `POST /api/influencer-profiles`, `PATCH /api/influencer-profiles/[id]`, `DELETE /api/influencer-profiles/[id]`) — auth + rate limit + zod validation; max 500 profiles per user; `GET` supports `?status=&platform=&niche=&search=` filters
+- [x] `POST /api/influencer-profiles/[id]/create-collaboration` endpoint — auth + rate limit + ownership check; creates a Collaboration record (Phase 214) pre-populated with influencer name/handle/platform; updates influencer outreachStatus to AGREED; returns `{collaborationId}`
+- [x] Influencer profiles page in dashboard (`/influencer-profiles`) — table view with status filter tabs (Prospect/Contacted/Responded/Negotiating/Agreed/Completed/Declined); table columns: handle, platform badge, follower count, engagement rate, niche tag, last contact date, status badge, actions; inline create form; "Create Collaboration" button per AGREED+ profile
+- [x] Add "Influencers" to sidebar navigation (icon: `Users`)
+- [x] Unit tests for influencer profiles API (GET list auth/rate-limit/empty/shape, GET with status filter, POST create/max-limit/invalid-body, PATCH update/ownership, DELETE success/ownership, create-collaboration auth/ownership/success — 14 tests)
