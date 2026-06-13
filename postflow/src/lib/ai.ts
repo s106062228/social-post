@@ -2457,3 +2457,53 @@ export async function analyzeCompetitorContent(
   }
   return null;
 }
+
+const COMMENT_SENTIMENT_SYSTEM = `You are a social media sentiment analyst. Classify a comment as POSITIVE, NEUTRAL, or NEGATIVE and provide a confidence score.
+
+Respond with JSON only:
+{
+  "sentiment": "POSITIVE" | "NEUTRAL" | "NEGATIVE",
+  "score": <number 0.0-1.0>
+}
+
+Guidelines:
+- POSITIVE: praise, support, gratitude, enthusiasm, agreement, constructive engagement
+- NEGATIVE: complaints, insults, spam, hostility, strong criticism, threats
+- NEUTRAL: questions, factual statements, mild observations, ambiguous
+- score: confidence in the classification (0.5 = uncertain, 1.0 = very certain)`;
+
+export async function analyzeCommentSentiment(
+  content: string
+): Promise<{ sentiment: string; score: number } | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  const client = getClient();
+
+  try {
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 128,
+      system: [
+        {
+          type: "text",
+          text: COMMENT_SENTIMENT_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: `Comment: ${content.slice(0, 500)}` }],
+    });
+
+    const block = response.content.find((b) => b.type === "text");
+    const text = block && block.type === "text" ? block.text : "{}";
+    const parsed = JSON.parse(text) as { sentiment?: string; score?: number };
+    const validSentiments = ["POSITIVE", "NEUTRAL", "NEGATIVE"];
+    if (parsed.sentiment && validSentiments.includes(parsed.sentiment)) {
+      return {
+        sentiment: parsed.sentiment,
+        score: typeof parsed.score === "number" ? Math.max(0, Math.min(1, parsed.score)) : 0.5,
+      };
+    }
+  } catch {
+    // fall through
+  }
+  return null;
+}

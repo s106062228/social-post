@@ -33,6 +33,8 @@ interface SocialComment {
   platform: Platform;
   postedAt: Date | string;
   fetchedAt: Date | string;
+  sentiment: string | null;
+  sentimentScore: number | null;
 }
 
 interface ResponseTemplate {
@@ -352,6 +354,21 @@ export function InboxClient({ initialComments, totalUnread: initialUnread, lastS
                       {comment.isReplied && (
                         <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
                           Replied
+                        </Badge>
+                      )}
+                      {comment.sentiment === "POSITIVE" && (
+                        <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                          😊 Positive
+                        </Badge>
+                      )}
+                      {comment.sentiment === "NEGATIVE" && (
+                        <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                          😠 Negative
+                        </Badge>
+                      )}
+                      {comment.sentiment === "NEUTRAL" && (
+                        <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600 border-gray-200">
+                          😐 Neutral
                         </Badge>
                       )}
                       <span className="ml-auto text-xs text-muted-foreground">

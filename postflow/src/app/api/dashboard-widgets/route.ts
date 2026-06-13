@@ -40,6 +40,7 @@ export const WIDGET_KEYS = [
   "competitive_benchmark",
   "content_clusters",
   "seasonal_patterns",
+  "reputation_score",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -86,6 +87,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   competitive_benchmark: "Competitor Benchmarking",
   content_clusters: "Content Topic Clusters",
   seasonal_patterns: "Seasonal Content Patterns",
+  reputation_score: "Brand Reputation Score",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {

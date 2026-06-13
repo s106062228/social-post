@@ -54,6 +54,7 @@ import { CorrelationInsightsCard } from "@/components/correlation-insights-card"
 import { CompetitiveBenchmarkCard } from "@/components/competitive-benchmark-card";
 import { ContentClustersCard } from "@/components/content-clusters-card";
 import { SeasonalPatternsCard } from "@/components/seasonal-patterns-card";
+import { ReputationScoreCard } from "@/components/reputation-score-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -597,6 +598,9 @@ export function AnalyticsDashboard() {
 
       {/* Seasonal Content Patterns */}
       {isVisible("seasonal_patterns") && <SeasonalPatternsCard />}
+
+      {/* Brand Reputation Score */}
+      {isVisible("reputation_score") && <ReputationScoreCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
