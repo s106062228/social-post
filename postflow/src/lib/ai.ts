@@ -2608,3 +2608,80 @@ export async function explainPostPerformance(
   }
   return null;
 }
+
+// ─── Phase 252: Trending Topic Discovery ─────────────────────────────────────
+
+export interface TrendingTopic {
+  topic: string;
+  category: string;
+  urgency: "now" | "this_week" | "this_month";
+  reasoning: string;
+  contentIdea: string;
+  estimatedEngagement: "high" | "medium" | "low";
+}
+
+export interface TrendingTopicsResult {
+  topics: TrendingTopic[];
+  generalInsights: string;
+}
+
+const TRENDING_TOPICS_SYSTEM = `You are a social media content strategist expert in identifying trending topics and content opportunities. You help creators discover what topics are gaining momentum so they can create timely, engaging content. Always respond with valid JSON.`;
+
+export async function discoverTrendingTopics(
+  niche: string,
+  existingTopics: string[],
+  platforms: string[]
+): Promise<TrendingTopicsResult | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  const client = getClient();
+
+  const covered =
+    existingTopics.length > 0
+      ? `Topics they've already covered recently: ${existingTopics.slice(0, 20).join("; ")}`
+      : "";
+
+  const userMsg = `Identify trending content opportunities for a social media creator in the "${niche || "general"}" niche posting on: ${platforms.join(", ") || "social media"}.
+
+${covered}
+
+Generate 8 trending topic suggestions. For each topic provide:
+- topic: the trending topic or theme (concise, 3-8 words)
+- category: topic category (e.g. "Industry News", "Lifestyle", "Tips & Tutorials", "Viral Trends", "Seasonal", "Educational")
+- urgency: "now" (trending right now - post within days), "this_week" (gaining momentum), or "this_month" (emerging trend)
+- reasoning: why this topic is trending or timely (1-2 sentences)
+- contentIdea: a specific content idea for this topic tailored to the niche (1-2 sentences)
+- estimatedEngagement: "high", "medium", or "low"
+
+Also provide a generalInsights field: 2-3 sentences of overall content strategy advice based on current trends.
+
+Respond with valid JSON:
+{"topics":[{"topic":"...","category":"...","urgency":"now","reasoning":"...","contentIdea":"...","estimatedEngagement":"high"}],"generalInsights":"..."}`;
+
+  try {
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 2000,
+      system: [
+        {
+          type: "text",
+          text: TRENDING_TOPICS_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userMsg }],
+    });
+
+    const block = response.content.find((b) => b.type === "text");
+    const text = block && block.type === "text" ? block.text : "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    const parsed = JSON.parse(jsonMatch[0]) as Partial<TrendingTopicsResult>;
+    if (!Array.isArray(parsed.topics)) return null;
+    return {
+      topics: parsed.topics as TrendingTopic[],
+      generalInsights: parsed.generalInsights ?? "",
+    };
+  } catch {
+    return null;
+  }
+}
