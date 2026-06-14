@@ -23,6 +23,7 @@ import type { ContentDigestJobData } from "./workers/content-digest";
 import type { DailyBriefingJobData } from "./workers/daily-briefing";
 import type { AutopilotScanJobData } from "./workers/autopilot";
 import type { ABTestConcludeScanJobData } from "./workers/ab-test-conclude";
+import type { EngagementMilestoneScanJobData } from "./workers/engagement-milestones";
 
 // ── Queue singletons ────────────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -1050,6 +1051,51 @@ export async function scheduleABTestConcludeScan(): Promise<void> {
     { pattern: "0 9 * * *" },
     {
       name: "ab-test-conclude-scan-daily",
+      data: { triggeredAt: new Date().toISOString() },
+      opts: {
+        attempts: 2,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { count: 5 },
+        removeOnFail: { count: 10 },
+      },
+    }
+  );
+}
+
+// ── Engagement Milestone Scan Queue ──────────────────────────────────────────
+
+let engagementMilestoneScanQueue: Queue<EngagementMilestoneScanJobData> | null =
+  null;
+
+function getEngagementMilestoneScanQueue(): Queue<EngagementMilestoneScanJobData> {
+  if (!engagementMilestoneScanQueue) {
+    engagementMilestoneScanQueue = new Queue<EngagementMilestoneScanJobData>(
+      QUEUE_NAMES.ENGAGEMENT_MILESTONE_SCAN,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 2,
+          backoff: { type: "exponential", delay: 5000 },
+          removeOnComplete: { count: 5 },
+          removeOnFail: { count: 10 },
+        },
+      }
+    );
+  }
+  return engagementMilestoneScanQueue;
+}
+
+/**
+ * Registers (or replaces) the daily engagement milestone scan cron job.
+ * Runs at 10:00 UTC every day.
+ */
+export async function scheduleEngagementMilestoneScan(): Promise<void> {
+  const queue = getEngagementMilestoneScanQueue();
+  await queue.upsertJobScheduler(
+    "engagement-milestone-scan-daily",
+    { pattern: "0 10 * * *" },
+    {
+      name: "engagement-milestone-scan-daily",
       data: { triggeredAt: new Date().toISOString() },
       opts: {
         attempts: 2,

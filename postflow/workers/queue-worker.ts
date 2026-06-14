@@ -40,6 +40,7 @@ import { createContentDigestWorker } from "../src/lib/queue/workers/content-dige
 import { createDailyBriefingWorker } from "../src/lib/queue/workers/daily-briefing";
 import { createAutopilotWorker } from "../src/lib/queue/workers/autopilot";
 import { createABTestConcludeWorker } from "../src/lib/queue/workers/ab-test-conclude";
+import { createEngagementMilestoneScanWorker } from "../src/lib/queue/workers/engagement-milestones";
 import {
   scheduleTokenExpiryCheck,
   scheduleExpiringTokenRefreshes,
@@ -58,6 +59,7 @@ import {
   scheduleDailyBriefing,
   scheduleAutopilotScan,
   scheduleABTestConcludeScan,
+  scheduleEngagementMilestoneScan,
 } from "../src/lib/queue/scheduler";
 import { workerLogger } from "../src/lib/logger";
 
@@ -84,6 +86,7 @@ const contentDigestWorker = createContentDigestWorker();
 const dailyBriefingWorker = createDailyBriefingWorker();
 const autopilotWorker = createAutopilotWorker();
 const abTestConcludeWorker = createABTestConcludeWorker();
+const engagementMilestoneScanWorker = createEngagementMilestoneScanWorker();
 
 workerLogger.info("Publish worker started");
 workerLogger.info("Token refresh worker started");
@@ -106,6 +109,7 @@ workerLogger.info("Content digest worker started");
 workerLogger.info("Daily briefing worker started");
 workerLogger.info("Autopilot scan worker started");
 workerLogger.info("A/B test conclude worker started");
+workerLogger.info("Engagement milestone scan worker started");
 
 // ── Register repeatable cron jobs ─────────────────────────────────────────────
 
@@ -237,6 +241,14 @@ async function registerCronJobs(): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     workerLogger.error({ err: message }, "Failed to register A/B test conclude scan cron");
   }
+
+  try {
+    await scheduleEngagementMilestoneScan();
+    workerLogger.info("Registered daily engagement milestone scan cron (10:00 UTC)");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    workerLogger.error({ err: message }, "Failed to register engagement milestone scan cron");
+  }
 }
 
 // ── Initial token refresh scan ────────────────────────────────────────────
@@ -288,6 +300,7 @@ async function shutdown(signal: string): Promise<void> {
     dailyBriefingWorker.close(),
     autopilotWorker.close(),
     abTestConcludeWorker.close(),
+    engagementMilestoneScanWorker.close(),
   ]);
 
   workerLogger.info("All workers stopped. Exiting.");

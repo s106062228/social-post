@@ -250,6 +250,7 @@ model User {
   competitorContentAnalyses CompetitorContentAnalysis[]
   affiliateLinks            AffiliateLink[]
   influencerProfiles        InfluencerProfile[]
+  engagementMilestones      PostEngagementMilestone[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -363,6 +364,7 @@ model Post {
   postLock          PostLock?
   journalEntries    ContentJournalEntry[]
   contests       Contest[]
+  engagementMilestones PostEngagementMilestone[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -2335,4 +2337,21 @@ model AffiliateLink {
   @@index([userId])
   @@index([userId, isActive])
   @@index([userId, createdAt(sort: Desc)])
+}
+
+model PostEngagementMilestone {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId      String
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  metric      String
+  threshold   Int
+  achievedAt  DateTime @default(now())
+  celebrated  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@unique([postId, metric, threshold])
+  @@index([userId])
+  @@index([userId, achievedAt(sort: Desc)])
 }

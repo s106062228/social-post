@@ -56,6 +56,7 @@ import { ContentClustersCard } from "@/components/content-clusters-card";
 import { SeasonalPatternsCard } from "@/components/seasonal-patterns-card";
 import { ReputationScoreCard } from "@/components/reputation-score-card";
 import { TrendingTopicsCard } from "@/components/trending-topics-card";
+import { EngagementMilestonesCard } from "@/components/engagement-milestones-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -637,6 +638,9 @@ export function AnalyticsDashboard() {
 
       {/* Trending Topic Discovery */}
       {isVisible("trending_topics") && <TrendingTopicsCard />}
+
+      {/* Engagement Milestones */}
+      {isVisible("engagement_milestones") && <EngagementMilestonesCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
