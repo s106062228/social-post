@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap, ShoppingBag } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap, ShoppingBag, HelpCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -36,6 +36,7 @@ import { PostOptimizationDialog } from "@/components/post-optimization-dialog";
 import { VideoScriptDialog } from "@/components/video-script-dialog";
 import { ContentSeriesDialog } from "@/components/content-series-dialog";
 import { ProductCaptionDialog } from "@/components/product-caption-dialog";
+import { AudienceQuestionsDialog } from "@/components/audience-questions-dialog";
 import { TextFormatterBar } from "@/components/text-formatter-bar";
 import type { PostOptimizationResult } from "@/lib/ai";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
@@ -229,6 +230,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
   // Product caption dialog state
   const [showProductCaptionDialog, setShowProductCaptionDialog] = useState(false);
+
+  // Audience Q&A dialog state
+  const [showAudienceQuestionsDialog, setShowAudienceQuestionsDialog] = useState(false);
 
   // Optimize dialog state
   const [showOptimizeDialog, setShowOptimizeDialog] = useState(false);
@@ -1102,6 +1106,14 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
               <ShoppingBag className="h-3 w-3" />
               Product
             </button>
+            <button
+              type="button"
+              onClick={() => setShowAudienceQuestionsDialog(true)}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <HelpCircle className="h-3 w-3" />
+              Q&amp;A
+            </button>
             <GrammarCheckButton
               content={content}
               onApply={(newContent) => setContent(newContent)}
@@ -1364,6 +1376,14 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         onClose={() => setShowProductCaptionDialog(false)}
         platforms={selectedPlatforms}
         onApply={(caption) => setContent(caption)}
+      />
+
+      {/* Audience Q&A Dialog */}
+      <AudienceQuestionsDialog
+        open={showAudienceQuestionsDialog}
+        onClose={() => setShowAudienceQuestionsDialog(false)}
+        platforms={selectedPlatforms}
+        onApply={(post) => setContent(post)}
       />
 
       {/* First comment — shown when Facebook or Instagram accounts are selected */}

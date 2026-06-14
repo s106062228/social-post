@@ -2771,3 +2771,85 @@ Make the captions compelling and appropriate for the ${promotionType} promotion 
     return null;
   }
 }
+
+// ─── Phase 255: Audience Q&A Post Generator ──────────────────────────────────
+
+export interface AudienceQuestion {
+  question: string;
+  answer: string;
+  suggestedPost: string;
+  category: "how-to" | "why" | "what" | "comparison" | "misconception" | "tip";
+}
+
+export interface AudienceQuestionsResult {
+  questions: AudienceQuestion[];
+  topic: string;
+}
+
+const AUDIENCE_QA_SYSTEM = `You are a social media content strategist expert at generating audience questions and educational content.
+Given a topic, generate the most common questions your target audience would ask, along with informative answers formatted as social media posts.
+Always respond with valid JSON in this exact format:
+{
+  "questions": [
+    {
+      "question": "...",
+      "answer": "...",
+      "suggestedPost": "...",
+      "category": "how-to"
+    }
+  ]
+}
+Category must be one of: "how-to", "why", "what", "comparison", "misconception", "tip".
+suggestedPost should be a complete, ready-to-publish social media post that answers the question in an engaging way.
+Include relevant hashtags in the suggestedPost. Keep suggestedPost under 280 chars for broad platform compatibility unless the platform allows more.`;
+
+export async function generateAudienceQuestions(
+  topic: string,
+  platforms: string[],
+  count: number = 5,
+  context?: string
+): Promise<AudienceQuestionsResult | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  const client = getClient();
+
+  const userMsg = `Topic: ${topic}
+Target Platforms: ${platforms.join(", ")}
+Number of Questions: ${count}${context ? `\nAdditional Context: ${context}` : ""}
+
+Generate ${count} common audience questions about this topic with complete social media post answers.
+Focus on questions that would get high engagement and educate the audience.`;
+
+  const response = await client.messages.create({
+    model: "claude-haiku-4-5",
+    max_tokens: 2048,
+    system: [
+      {
+        type: "text",
+        text: AUDIENCE_QA_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [{ role: "user", content: userMsg }],
+  });
+
+  try {
+    const block = response.content.find((b) => b.type === "text");
+    const text = block && block.type === "text" ? block.text : "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    const parsed = JSON.parse(jsonMatch[0]) as Partial<AudienceQuestionsResult>;
+    if (!Array.isArray(parsed.questions)) return null;
+
+    const validCategories = new Set(["how-to", "why", "what", "comparison", "misconception", "tip"]);
+    const questions: AudienceQuestion[] = parsed.questions.map((q) => ({
+      question: q.question ?? "",
+      answer: q.answer ?? "",
+      suggestedPost: q.suggestedPost ?? "",
+      category: validCategories.has(q.category ?? "") ? q.category! : "what",
+    }));
+
+    return { questions, topic };
+  } catch {
+    return null;
+  }
+}
