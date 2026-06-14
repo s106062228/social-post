@@ -42,6 +42,7 @@ export const QUEUE_NAMES = {
   CONTENT_DIGEST: "postflow:content-digest",
   DAILY_BRIEFING: "postflow:daily-briefing",
   AUTOPILOT_SCAN: "postflow:autopilot-scan",
+  AB_TEST_CONCLUDE_SCAN: "postflow:ab-test-conclude-scan",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];

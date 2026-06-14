@@ -22,6 +22,7 @@ import type { TokenHealthScanJobData } from "./workers/token-health";
 import type { ContentDigestJobData } from "./workers/content-digest";
 import type { DailyBriefingJobData } from "./workers/daily-briefing";
 import type { AutopilotScanJobData } from "./workers/autopilot";
+import type { ABTestConcludeScanJobData } from "./workers/ab-test-conclude";
 
 // ── Queue singletons ────────────────────────────────────────────────────────────────
 // These are safe to import in Next.js API routes (server-side only).
@@ -1005,6 +1006,50 @@ export async function scheduleAutopilotScan(): Promise<void> {
     { pattern: "0 * * * *" },
     {
       name: "autopilot-scan-hourly",
+      data: { triggeredAt: new Date().toISOString() },
+      opts: {
+        attempts: 2,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: { count: 5 },
+        removeOnFail: { count: 10 },
+      },
+    }
+  );
+}
+
+// ── A/B Test Conclude Scan Queue ──────────────────────────────────────────────
+
+let abTestConcludeScanQueue: Queue<ABTestConcludeScanJobData> | null = null;
+
+function getABTestConcludeScanQueue(): Queue<ABTestConcludeScanJobData> {
+  if (!abTestConcludeScanQueue) {
+    abTestConcludeScanQueue = new Queue<ABTestConcludeScanJobData>(
+      QUEUE_NAMES.AB_TEST_CONCLUDE_SCAN,
+      {
+        connection: createRedisConnection(),
+        defaultJobOptions: {
+          attempts: 2,
+          backoff: { type: "exponential", delay: 5000 },
+          removeOnComplete: { count: 5 },
+          removeOnFail: { count: 10 },
+        },
+      }
+    );
+  }
+  return abTestConcludeScanQueue;
+}
+
+/**
+ * Registers (or replaces) the daily A/B test conclude scan cron job.
+ * Runs at 09:00 UTC every day. Auto-concludes statistically significant tests.
+ */
+export async function scheduleABTestConcludeScan(): Promise<void> {
+  const queue = getABTestConcludeScanQueue();
+  await queue.upsertJobScheduler(
+    "ab-test-conclude-scan-daily",
+    { pattern: "0 9 * * *" },
+    {
+      name: "ab-test-conclude-scan-daily",
       data: { triggeredAt: new Date().toISOString() },
       opts: {
         attempts: 2,

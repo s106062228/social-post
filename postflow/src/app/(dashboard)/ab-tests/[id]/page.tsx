@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, FlaskConical, Trophy } from "lucide-react";
 import { ConcludeTestForm } from "./conclude-test-form";
+import { ABTestStatisticsPanel } from "@/components/ab-test-statistics-panel";
 
 interface InsightRow {
   impressions: number;
@@ -318,6 +319,9 @@ export default async function ABTestDetailPage({
           </CardContent>
         </Card>
       )}
+
+      {/* Statistical analysis */}
+      <ABTestStatisticsPanel testId={test.id} />
 
       {/* Conclude test */}
       {!test.winner && (
