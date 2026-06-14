@@ -2685,3 +2685,89 @@ Respond with valid JSON:
     return null;
   }
 }
+
+// ─── Phase 254: Product Caption Generator ────────────────────────────────────
+
+export interface ProductCaption {
+  platform: string;
+  caption: string;
+  tone: string;
+  charCount: number;
+}
+
+export interface ProductCaptionsResult {
+  captions: ProductCaption[];
+  keyMessages: string[];
+}
+
+const PRODUCT_CAPTION_SYSTEM = `You are an expert social media copywriter specializing in product and service promotions.
+Generate compelling, platform-optimized captions for products/services that drive engagement and conversions.
+Always respond with valid JSON in this exact format:
+{
+  "captions": [
+    {"platform": "FACEBOOK", "caption": "...", "tone": "..."},
+    {"platform": "INSTAGRAM", "caption": "...", "tone": "..."},
+    {"platform": "TWITTER", "caption": "...", "tone": "..."},
+    {"platform": "LINKEDIN", "caption": "...", "tone": "..."}
+  ],
+  "keyMessages": ["message1", "message2", "message3"]
+}
+Adapt caption length, tone, and style to each platform. Include relevant hashtags for Instagram and Twitter.
+keyMessages should be 2-4 core selling points extracted from the product description.`;
+
+export async function generateProductCaptions(
+  productName: string,
+  productDescription: string,
+  platforms: string[],
+  promotionType: "launch" | "sale" | "awareness" | "review" | "general",
+  targetAudience?: string
+): Promise<ProductCaptionsResult | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  const client = getClient();
+
+  const userMsg = `Product/Service: ${productName}
+Description: ${productDescription}
+Promotion Type: ${promotionType}
+Target Platforms: ${platforms.join(", ")}${targetAudience ? `\nTarget Audience: ${targetAudience}` : ""}
+
+Generate platform-optimized captions for each of these platforms: ${platforms.join(", ")}.
+Make the captions compelling and appropriate for the ${promotionType} promotion type.`;
+
+  try {
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 1500,
+      system: [
+        {
+          type: "text",
+          text: PRODUCT_CAPTION_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userMsg }],
+    });
+
+    const block = response.content.find((b) => b.type === "text");
+    const text = block && block.type === "text" ? block.text : "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    const parsed = JSON.parse(jsonMatch[0]) as Partial<ProductCaptionsResult & { captions: Array<{platform: string; caption: string; tone: string}> }>;
+    if (!Array.isArray(parsed.captions)) return null;
+
+    const captions: ProductCaption[] = parsed.captions
+      .filter((c) => platforms.includes(c.platform))
+      .map((c) => ({
+        platform: c.platform,
+        caption: c.caption ?? "",
+        tone: c.tone ?? "professional",
+        charCount: [...(c.caption ?? "")].length,
+      }));
+
+    return {
+      captions,
+      keyMessages: Array.isArray(parsed.keyMessages) ? parsed.keyMessages : [],
+    };
+  } catch {
+    return null;
+  }
+}
