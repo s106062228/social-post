@@ -35,6 +35,7 @@ import { dispatchSlackNotifications, type IntegrationEvent } from "@/lib/slack-n
 import { dispatchDiscordNotifications } from "@/lib/discord-notify";
 import { substituteVariables } from "@/lib/caption-variables";
 import { getSyndicationRulesForPlatform, applyTransformations, type SyndicationTransformations } from "@/lib/syndication";
+import { resolveDisclosure, addDisclosure } from "@/lib/disclosure";
 
 // ── Job payload types ──────────────────────────────────────────────────────────
 
@@ -106,6 +107,9 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<void> {
       firstComment: true,
       poll: true,
       language: true,
+      isSponsored: true,
+      sponsorName: true,
+      disclosureText: true,
     },
   });
   if (!post) {
@@ -173,8 +177,20 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<void> {
   });
 
   const rawContent = variant?.content ?? post.content;
-  const resolvedContent =
+  let resolvedContent =
     captionVars.length > 0 ? substituteVariables(rawContent, captionVars) : rawContent;
+
+  // Apply FTC disclosure for sponsored posts
+  if (post.isSponsored) {
+    const disclosure = resolveDisclosure(
+      post.sponsorName,
+      post.disclosureText,
+      account.platform
+    );
+    if (disclosure) {
+      resolvedContent = addDisclosure(resolvedContent, disclosure, "append");
+    }
+  }
 
   // Load thread items for Twitter threads
   let threadItems: { content: string; mediaUrls: string[]; mediaType: import("@prisma/client").MediaType }[] = [];

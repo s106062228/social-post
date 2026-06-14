@@ -329,6 +329,9 @@ model Post {
   language       String?
   contentCategory ContentCategory?
   altTexts       String[]
+  isSponsored    Boolean        @default(false)
+  sponsorName    String?
+  disclosureText String?
   archivedAt       DateTime?
   expiresAt        DateTime?
   recycleInterval  Int?
@@ -374,6 +377,7 @@ model Post {
   @@index([scheduledAt])
   @@index([status, scheduledAt])
   @@index([userId, archivedAt])
+  @@index([userId, isSponsored])
   @@index([userId, pillarId])
   @@index([expiresAt])
   @@index([isEvergreen, lastRecycledAt])

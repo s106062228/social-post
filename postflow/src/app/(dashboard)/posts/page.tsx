@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Archive, Download, Leaf, Plus, SmilePlus, Star, UserCheck } from "lucide-react";
+import { Archive, Download, Leaf, Megaphone, Plus, SmilePlus, Star, UserCheck } from "lucide-react";
 import { SearchInput } from "./search-input";
 import { PostsListClient } from "./posts-list-client";
 import { DateRangeFilter } from "./date-range-filter";
@@ -28,12 +28,12 @@ const PLATFORMS: Platform[] = [Platform.FACEBOOK, Platform.INSTAGRAM, Platform.T
 export default async function PostsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; page?: string; search?: string; tag?: string; from?: string; to?: string; platform?: string; starred?: string; evergreen?: string; sentiment?: string; archived?: string; assignee?: string; workflowStageId?: string; noStage?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; search?: string; tag?: string; from?: string; to?: string; platform?: string; starred?: string; evergreen?: string; sentiment?: string; archived?: string; sponsored?: string; assignee?: string; workflowStageId?: string; noStage?: string }>;
 }) {
   const session = await auth();
   const userId = session!.user!.id;
 
-  const { status: statusFilter, page: pageStr, search: searchQuery, tag: tagFilter, from: fromFilter, to: toFilter, platform: platformFilter, starred: starredFilter, evergreen: evergreenFilter, sentiment: sentimentFilter, archived: archivedFilter, assignee: assigneeFilter, workflowStageId: workflowStageIdFilter, noStage: noStageFilter } = await searchParams;
+  const { status: statusFilter, page: pageStr, search: searchQuery, tag: tagFilter, from: fromFilter, to: toFilter, platform: platformFilter, starred: starredFilter, evergreen: evergreenFilter, sentiment: sentimentFilter, archived: archivedFilter, sponsored: sponsoredFilter, assignee: assigneeFilter, workflowStageId: workflowStageIdFilter, noStage: noStageFilter } = await searchParams;
   const page = Math.max(1, parseInt(pageStr ?? "1", 10));
   const limit = 20;
   const skip = (page - 1) * limit;
@@ -44,6 +44,7 @@ export default async function PostsPage({
   const onlyStarred = starredFilter === "true";
   const onlyEvergreen = evergreenFilter === "true";
   const onlyArchived = archivedFilter === "true";
+  const onlySponsored = sponsoredFilter === "true";
   const onlyAssigned = assigneeFilter === "me";
   const SENTIMENTS = ["POSITIVE", "NEUTRAL", "NEGATIVE"] as const;
   type SentimentValue = typeof SENTIMENTS[number];
@@ -71,6 +72,7 @@ export default async function PostsPage({
     ...(onlyStarred ? { starred: true } : {}),
     ...(onlyEvergreen ? { isEvergreen: true } : {}),
     ...(sentimentEnum ? { sentiment: sentimentEnum } : {}),
+    ...(onlySponsored ? { isSponsored: true } : {}),
     ...(workflowStageIdFilter ? { workflowStageId: workflowStageIdFilter } : {}),
     ...(noStageFilter === "true" ? { workflowStageId: null } : {}),
   };
@@ -116,7 +118,7 @@ export default async function PostsPage({
     { value: "FAILED", label: "Failed" },
   ];
 
-  function buildHref(opts: { status?: string; page?: number; search?: string; tag?: string; platform?: string; starred?: string; evergreen?: string; sentiment?: string; archived?: string; assignee?: string }) {
+  function buildHref(opts: { status?: string; page?: number; search?: string; tag?: string; platform?: string; starred?: string; evergreen?: string; sentiment?: string; archived?: string; sponsored?: string; assignee?: string }) {
     const params = new URLSearchParams();
     const s = opts.status ?? statusFilter ?? "";
     if (s) params.set("status", s);
@@ -134,6 +136,8 @@ export default async function PostsPage({
     if (se) params.set("sentiment", se);
     const ar = opts.archived !== undefined ? opts.archived : (archivedFilter ?? "");
     if (ar) params.set("archived", ar);
+    const sp = opts.sponsored !== undefined ? opts.sponsored : (sponsoredFilter ?? "");
+    if (sp) params.set("sponsored", sp);
     const as = opts.assignee !== undefined ? opts.assignee : (assigneeFilter ?? "");
     if (as) params.set("assignee", as);
     if (fromFilter) params.set("from", fromFilter);
@@ -286,7 +290,18 @@ export default async function PostsPage({
           Archived
         </Link>
         <Link
-          href={buildHref({ assignee: onlyAssigned ? "" : "me", status: "", starred: "", evergreen: "", archived: "", sentiment: "", page: 1 })}
+          href={buildHref({ sponsored: onlySponsored ? "" : "true", status: "", starred: "", evergreen: "", archived: "", sentiment: "", assignee: "", page: 1 })}
+          className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+            onlySponsored
+              ? "bg-orange-500 text-white"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          }`}
+        >
+          <Megaphone className="h-3.5 w-3.5" />
+          Sponsored
+        </Link>
+        <Link
+          href={buildHref({ assignee: onlyAssigned ? "" : "me", status: "", starred: "", evergreen: "", archived: "", sentiment: "", sponsored: "", page: 1 })}
           className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
             onlyAssigned
               ? "bg-blue-500 text-white"
@@ -377,12 +392,13 @@ export default async function PostsPage({
       <Card>
         <CardHeader>
           <CardTitle>{total} post{total !== 1 ? "s" : ""}</CardTitle>
-          {(statusFilter || search || tagFilter || platformEnum || fromFilter || toFilter || onlyStarred || onlyEvergreen || sentimentEnum || onlyArchived || onlyAssigned) && (
+          {(statusFilter || search || tagFilter || platformEnum || fromFilter || toFilter || onlyStarred || onlyEvergreen || sentimentEnum || onlyArchived || onlySponsored || onlyAssigned) && (
             <CardDescription>
               {[
                 onlyStarred && "Starred only",
                 onlyEvergreen && "Evergreen only",
                 onlyArchived && "Archived only",
+                onlySponsored && "Sponsored only",
                 onlyAssigned && "Assigned to me",
                 sentimentEnum && `Sentiment: ${sentimentEnum.charAt(0) + sentimentEnum.slice(1).toLowerCase()}`,
                 statusFilter && `Status: ${statusFilter.toLowerCase()}`,

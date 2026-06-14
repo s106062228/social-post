@@ -53,6 +53,7 @@ const listPostsSchema = z.object({
   sentiment: z.enum(["POSITIVE", "NEUTRAL", "NEGATIVE"]).optional(),
   tone: z.enum(["professional", "casual", "humorous", "inspirational", "educational", "urgent", "friendly", "authoritative"]).optional(),
   archived: z.enum(["true", "false"]).optional(),
+  sponsored: z.enum(["true", "false"]).optional(),
   assignee: z.enum(["me"]).optional(),
   collectionId: z.string().optional(),
   workflowStageId: z.string().optional(),
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { status, search, tag, from, to, platform, starred, evergreen, sentiment, tone, archived, assignee, collectionId, workflowStageId, noStage, page, limit } = parsed.data;
+    const { status, search, tag, from, to, platform, starred, evergreen, sentiment, tone, archived, sponsored, assignee, collectionId, workflowStageId, noStage, page, limit } = parsed.data;
     const skip = (page - 1) * limit;
 
     // Extract customField[key]=value filters from raw search params
@@ -126,6 +127,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ...(evergreen === "true" ? { isEvergreen: true } : {}),
       ...(sentiment ? { sentiment } : {}),
       ...(tone ? { tone } : {}),
+      ...(sponsored === "true" ? { isSponsored: true } : {}),
       ...(collectionId
         ? { collections: { some: { collectionId } } }
         : {}),

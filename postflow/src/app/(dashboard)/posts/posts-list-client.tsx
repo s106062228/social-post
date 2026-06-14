@@ -36,6 +36,8 @@ import { BulkAutoTagButton } from "./bulk-auto-tag-button";
 import { BulkValidateButton } from "./bulk-validate-button";
 import { ExternalReviewDialog } from "@/components/external-review-dialog";
 import { AddToJournalButton } from "./add-to-journal-button";
+import { SponsorBadge } from "@/components/sponsor-badge";
+import { SponsorPostButton } from "./sponsor-post-button";
 import { computeScore, scoreLabel } from "@/lib/content-score";
 import { QualityScoreBadge } from "@/components/quality-score-badge";
 
@@ -75,6 +77,9 @@ export type PostListItem = {
   toneTraits: string[];
   archivedAt: Date | string | null;
   recycleInterval: number | null;
+  isSponsored: boolean;
+  sponsorName: string | null;
+  disclosureText: string | null;
   assigneeId: string | null;
   assignee: { id: string; name: string | null; email: string } | null;
   workflowStage: { id: string; name: string; color: string } | null;
@@ -346,6 +351,12 @@ export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
                   <QualityScoreBadge postId={post.id} />
                   <SentimentBadge sentiment={post.sentiment} />
                   {post.tone && <ToneBadge tone={post.tone} />}
+                  {post.isSponsored && (
+                    <SponsorBadge
+                      sponsorName={post.sponsorName}
+                      disclosureText={post.disclosureText}
+                    />
+                  )}
                   {post.scheduledAt && (
                     <span className="text-xs text-muted-foreground">
                       {post.status === "SCHEDULED"
@@ -387,6 +398,13 @@ export function PostsListClient({ posts, users = [] }: PostsListClientProps) {
                     users={users}
                   />
                 )}
+                <SponsorPostButton
+                  postId={post.id}
+                  initialIsSponsored={post.isSponsored}
+                  initialSponsorName={post.sponsorName}
+                  initialDisclosureText={post.disclosureText}
+                  onUpdate={() => router.refresh()}
+                />
                 <StarPostButton postId={post.id} initialStarred={post.starred} />
                 <EvergreenButton postId={post.id} initialEvergreen={post.isEvergreen} />
                 {post.isEvergreen && post.status === "PUBLISHED" && (
