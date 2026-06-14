@@ -35,6 +35,7 @@ import { HookGeneratorDialog } from "@/components/hook-generator-dialog";
 import { PostOptimizationDialog } from "@/components/post-optimization-dialog";
 import { VideoScriptDialog } from "@/components/video-script-dialog";
 import { ContentSeriesDialog } from "@/components/content-series-dialog";
+import { TextFormatterBar } from "@/components/text-formatter-bar";
 import type { PostOptimizationResult } from "@/lib/ai";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
@@ -1143,6 +1144,10 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
             </button>
           </div>
         </div>
+        <TextFormatterBar
+          content={content}
+          onApply={(newContent) => { setContent(newContent); setUtmTaggedCount(null); }}
+        />
         <Textarea
           id="content"
           placeholder="What do you want to share?"
