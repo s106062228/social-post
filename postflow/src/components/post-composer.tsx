@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap, ShoppingBag, HelpCircle, Palette } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap, ShoppingBag, HelpCircle, Palette, Target } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -38,6 +38,7 @@ import { ContentSeriesDialog } from "@/components/content-series-dialog";
 import { ProductCaptionDialog } from "@/components/product-caption-dialog";
 import { AudienceQuestionsDialog } from "@/components/audience-questions-dialog";
 import { StyleTransferDialog } from "@/components/style-transfer-dialog";
+import { EngagementCTADialog } from "@/components/engagement-cta-dialog";
 import { TextFormatterBar } from "@/components/text-formatter-bar";
 import type { PostOptimizationResult } from "@/lib/ai";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
@@ -237,6 +238,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
   // Style Transfer dialog state
   const [showStyleTransferDialog, setShowStyleTransferDialog] = useState(false);
+
+  // Engagement CTA dialog state
+  const [showEngagementCTADialog, setShowEngagementCTADialog] = useState(false);
 
   // Optimize dialog state
   const [showOptimizeDialog, setShowOptimizeDialog] = useState(false);
@@ -1127,6 +1131,15 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
               <Palette className="h-3 w-3" />
               Style
             </button>
+            <button
+              type="button"
+              onClick={() => setShowEngagementCTADialog(true)}
+              disabled={!content.trim()}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:pointer-events-none disabled:opacity-50"
+            >
+              <Target className="h-3 w-3" />
+              CTA
+            </button>
             <GrammarCheckButton
               content={content}
               onApply={(newContent) => setContent(newContent)}
@@ -1406,6 +1419,16 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         content={content}
         platforms={selectedPlatforms}
         onApply={(newContent) => setContent(newContent)}
+      />
+
+      {/* Engagement CTA Dialog */}
+      <EngagementCTADialog
+        open={showEngagementCTADialog}
+        onClose={() => setShowEngagementCTADialog(false)}
+        content={content}
+        platforms={selectedPlatforms}
+        onAppendCTA={(cta) => setContent((prev) => prev.trim() ? `${prev.trim()}\n\n${cta}` : cta)}
+        onPrependHook={(hook) => setContent((prev) => prev.trim() ? `${hook}\n\n${prev.trim()}` : hook)}
       />
 
       {/* First comment — shown when Facebook or Instagram accounts are selected */}

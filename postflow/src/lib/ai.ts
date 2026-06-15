@@ -2946,3 +2946,109 @@ Rewrite this post in the requested style. Preserve hashtags and mentions. Return
     return null;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Phase 260: AI-Powered Engagement CTA & Hook Generator
+// ---------------------------------------------------------------------------
+
+export interface EngagementCTA {
+  text: string;
+  type: string;
+  platform?: string;
+  engagementBoost: "low" | "medium" | "high";
+  explanation: string;
+}
+
+export interface EngagementCTAResult {
+  ctas: EngagementCTA[];
+  hook: string;
+}
+
+const ENGAGEMENT_CTA_SYSTEM = `You are an expert social media engagement strategist. Your role is to generate compelling calls-to-action (CTAs) and engagement hooks for social media posts.
+
+For each CTA you generate:
+- Make it natural and conversational, not salesy
+- Tailor it to the platform(s) and content
+- Focus on driving genuine engagement (comments, shares, saves, follows)
+- Keep CTAs concise — 1-2 sentences max
+
+For the hook:
+- Create a compelling opening line that grabs attention immediately
+- Use proven hook formats: bold statements, surprising facts, relatable scenarios, or provocative questions
+
+Always respond with valid JSON in this exact format:
+{
+  "ctas": [
+    {
+      "text": "the CTA text to append",
+      "type": "question|challenge|poll|share|comment|save|follow|link|general",
+      "platform": "optional: INSTAGRAM|TWITTER|FACEBOOK|etc or omit for all",
+      "engagementBoost": "low|medium|high",
+      "explanation": "why this CTA works"
+    }
+  ],
+  "hook": "a single compelling opening line to prepend to the post"
+}
+
+Generate exactly 5 CTAs.`;
+
+export async function generateEngagementCTAs(
+  content: string,
+  platforms: string[],
+  ctaType?: string
+): Promise<EngagementCTAResult | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  const client = getClient();
+
+  const typeInstruction = ctaType && ctaType !== "general"
+    ? `Focus specifically on "${ctaType}" type CTAs.`
+    : "Mix different CTA types for variety.";
+
+  const userMsg = `Platforms: ${platforms.join(", ")}
+${typeInstruction}
+
+Post Content:
+${content}
+
+Generate 5 engagement CTAs and 1 hook for this post. Return valid JSON.`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 1024,
+    system: [
+      {
+        type: "text",
+        text: ENGAGEMENT_CTA_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [{ role: "user", content: userMsg }],
+  });
+
+  try {
+    const block = response.content.find((b) => b.type === "text");
+    const text = block && block.type === "text" ? block.text : "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    const parsed = JSON.parse(jsonMatch[0]) as Partial<EngagementCTAResult>;
+    if (!Array.isArray(parsed.ctas)) return null;
+
+    const validBoosts = new Set<string>(["low", "medium", "high"]);
+    const ctas: EngagementCTA[] = parsed.ctas.map((c) => ({
+      text: c.text ?? "",
+      type: c.type ?? "general",
+      platform: c.platform,
+      engagementBoost: validBoosts.has(c.engagementBoost ?? "")
+        ? (c.engagementBoost as "low" | "medium" | "high")
+        : "medium",
+      explanation: c.explanation ?? "",
+    }));
+
+    return {
+      ctas,
+      hook: parsed.hook ?? "",
+    };
+  } catch {
+    return null;
+  }
+}
