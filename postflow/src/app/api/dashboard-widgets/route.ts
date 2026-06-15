@@ -43,6 +43,7 @@ export const WIDGET_KEYS = [
   "reputation_score",
   "trending_topics",
   "engagement_milestones",
+  "tag_performance",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -92,6 +93,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   reputation_score: "Brand Reputation Score",
   trending_topics: "Trending Topic Discovery",
   engagement_milestones: "Engagement Milestones",
+  tag_performance: "Tag Performance Analytics",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {
