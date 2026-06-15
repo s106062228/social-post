@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap, ShoppingBag, HelpCircle } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap, ShoppingBag, HelpCircle, Palette } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -37,6 +37,7 @@ import { VideoScriptDialog } from "@/components/video-script-dialog";
 import { ContentSeriesDialog } from "@/components/content-series-dialog";
 import { ProductCaptionDialog } from "@/components/product-caption-dialog";
 import { AudienceQuestionsDialog } from "@/components/audience-questions-dialog";
+import { StyleTransferDialog } from "@/components/style-transfer-dialog";
 import { TextFormatterBar } from "@/components/text-formatter-bar";
 import type { PostOptimizationResult } from "@/lib/ai";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
@@ -233,6 +234,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
   // Audience Q&A dialog state
   const [showAudienceQuestionsDialog, setShowAudienceQuestionsDialog] = useState(false);
+
+  // Style Transfer dialog state
+  const [showStyleTransferDialog, setShowStyleTransferDialog] = useState(false);
 
   // Optimize dialog state
   const [showOptimizeDialog, setShowOptimizeDialog] = useState(false);
@@ -1114,6 +1118,15 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
               <HelpCircle className="h-3 w-3" />
               Q&amp;A
             </button>
+            <button
+              type="button"
+              onClick={() => setShowStyleTransferDialog(true)}
+              disabled={!content.trim()}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:pointer-events-none disabled:opacity-50"
+            >
+              <Palette className="h-3 w-3" />
+              Style
+            </button>
             <GrammarCheckButton
               content={content}
               onApply={(newContent) => setContent(newContent)}
@@ -1384,6 +1397,15 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         onClose={() => setShowAudienceQuestionsDialog(false)}
         platforms={selectedPlatforms}
         onApply={(post) => setContent(post)}
+      />
+
+      {/* Style Transfer Dialog */}
+      <StyleTransferDialog
+        open={showStyleTransferDialog}
+        onClose={() => setShowStyleTransferDialog(false)}
+        content={content}
+        platforms={selectedPlatforms}
+        onApply={(newContent) => setContent(newContent)}
       />
 
       {/* First comment — shown when Facebook or Instagram accounts are selected */}

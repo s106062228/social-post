@@ -2853,3 +2853,96 @@ Focus on questions that would get high engagement and educate the audience.`;
     return null;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Phase 259: AI Caption Style Transfer
+// ---------------------------------------------------------------------------
+
+export type StyleTransferStyle =
+  | "casual"
+  | "professional"
+  | "concise"
+  | "engaging"
+  | "humorous"
+  | "inspirational"
+  | "educational";
+
+export interface StyleTransferResult {
+  styledContent: string;
+  changes: string[];
+  styleName: string;
+}
+
+const STYLE_DESCRIPTIONS: Record<StyleTransferStyle, string> = {
+  casual: "Casual & Conversational — relaxed language, contractions, approachable tone",
+  professional: "Professional & Formal — polished, authoritative, business-appropriate",
+  concise: "Short & Punchy — trimmed to essentials, high impact, no fluff",
+  engaging: "High-Engagement — strong hooks, calls-to-action, questions to prompt interaction",
+  humorous: "Humorous & Light-hearted — wit, wordplay, relatable humor",
+  inspirational: "Inspirational & Motivational — uplifting tone, empowering language",
+  educational: "Educational & Informative — clear explanations, teach the audience something",
+};
+
+const STYLE_TRANSFER_SYSTEM = `You are an expert social media copywriter specializing in adapting content to different tones and styles.
+Rewrite the provided social media post in the requested style while:
+- Preserving the core message and key information
+- Keeping all hashtags intact (you may reposition them)
+- Keeping @mentions intact
+- Respecting platform character limits when mentioned
+- Making the style change authentic and natural
+
+Always respond with valid JSON in this exact format:
+{
+  "styledContent": "the rewritten post content",
+  "changes": ["change 1 description", "change 2 description"],
+  "styleName": "human readable style name"
+}
+
+The "changes" array should list 2-4 specific things you changed (e.g. "Replaced formal language with contractions", "Added a CTA at the end").`;
+
+export async function styleTransferContent(
+  content: string,
+  targetStyle: StyleTransferStyle,
+  platforms: string[]
+): Promise<StyleTransferResult | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  const client = getClient();
+
+  const styleDesc = STYLE_DESCRIPTIONS[targetStyle];
+  const userMsg = `Target Style: ${styleDesc}
+Platforms: ${platforms.join(", ")}
+
+Original Post:
+${content}
+
+Rewrite this post in the requested style. Preserve hashtags and mentions. Return valid JSON.`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 1024,
+    system: [
+      {
+        type: "text",
+        text: STYLE_TRANSFER_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [{ role: "user", content: userMsg }],
+  });
+
+  try {
+    const block = response.content.find((b) => b.type === "text");
+    const text = block && block.type === "text" ? block.text : "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    const parsed = JSON.parse(jsonMatch[0]) as Partial<StyleTransferResult>;
+    if (!parsed.styledContent) return null;
+    return {
+      styledContent: parsed.styledContent,
+      changes: Array.isArray(parsed.changes) ? parsed.changes : [],
+      styleName: parsed.styleName ?? targetStyle,
+    };
+  } catch {
+    return null;
+  }
+}
