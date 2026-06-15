@@ -91,7 +91,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Track unique post IDs across all tags
     const uniquePostIds = new Set<string>();
-    postTags.forEach((pt) => uniquePostIds.add(pt.postId));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    postTags.forEach((pt: any) => uniquePostIds.add(pt.postId as string));
 
     // Aggregate per tag
     const tagMap = new Map<
