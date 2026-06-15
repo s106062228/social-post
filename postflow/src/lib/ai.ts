@@ -3307,3 +3307,86 @@ export async function getWritingCoachFeedback(
     return null;
   }
 }
+
+// ── Image Prompt Generator ────────────────────────────────────────────────────
+
+export interface ImagePromptResult {
+  platform: string;
+  prompt: string;
+  negativePrompt: string;
+  aspectRatio: string;
+  style: string;
+  keyElements: string[];
+  colorPalette: string[];
+  mood: string;
+}
+
+const IMAGE_PROMPT_SYSTEM = `You are a creative director and AI image generation expert. Generate detailed, platform-optimized image creation prompts for social media posts.
+Always respond with valid JSON in this exact format:
+{"prompts": [{"platform": "PLATFORM_NAME", "prompt": "detailed prompt for AI image generation", "negativePrompt": "what to avoid", "aspectRatio": "1:1", "style": "photorealistic", "keyElements": ["element1", "element2"], "colorPalette": ["#color1", "#color2"], "mood": "professional"}]}
+
+Platform aspect ratios:
+- INSTAGRAM: 1:1 or 4:5
+- FACEBOOK: 1.91:1
+- TWITTER: 16:9
+- LINKEDIN: 1.91:1
+- PINTEREST: 2:3
+- TIKTOK: 9:16
+- THREADS: 1:1
+- BLUESKY: 1:1
+- MASTODON: 1:1
+- default: 1:1
+
+Generate compelling, specific image prompts that work well with AI image generators like Midjourney or DALL-E 3.
+Include photographic or artistic style details, lighting, composition, and mood descriptors.
+Keep prompts under 300 words each. Make prompts vivid and specific.
+colorPalette should be 2-4 hex color codes that fit the brand/mood.
+keyElements should be 3-5 key visual subjects/objects to include.`;
+
+export async function generateImagePrompts(
+  content: string,
+  platforms: string[],
+  style?: string | null,
+  mood?: string | null
+): Promise<ImagePromptResult[]> {
+  const client = getClient();
+  let userMessage = `Post content:\n${content}\n\nTarget platforms: ${platforms.join(", ")}`;
+  if (style) userMessage += `\nPreferred style: ${style}`;
+  if (mood) userMessage += `\nPreferred mood: ${mood}`;
+  userMessage += `\n\nGenerate image prompts optimized for each platform.`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 2048,
+    system: [
+      {
+        type: "text",
+        text: IMAGE_PROMPT_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [{ role: "user", content: userMessage }],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as { prompts?: unknown };
+    const prompts = parsed.prompts;
+    if (
+      Array.isArray(prompts) &&
+      prompts.every(
+        (p) =>
+          typeof p === "object" &&
+          p !== null &&
+          typeof (p as Record<string, unknown>).platform === "string" &&
+          typeof (p as Record<string, unknown>).prompt === "string"
+      )
+    ) {
+      return prompts as ImagePromptResult[];
+    }
+  } catch {
+    // fall through
+  }
+  return [];
+}
