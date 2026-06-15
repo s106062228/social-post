@@ -3183,3 +3183,127 @@ Check for all relevant legal and regulatory compliance issues and return valid J
     return null;
   }
 }
+
+// ── Writing Coach ───────────────────────────────────────────────────────────────
+
+export type WritingCoachCategory =
+  | "clarity"
+  | "engagement"
+  | "platform"
+  | "tone"
+  | "cta";
+
+export type WritingCoachImpact = "high" | "medium" | "low";
+
+export interface WritingCoachImprovement {
+  category: WritingCoachCategory;
+  suggestion: string;
+  impact: WritingCoachImpact;
+}
+
+export interface WritingCoachFeedback {
+  score: number;
+  summary: string;
+  improvements: WritingCoachImprovement[];
+}
+
+const WRITING_COACH_SYSTEM = `You are an expert social media writing coach. Analyze post content and provide actionable improvement suggestions to maximize engagement, clarity, and platform fit.
+
+Always respond with valid JSON in this exact format:
+{
+  "score": 75,
+  "summary": "Brief overall assessment in 1-2 sentences.",
+  "improvements": [
+    {
+      "category": "clarity",
+      "suggestion": "Specific actionable suggestion",
+      "impact": "high"
+    }
+  ]
+}
+
+Score (0-100): Rate the overall writing quality and engagement potential.
+Categories: "clarity" (readability), "engagement" (hooks, emotion, interaction), "platform" (platform-specific optimization), "tone" (voice consistency), "cta" (call-to-action effectiveness).
+Impact: "high" (must fix), "medium" (should fix), "low" (nice to have).
+Provide 2-5 improvements maximum. Sort by impact descending.`;
+
+export async function getWritingCoachFeedback(
+  content: string,
+  platforms: string[],
+  tone?: string
+): Promise<WritingCoachFeedback | null> {
+  const client = getClient();
+
+  const platformList = platforms.join(", ");
+  const toneHint = tone ? `\nTarget tone: ${tone}` : "";
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 512,
+    system: [
+      {
+        type: "text",
+        text: WRITING_COACH_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: `Analyze this social media post for platforms: ${platformList}${toneHint}\n\nPost content:\n${content}`,
+      },
+    ],
+  });
+
+  try {
+    const block = response.content.find((b) => b.type === "text");
+    const text = block && block.type === "text" ? block.text : "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+
+    const parsed = JSON.parse(jsonMatch[0]) as {
+      score?: unknown;
+      summary?: unknown;
+      improvements?: unknown[];
+    };
+
+    const validCategories = new Set<string>([
+      "clarity",
+      "engagement",
+      "platform",
+      "tone",
+      "cta",
+    ]);
+    const validImpacts = new Set<string>(["high", "medium", "low"]);
+
+    const score =
+      typeof parsed.score === "number"
+        ? Math.max(0, Math.min(100, Math.round(parsed.score)))
+        : 50;
+    const summary =
+      typeof parsed.summary === "string" ? parsed.summary : "";
+    const improvements: WritingCoachImprovement[] = Array.isArray(
+      parsed.improvements
+    )
+      ? parsed.improvements
+          .filter(
+            (i): i is Record<string, unknown> =>
+              i !== null && typeof i === "object"
+          )
+          .map((i) => ({
+            category: validCategories.has(String(i.category))
+              ? (i.category as WritingCoachCategory)
+              : "clarity",
+            suggestion: typeof i.suggestion === "string" ? i.suggestion : "",
+            impact: validImpacts.has(String(i.impact))
+              ? (i.impact as WritingCoachImpact)
+              : "medium",
+          }))
+          .filter((i) => i.suggestion.length > 0)
+      : [];
+
+    return { score, summary, improvements };
+  } catch {
+    return null;
+  }
+}

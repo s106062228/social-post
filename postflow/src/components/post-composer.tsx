@@ -41,6 +41,7 @@ import { StyleTransferDialog } from "@/components/style-transfer-dialog";
 import { EngagementCTADialog } from "@/components/engagement-cta-dialog";
 import { LegalComplianceDialog } from "@/components/legal-compliance-dialog";
 import { TextFormatterBar } from "@/components/text-formatter-bar";
+import { WritingCoachPanel } from "@/components/writing-coach-panel";
 import type { PostOptimizationResult } from "@/lib/ai";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
 import { tagContentUrls, extractUrls, type UtmParams } from "@/lib/utm";
@@ -1228,6 +1229,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         <DuplicateWarning content={content} />
         <BrandComplianceIndicator content={content} />
         <ContentModerationBadge content={content} />
+        <WritingCoachPanel content={content} platforms={selectedPlatforms} />
         <PerformancePredictionCard content={content} platforms={selectedPlatforms} />
         <LinkPreviewCard content={content} />
         <BrandGuidelinesPanel />
