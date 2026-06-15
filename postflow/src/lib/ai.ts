@@ -3052,3 +3052,134 @@ Generate 5 engagement CTAs and 1 hook for this post. Return valid JSON.`;
     return null;
   }
 }
+
+// ─── Legal & Regulatory Compliance Checker ────────────────────────────────────
+
+export type LegalIssueSeverity = "low" | "medium" | "high";
+
+export interface LegalIssue {
+  type: string;
+  severity: LegalIssueSeverity;
+  regulation: string;
+  description: string;
+  suggestion: string;
+}
+
+export interface LegalComplianceResult {
+  compliant: boolean;
+  issues: LegalIssue[];
+  overallRisk: "low" | "medium" | "high";
+  summary: string;
+}
+
+const LEGAL_COMPLIANCE_SYSTEM = `You are a legal and regulatory compliance expert specialising in social media marketing. Your role is to analyze social media post content for potential legal and regulatory compliance issues.
+
+You check for:
+1. FTC disclosure requirements (paid partnerships, sponsored content, affiliate links, endorsements)
+2. Medical/health claims (unverified health claims, miracle cures, FDA-regulated statements)
+3. Financial advice issues (investment advice without disclaimers, promises of returns)
+4. Privacy & GDPR concerns (collecting personal data, tracking mentions)
+5. Intellectual property risks (copyright infringement, trademark issues)
+6. Contest & sweepstakes rules (must include official rules, no purchase necessary)
+7. Age-restricted content (alcohol, gambling, adult content) missing age gates/disclaimers
+8. Environmental/greenwashing claims (unsubstantiated eco-friendly claims)
+9. Platform policy violations (platform-specific advertising policies)
+10. Competitor disparagement (false claims about competitors)
+
+Severity levels:
+- "low": minor concern, good to fix but not urgent
+- "medium": regulatory risk, should address before publishing
+- "high": significant legal exposure, must address before publishing
+
+Overall risk:
+- "low": no issues or only low-severity issues
+- "medium": at least one medium-severity issue
+- "high": at least one high-severity issue
+
+Always respond with valid JSON in this exact format:
+{
+  "compliant": true/false,
+  "issues": [
+    {
+      "type": "ftc_disclosure|health_claim|financial_advice|privacy|copyright|contest_rules|age_restriction|greenwashing|platform_policy|competitor_claim",
+      "severity": "low|medium|high",
+      "regulation": "Name of relevant regulation or guideline",
+      "description": "What the specific issue is",
+      "suggestion": "How to fix it"
+    }
+  ],
+  "overallRisk": "low|medium|high",
+  "summary": "A 1-2 sentence overall assessment"
+}
+
+If there are no issues, return compliant: true, empty issues array, overallRisk: "low", and a positive summary.`;
+
+export async function checkLegalCompliance(
+  content: string,
+  industry: string,
+  platforms: string[],
+  country?: string
+): Promise<LegalComplianceResult | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  const client = getClient();
+
+  const countryCtx = country ? `Country/region: ${country}` : "Country/region: United States (default)";
+
+  const userMsg = `Analyze the following social media post for legal and regulatory compliance issues.
+
+Industry: ${industry}
+Platforms: ${platforms.join(", ")}
+${countryCtx}
+
+Post Content:
+${content}
+
+Check for all relevant legal and regulatory compliance issues and return valid JSON.`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 1024,
+    system: [
+      {
+        type: "text",
+        text: LEGAL_COMPLIANCE_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [{ role: "user", content: userMsg }],
+  });
+
+  try {
+    const block = response.content.find((b) => b.type === "text");
+    const text = block && block.type === "text" ? block.text : "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    const parsed = JSON.parse(jsonMatch[0]) as Partial<LegalComplianceResult>;
+
+    const validSeverities = new Set<string>(["low", "medium", "high"]);
+    const validRisks = new Set<string>(["low", "medium", "high"]);
+
+    const issues: LegalIssue[] = Array.isArray(parsed.issues)
+      ? parsed.issues.map((i) => ({
+          type: (i as LegalIssue).type ?? "unknown",
+          severity: validSeverities.has((i as LegalIssue).severity ?? "")
+            ? ((i as LegalIssue).severity as LegalIssueSeverity)
+            : "medium",
+          regulation: (i as LegalIssue).regulation ?? "",
+          description: (i as LegalIssue).description ?? "",
+          suggestion: (i as LegalIssue).suggestion ?? "",
+        }))
+      : [];
+
+    return {
+      compliant: typeof parsed.compliant === "boolean" ? parsed.compliant : issues.length === 0,
+      issues,
+      overallRisk: validRisks.has(parsed.overallRisk ?? "")
+        ? (parsed.overallRisk as "low" | "medium" | "high")
+        : "low",
+      summary: parsed.summary ?? "",
+    };
+  } catch {
+    return null;
+  }
+}

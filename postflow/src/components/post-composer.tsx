@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap, ShoppingBag, HelpCircle, Palette, Target } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap, ShoppingBag, HelpCircle, Palette, Target, Scale } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -39,6 +39,7 @@ import { ProductCaptionDialog } from "@/components/product-caption-dialog";
 import { AudienceQuestionsDialog } from "@/components/audience-questions-dialog";
 import { StyleTransferDialog } from "@/components/style-transfer-dialog";
 import { EngagementCTADialog } from "@/components/engagement-cta-dialog";
+import { LegalComplianceDialog } from "@/components/legal-compliance-dialog";
 import { TextFormatterBar } from "@/components/text-formatter-bar";
 import type { PostOptimizationResult } from "@/lib/ai";
 import { isContentOverLimitForAny } from "@/lib/character-limits";
@@ -241,6 +242,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
   // Engagement CTA dialog state
   const [showEngagementCTADialog, setShowEngagementCTADialog] = useState(false);
+
+  // Legal compliance dialog state
+  const [showLegalComplianceDialog, setShowLegalComplianceDialog] = useState(false);
 
   // Optimize dialog state
   const [showOptimizeDialog, setShowOptimizeDialog] = useState(false);
@@ -1140,6 +1144,15 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
               <Target className="h-3 w-3" />
               CTA
             </button>
+            <button
+              type="button"
+              onClick={() => setShowLegalComplianceDialog(true)}
+              disabled={!content.trim()}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:pointer-events-none disabled:opacity-50"
+            >
+              <Scale className="h-3 w-3" />
+              Legal
+            </button>
             <GrammarCheckButton
               content={content}
               onApply={(newContent) => setContent(newContent)}
@@ -1429,6 +1442,14 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         platforms={selectedPlatforms}
         onAppendCTA={(cta) => setContent((prev) => prev.trim() ? `${prev.trim()}\n\n${cta}` : cta)}
         onPrependHook={(hook) => setContent((prev) => prev.trim() ? `${hook}\n\n${prev.trim()}` : hook)}
+      />
+
+      {/* Legal Compliance Dialog */}
+      <LegalComplianceDialog
+        open={showLegalComplianceDialog}
+        onClose={() => setShowLegalComplianceDialog(false)}
+        content={content}
+        platforms={selectedPlatforms}
       />
 
       {/* First comment — shown when Facebook or Instagram accounts are selected */}
