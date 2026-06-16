@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap, ShoppingBag, HelpCircle, Palette, Target, Scale, ImageIcon } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap, ShoppingBag, HelpCircle, Palette, Target, Scale, ImageIcon, GalleryHorizontal } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -41,6 +41,7 @@ import { StyleTransferDialog } from "@/components/style-transfer-dialog";
 import { EngagementCTADialog } from "@/components/engagement-cta-dialog";
 import { LegalComplianceDialog } from "@/components/legal-compliance-dialog";
 import { ImagePromptsDialog } from "@/components/image-prompts-dialog";
+import { CarouselContentDialog } from "@/components/carousel-content-dialog";
 import { TextFormatterBar } from "@/components/text-formatter-bar";
 import { WritingCoachPanel } from "@/components/writing-coach-panel";
 import type { PostOptimizationResult } from "@/lib/ai";
@@ -250,6 +251,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
   // Image prompts dialog state
   const [showImagePromptsDialog, setShowImagePromptsDialog] = useState(false);
+
+  // Carousel content dialog state
+  const [showCarouselDialog, setShowCarouselDialog] = useState(false);
 
   // Optimize dialog state
   const [showOptimizeDialog, setShowOptimizeDialog] = useState(false);
@@ -1167,6 +1171,14 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
               <ImageIcon className="h-3 w-3" />
               Image
             </button>
+            <button
+              type="button"
+              onClick={() => setShowCarouselDialog(true)}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <GalleryHorizontal className="h-3 w-3" />
+              Carousel
+            </button>
             <GrammarCheckButton
               content={content}
               onApply={(newContent) => setContent(newContent)}
@@ -1472,6 +1484,13 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         onClose={() => setShowImagePromptsDialog(false)}
         content={content}
         selectedPlatforms={selectedPlatforms.map((p) => String(p))}
+      />
+
+      <CarouselContentDialog
+        open={showCarouselDialog}
+        onClose={() => setShowCarouselDialog(false)}
+        selectedPlatforms={selectedPlatforms.map((p) => String(p))}
+        onApply={(c) => setContent(c)}
       />
 
       {/* First comment — shown when Facebook or Instagram accounts are selected */}

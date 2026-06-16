@@ -3390,3 +3390,81 @@ export async function generateImagePrompts(
   }
   return [];
 }
+
+export interface CarouselSlide {
+  slideNumber: number;
+  headline: string;
+  bodyText: string;
+  visualDescription: string;
+  keyTakeaway: string;
+}
+
+export interface CarouselContent {
+  title: string;
+  coverSlide: { headline: string; subtitle: string };
+  slides: CarouselSlide[];
+  closingSlide: { cta: string; hashtags: string[] };
+}
+
+const CAROUSEL_SYSTEM = `You are a social media carousel content strategist. Generate structured, engaging carousel/slide-deck content for social media platforms.
+Always respond with valid JSON in this exact format:
+{
+  "title": "Overall carousel title",
+  "coverSlide": { "headline": "Attention-grabbing headline", "subtitle": "Brief subtitle or hook" },
+  "slides": [
+    {
+      "slideNumber": 1,
+      "headline": "Slide headline (max 10 words)",
+      "bodyText": "Main content for this slide (2-4 sentences)",
+      "visualDescription": "Description of ideal image/graphic for this slide",
+      "keyTakeaway": "One-line takeaway for this slide"
+    }
+  ],
+  "closingSlide": { "cta": "Call-to-action text", "hashtags": ["#hashtag1", "#hashtag2"] }
+}
+Make each slide self-contained but part of a cohesive narrative. Keep headlines punchy, body text informative, and visual descriptions specific.`;
+
+export async function generateCarouselContent(
+  topic: string,
+  slideCount: number,
+  platforms: string[],
+  tone?: string | null,
+  audience?: string | null
+): Promise<CarouselContent | null> {
+  const client = getClient();
+  let userMessage = `Topic: ${topic}\nNumber of content slides: ${slideCount}\nPlatforms: ${platforms.join(", ")}`;
+  if (tone) userMessage += `\nTone: ${tone}`;
+  if (audience) userMessage += `\nTarget audience: ${audience}`;
+  userMessage += `\n\nGenerate a complete carousel with ${slideCount} content slides (plus cover and closing slides).`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 3000,
+    system: [
+      {
+        type: "text",
+        text: CAROUSEL_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [{ role: "user", content: userMessage }],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const text = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(text) as CarouselContent;
+    if (
+      typeof parsed.title === "string" &&
+      parsed.coverSlide &&
+      Array.isArray(parsed.slides) &&
+      parsed.slides.length > 0 &&
+      parsed.closingSlide
+    ) {
+      return parsed;
+    }
+  } catch {
+    // fall through
+  }
+  return null;
+}
