@@ -3468,3 +3468,101 @@ export async function generateCarouselContent(
   }
   return null;
 }
+
+// ── Newsletter Draft ──────────────────────────────────────────────────────────
+
+export interface NewsletterSection {
+  headline: string;
+  excerpt: string;
+  platform: string;
+  content: string;
+}
+
+export interface NewsletterDraft {
+  subject: string;
+  intro: string;
+  sections: NewsletterSection[];
+  keyTakeaways: string[];
+  conclusion: string;
+  estimatedReadTime: number;
+}
+
+const NEWSLETTER_SYSTEM = `You are an expert email newsletter writer. You compile social media posts into a cohesive, engaging email newsletter.
+Always respond with valid JSON matching this exact structure:
+{
+  "subject": "Compelling email subject line",
+  "intro": "Opening paragraph introducing this edition of the newsletter",
+  "sections": [
+    {
+      "headline": "Section headline",
+      "excerpt": "Brief 1-2 sentence summary of the post",
+      "platform": "Platform name",
+      "content": "Expanded version of the post content suitable for email"
+    }
+  ],
+  "keyTakeaways": ["Key insight 1", "Key insight 2", "Key insight 3"],
+  "conclusion": "Closing paragraph with a call to action",
+  "estimatedReadTime": 3
+}
+Each section should feature one social media post. The keyTakeaways should synthesize the main insights across all posts.
+The estimatedReadTime should be a number in minutes.`;
+
+export async function generateNewsletterDraft(
+  posts: { content: string; platform: string; publishedAt?: string }[],
+  periodLabel: string,
+  tone?: string | null,
+  customIntro?: string | null
+): Promise<NewsletterDraft | null> {
+  const client = getClient();
+
+  const postSummaries = posts
+    .slice(0, 20)
+    .map(
+      (p, i) =>
+        `Post ${i + 1} (${p.platform}${p.publishedAt ? `, ${p.publishedAt}` : ""}):\n${p.content}`
+    )
+    .join("\n\n---\n\n");
+
+  let userMessage = `Create a newsletter for the period: ${periodLabel}\n\n`;
+  if (tone) userMessage += `Tone: ${tone}\n`;
+  if (customIntro) userMessage += `Custom intro context: ${customIntro}\n`;
+  userMessage += `\nSocial media posts to compile:\n\n${postSummaries}`;
+  userMessage += `\n\nGenerate a cohesive newsletter that highlights the key content from these posts.`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 3000,
+    system: [
+      {
+        type: "text",
+        text: NEWSLETTER_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [{ role: "user", content: userMessage }],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const rawText = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(rawText) as NewsletterDraft;
+    if (
+      typeof parsed.subject === "string" &&
+      typeof parsed.intro === "string" &&
+      Array.isArray(parsed.sections) &&
+      Array.isArray(parsed.keyTakeaways) &&
+      typeof parsed.conclusion === "string"
+    ) {
+      return {
+        ...parsed,
+        estimatedReadTime:
+          typeof parsed.estimatedReadTime === "number"
+            ? parsed.estimatedReadTime
+            : Math.max(1, Math.ceil(posts.length * 0.5)),
+      };
+    }
+  } catch {
+    // fall through
+  }
+  return null;
+}

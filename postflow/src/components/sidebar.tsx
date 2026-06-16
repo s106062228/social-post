@@ -55,6 +55,7 @@ import {
   Camera,
   CheckSquare,
   Newspaper,
+  MailOpen,
   StickyNote,
   Share2,
   ShieldCheck,
@@ -168,6 +169,7 @@ const navItems = [
   { href: "/profile-optimizer", label: "Profile Optimizer", icon: Target },
   { href: "/contests", label: "Contests", icon: Trophy },
   { href: "/autopilot", label: "Autopilot", icon: Bot },
+  { href: "/newsletter", label: "Newsletter", icon: MailOpen },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
