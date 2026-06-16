@@ -59,6 +59,7 @@ import { TrendingTopicsCard } from "@/components/trending-topics-card";
 import { EngagementMilestonesCard } from "@/components/engagement-milestones-card";
 import { TagPerformanceCard } from "@/components/tag-performance-card";
 import { PublishingStreakCard } from "@/components/publishing-streak-card";
+import { ContentHealthCard } from "@/components/content-health-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -649,6 +650,9 @@ export function AnalyticsDashboard() {
 
       {/* Publishing Streak */}
       {isVisible("publishing_streak") && <PublishingStreakCard />}
+
+      {/* Content Health Dashboard */}
+      {isVisible("content_health") && <ContentHealthCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
