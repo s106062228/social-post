@@ -233,7 +233,11 @@ describe("GET /api/analytics/scheduling-analytics", () => {
     // FACEBOOK appears in both posts' publishResults (2+1=3), INSTAGRAM once
     const fbEntry = data.platformBalance.find((p) => p.platform === "FACEBOOK");
     expect(fbEntry).toBeDefined();
-    expect(fbEntry?.count).toBe(3);
+    // FACEBOOK appears in both posts' publishResults: 1 + 1 = 2
+    expect(fbEntry?.count).toBe(2);
+    const igEntry = data.platformBalance.find((p) => p.platform === "INSTAGRAM");
+    expect(igEntry).toBeDefined();
+    expect(igEntry?.count).toBe(1);
     // platformBalance sorted by count desc
     expect(data.platformBalance[0].count).toBeGreaterThanOrEqual(data.platformBalance[1]?.count ?? 0);
   });
