@@ -22,6 +22,7 @@ import { ScheduleConflictBanner } from "@/components/schedule-conflict-banner";
 import { BulkGenerateButton } from "./bulk-generate-button";
 import { ScheduleOptimizerDialog } from "@/components/schedule-optimizer-dialog";
 import { AtomizeContentButton } from "./atomize-content-button";
+import { EvergreenDiscoverButton } from "./evergreen-discover-button";
 
 const PLATFORMS: Platform[] = [Platform.FACEBOOK, Platform.INSTAGRAM, Platform.THREADS];
 
@@ -187,6 +188,7 @@ export default async function PostsPage({
               tagIds: tagFilter ? [tagFilter] : undefined,
             }}
           />
+          <EvergreenDiscoverButton />
           <AtomizeContentButton />
           <BulkGenerateButton />
           <ScheduleOptimizerDialog />
