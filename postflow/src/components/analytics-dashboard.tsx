@@ -58,6 +58,7 @@ import { ReputationScoreCard } from "@/components/reputation-score-card";
 import { TrendingTopicsCard } from "@/components/trending-topics-card";
 import { EngagementMilestonesCard } from "@/components/engagement-milestones-card";
 import { TagPerformanceCard } from "@/components/tag-performance-card";
+import { PublishingStreakCard } from "@/components/publishing-streak-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -645,6 +646,9 @@ export function AnalyticsDashboard() {
 
       {/* Tag Performance Analytics */}
       {isVisible("tag_performance") && <TagPerformanceCard />}
+
+      {/* Publishing Streak */}
+      {isVisible("publishing_streak") && <PublishingStreakCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}

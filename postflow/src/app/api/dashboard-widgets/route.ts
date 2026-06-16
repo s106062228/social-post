@@ -44,6 +44,7 @@ export const WIDGET_KEYS = [
   "trending_topics",
   "engagement_milestones",
   "tag_performance",
+  "publishing_streak",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -94,6 +95,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   trending_topics: "Trending Topic Discovery",
   engagement_milestones: "Engagement Milestones",
   tag_performance: "Tag Performance Analytics",
+  publishing_streak: "Publishing Streak",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {
