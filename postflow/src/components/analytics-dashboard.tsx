@@ -62,6 +62,7 @@ import { PublishingStreakCard } from "@/components/publishing-streak-card";
 import { ContentHealthCard } from "@/components/content-health-card";
 import { SchedulingAnalyticsCard } from "@/components/scheduling-analytics-card";
 import { WorkflowEfficiencyCard } from "@/components/workflow-efficiency-card";
+import { EngagementFunnelCard } from "@/components/engagement-funnel-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -661,6 +662,9 @@ export function AnalyticsDashboard() {
 
       {/* Workflow Efficiency */}
       {isVisible("workflow_efficiency") && <WorkflowEfficiencyCard />}
+
+      {/* Engagement Funnel */}
+      {isVisible("engagement_funnel") && <EngagementFunnelCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
