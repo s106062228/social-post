@@ -3566,3 +3566,98 @@ export async function generateNewsletterDraft(
   }
   return null;
 }
+
+// ── Ad Copy Generator ─────────────────────────────────────────────────────────
+
+export interface AdCopyVariant {
+  platform: string;
+  headline: string;
+  primaryText: string;
+  callToAction: string;
+  targetingNotes: string;
+  charCounts: { headline: number; primaryText: number };
+}
+
+export interface AdCopyResult {
+  variants: AdCopyVariant[];
+  guidelines: string[];
+}
+
+const AD_COPY_SYSTEM = `You are an expert social media advertising copywriter. Generate platform-optimized paid ad copy variants for the given content and campaign objective.
+
+Always respond with valid JSON matching this exact structure:
+{
+  "variants": [
+    {
+      "platform": "PLATFORM_NAME",
+      "headline": "Short compelling headline",
+      "primaryText": "Main ad body text",
+      "callToAction": "Single CTA phrase like 'Shop Now', 'Learn More', 'Sign Up', 'Get Started'",
+      "targetingNotes": "Brief audience targeting suggestion for this platform"
+    }
+  ],
+  "guidelines": ["Guideline 1 for optimizing these ads", "Guideline 2"]
+}
+
+Platform character limits:
+- FACEBOOK: headline 40 chars, primaryText 125 chars
+- INSTAGRAM: headline 40 chars, primaryText 125 chars
+- LINKEDIN: headline 70 chars, primaryText 200 chars
+- TWITTER: headline 50 chars, primaryText 280 chars
+- TIKTOK: headline 40 chars, primaryText 150 chars
+- PINTEREST: headline 100 chars, primaryText 500 chars
+
+Generate one variant per requested platform. Guidelines should give 2-3 actionable optimization tips.`;
+
+export async function generateAdCopy(
+  content: string,
+  platforms: string[],
+  objective: string,
+  targetAudience?: string | null,
+  budget?: string | null
+): Promise<AdCopyResult | null> {
+  const client = getClient();
+
+  let userMessage = `Original content to adapt for ads:\n${content}\n\nCampaign objective: ${objective}\nTarget platforms: ${platforms.join(", ")}`;
+  if (targetAudience) userMessage += `\nTarget audience: ${targetAudience}`;
+  if (budget) userMessage += `\nBudget level: ${budget}`;
+  userMessage += `\n\nGenerate compelling ad copy variants optimized for paid advertising on each requested platform.`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 2000,
+    system: [
+      {
+        type: "text",
+        text: AD_COPY_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [{ role: "user", content: userMessage }],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const rawText = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(rawText) as { variants?: unknown; guidelines?: unknown };
+    if (
+      Array.isArray(parsed.variants) &&
+      Array.isArray(parsed.guidelines)
+    ) {
+      const variants = (parsed.variants as AdCopyVariant[]).map((v) => ({
+        ...v,
+        charCounts: {
+          headline: v.headline?.length ?? 0,
+          primaryText: v.primaryText?.length ?? 0,
+        },
+      }));
+      return {
+        variants,
+        guidelines: parsed.guidelines as string[],
+      };
+    }
+  } catch {
+    // fall through
+  }
+  return null;
+}

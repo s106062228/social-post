@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap, ShoppingBag, HelpCircle, Palette, Target, Scale, ImageIcon, GalleryHorizontal } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap, ShoppingBag, HelpCircle, Palette, Target, Scale, ImageIcon, GalleryHorizontal, Megaphone } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -42,6 +42,7 @@ import { EngagementCTADialog } from "@/components/engagement-cta-dialog";
 import { LegalComplianceDialog } from "@/components/legal-compliance-dialog";
 import { ImagePromptsDialog } from "@/components/image-prompts-dialog";
 import { CarouselContentDialog } from "@/components/carousel-content-dialog";
+import { AdCopyDialog } from "@/components/ad-copy-dialog";
 import { TextFormatterBar } from "@/components/text-formatter-bar";
 import { WritingCoachPanel } from "@/components/writing-coach-panel";
 import type { PostOptimizationResult } from "@/lib/ai";
@@ -254,6 +255,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
   // Carousel content dialog state
   const [showCarouselDialog, setShowCarouselDialog] = useState(false);
+
+  // Ad copy dialog state
+  const [showAdCopyDialog, setShowAdCopyDialog] = useState(false);
 
   // Optimize dialog state
   const [showOptimizeDialog, setShowOptimizeDialog] = useState(false);
@@ -1179,6 +1183,15 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
               <GalleryHorizontal className="h-3 w-3" />
               Carousel
             </button>
+            <button
+              type="button"
+              onClick={() => setShowAdCopyDialog(true)}
+              disabled={!content.trim()}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:pointer-events-none disabled:opacity-50"
+            >
+              <Megaphone className="h-3 w-3" />
+              Ad Copy
+            </button>
             <GrammarCheckButton
               content={content}
               onApply={(newContent) => setContent(newContent)}
@@ -1491,6 +1504,14 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         onClose={() => setShowCarouselDialog(false)}
         selectedPlatforms={selectedPlatforms.map((p) => String(p))}
         onApply={(c) => setContent(c)}
+      />
+
+      <AdCopyDialog
+        open={showAdCopyDialog}
+        onClose={() => setShowAdCopyDialog(false)}
+        content={content}
+        platforms={selectedPlatforms}
+        onApply={(text) => setContent(text)}
       />
 
       {/* First comment — shown when Facebook or Instagram accounts are selected */}
