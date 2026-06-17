@@ -47,6 +47,7 @@ export const WIDGET_KEYS = [
   "publishing_streak",
   "content_health",
   "scheduling_analytics",
+  "workflow_efficiency",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -100,6 +101,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   publishing_streak: "Publishing Streak",
   content_health: "Content Health Dashboard",
   scheduling_analytics: "Scheduling Analytics",
+  workflow_efficiency: "Workflow Efficiency Analytics",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {
