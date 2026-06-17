@@ -63,6 +63,7 @@ import { ContentHealthCard } from "@/components/content-health-card";
 import { SchedulingAnalyticsCard } from "@/components/scheduling-analytics-card";
 import { WorkflowEfficiencyCard } from "@/components/workflow-efficiency-card";
 import { EngagementFunnelCard } from "@/components/engagement-funnel-card";
+import { GrowthVelocityCard } from "@/components/growth-velocity-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -665,6 +666,9 @@ export function AnalyticsDashboard() {
 
       {/* Engagement Funnel */}
       {isVisible("engagement_funnel") && <EngagementFunnelCard />}
+
+      {/* Growth Velocity Dashboard */}
+      {isVisible("growth_velocity") && <GrowthVelocityCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
