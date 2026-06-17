@@ -3661,3 +3661,94 @@ export async function generateAdCopy(
   }
   return null;
 }
+
+// ─── AI Platform Suggestion ──────────────────────────────────────────────────
+
+const SUGGEST_PLATFORMS_SYSTEM = `You are a social media distribution strategist. Given post content, media type, and a list of platforms the user is connected to, you recommend which platforms to publish on for maximum impact.
+
+Analyze the content tone, length, media type, and subject matter to score each platform 0-100 and explain why it's a good or poor fit.
+
+Always respond with valid JSON matching exactly this schema:
+{
+  "suggestions": [
+    {
+      "platform": "<PLATFORM_NAME>",
+      "score": <0-100 integer>,
+      "reasoning": "<why this platform fits or doesn't fit>",
+      "bestForAudience": "<description of who would see/engage with this on that platform>",
+      "tips": ["<platform-specific tip>", ...]
+    }
+  ],
+  "overallStrategy": "<brief overall distribution strategy advice>"
+}
+
+Include ALL platforms from the user's list in suggestions, sorted by score descending.`;
+
+export interface PlatformSuggestion {
+  platform: string;
+  score: number;
+  reasoning: string;
+  bestForAudience: string;
+  tips: string[];
+}
+
+export interface SuggestOptimalPlatformsResult {
+  suggestions: PlatformSuggestion[];
+  overallStrategy: string;
+}
+
+export async function suggestOptimalPlatforms(
+  content: string,
+  mediaType: string,
+  userPlatforms: string[],
+  historicalContext?: string | null
+): Promise<SuggestOptimalPlatformsResult | null> {
+  const client = getClient();
+  if (!client) return null;
+
+  const userMessage = `Analyze this post and recommend which platforms to publish on.
+
+Post content:
+${content}
+
+Media type: ${mediaType}
+
+Connected platforms: ${userPlatforms.join(", ")}
+${historicalContext ? `\nHistorical context:\n${historicalContext}` : ""}
+
+Return JSON with scores and reasoning for each platform.`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 1500,
+    system: [
+      {
+        type: "text",
+        text: SUGGEST_PLATFORMS_SYSTEM,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    messages: [{ role: "user", content: userMessage }],
+  });
+
+  const block = response.content.find((b) => b.type === "text");
+  const rawText = block && block.type === "text" ? block.text : "{}";
+  try {
+    const parsed = JSON.parse(rawText) as {
+      suggestions?: unknown;
+      overallStrategy?: unknown;
+    };
+    if (
+      Array.isArray(parsed.suggestions) &&
+      typeof parsed.overallStrategy === "string"
+    ) {
+      return {
+        suggestions: parsed.suggestions as PlatformSuggestion[],
+        overallStrategy: parsed.overallStrategy,
+      };
+    }
+  } catch {
+    // fall through
+  }
+  return null;
+}

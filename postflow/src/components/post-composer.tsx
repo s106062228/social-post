@@ -43,6 +43,7 @@ import { LegalComplianceDialog } from "@/components/legal-compliance-dialog";
 import { ImagePromptsDialog } from "@/components/image-prompts-dialog";
 import { CarouselContentDialog } from "@/components/carousel-content-dialog";
 import { AdCopyDialog } from "@/components/ad-copy-dialog";
+import { PlatformSuggestionDialog } from "@/components/platform-suggestion-dialog";
 import { TextFormatterBar } from "@/components/text-formatter-bar";
 import { WritingCoachPanel } from "@/components/writing-coach-panel";
 import type { PostOptimizationResult } from "@/lib/ai";
@@ -258,6 +259,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
   // Ad copy dialog state
   const [showAdCopyDialog, setShowAdCopyDialog] = useState(false);
+
+  // Platform suggestion dialog state
+  const [showPlatformSuggestionDialog, setShowPlatformSuggestionDialog] = useState(false);
 
   // Optimize dialog state
   const [showOptimizeDialog, setShowOptimizeDialog] = useState(false);
@@ -801,6 +805,18 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <Label>Publish to</Label>
+          <div className="flex items-center gap-2">
+            {accounts.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowPlatformSuggestionDialog(true)}
+                disabled={!content.trim()}
+                className="flex items-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Sparkles className="h-3 w-3" />
+                Suggest Platforms
+              </button>
+            )}
           {accountGroups.length > 0 && (
             <select
               className="rounded border border-input bg-background px-2 py-1 text-xs text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -823,6 +839,7 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
               ))}
             </select>
           )}
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           {accounts.map((account) => {
@@ -1512,6 +1529,24 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
         content={content}
         platforms={selectedPlatforms}
         onApply={(text) => setContent(text)}
+      />
+
+      <PlatformSuggestionDialog
+        open={showPlatformSuggestionDialog}
+        onClose={() => setShowPlatformSuggestionDialog(false)}
+        content={content}
+        mediaType={mediaType}
+        availablePlatforms={accounts.map((a) => String(a.platform))}
+        onSuggest={(suggestedPlatforms) => {
+          const platformSet = new Set(suggestedPlatforms);
+          setSelectedAccountIds(
+            new Set(
+              accounts
+                .filter((a) => platformSet.has(String(a.platform)))
+                .map((a) => a.id)
+            )
+          );
+        }}
       />
 
       {/* First comment — shown when Facebook or Instagram accounts are selected */}
