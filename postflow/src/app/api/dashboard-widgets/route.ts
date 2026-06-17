@@ -52,6 +52,7 @@ export const WIDGET_KEYS = [
   "growth_velocity",
   "engagement_depth",
   "queue_health",
+  "anomalies",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -110,6 +111,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   growth_velocity: "Growth Velocity Dashboard",
   engagement_depth: "Engagement Depth & Interaction Quality",
   queue_health: "Publishing Queue Health",
+  anomalies: "Performance Anomaly Detection",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {

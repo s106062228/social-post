@@ -66,6 +66,7 @@ import { EngagementFunnelCard } from "@/components/engagement-funnel-card";
 import { GrowthVelocityCard } from "@/components/growth-velocity-card";
 import { EngagementDepthCard } from "@/components/engagement-depth-card";
 import { QueueHealthCard } from "@/components/queue-health-card";
+import { AnomalyDetectionCard } from "@/components/anomaly-detection-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -677,6 +678,9 @@ export function AnalyticsDashboard() {
 
       {/* Publishing Queue Health */}
       {isVisible("queue_health") && <QueueHealthCard />}
+
+      {/* Performance Anomaly Detection */}
+      {isVisible("anomalies") && <AnomalyDetectionCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
