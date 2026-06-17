@@ -50,6 +50,7 @@ export const WIDGET_KEYS = [
   "workflow_efficiency",
   "engagement_funnel",
   "growth_velocity",
+  "engagement_depth",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -106,6 +107,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   workflow_efficiency: "Workflow Efficiency Analytics",
   engagement_funnel: "Engagement Funnel Analytics",
   growth_velocity: "Growth Velocity Dashboard",
+  engagement_depth: "Engagement Depth & Interaction Quality",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {

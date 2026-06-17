@@ -64,6 +64,7 @@ import { SchedulingAnalyticsCard } from "@/components/scheduling-analytics-card"
 import { WorkflowEfficiencyCard } from "@/components/workflow-efficiency-card";
 import { EngagementFunnelCard } from "@/components/engagement-funnel-card";
 import { GrowthVelocityCard } from "@/components/growth-velocity-card";
+import { EngagementDepthCard } from "@/components/engagement-depth-card";
 import { DashboardCustomizeDialog } from "@/components/dashboard-customize-dialog";
 import { SavedAnalyticsViews } from "@/components/saved-analytics-views";
 import type { WidgetConfig } from "@/app/api/dashboard-widgets/route";
@@ -669,6 +670,9 @@ export function AnalyticsDashboard() {
 
       {/* Growth Velocity Dashboard */}
       {isVisible("growth_velocity") && <GrowthVelocityCard />}
+
+      {/* Engagement Depth & Interaction Quality */}
+      {isVisible("engagement_depth") && <EngagementDepthCard />}
 
       <DashboardCustomizeDialog
         open={customizeOpen}
