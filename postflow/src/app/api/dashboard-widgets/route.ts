@@ -51,6 +51,7 @@ export const WIDGET_KEYS = [
   "engagement_funnel",
   "growth_velocity",
   "engagement_depth",
+  "queue_health",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -108,6 +109,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   engagement_funnel: "Engagement Funnel Analytics",
   growth_velocity: "Growth Velocity Dashboard",
   engagement_depth: "Engagement Depth & Interaction Quality",
+  queue_health: "Publishing Queue Health",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {
