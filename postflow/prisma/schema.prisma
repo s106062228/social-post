@@ -402,18 +402,35 @@ model ThreadPost {
 }
 
 model Template {
-  id        String    @id @default(cuid())
-  userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name      String
-  content   String
-  mediaType MediaType @default(NONE)
-  mediaUrls String[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id                   String           @id @default(cuid())
+  userId               String
+  user                 User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                 String
+  content              String
+  mediaType            MediaType        @default(NONE)
+  mediaUrls            String[]
+  marketplacePublished Boolean          @default(false)
+  marketplaceCategory  String?
+  marketplaceTags      String[]
+  importCount          Int              @default(0)
+  imports              TemplateImport[]
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
 
   @@index([userId])
   @@index([userId, createdAt(sort: Desc)])
+  @@index([marketplacePublished, importCount(sort: Desc)])
+}
+
+model TemplateImport {
+  id         String   @id @default(cuid())
+  userId     String
+  templateId String
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  importedAt DateTime @default(now())
+
+  @@unique([userId, templateId])
+  @@index([userId])
 }
 
 model RecurringSchedule {

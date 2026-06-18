@@ -79,6 +79,7 @@ import {
   Brain,
   TableProperties,
   UserSearch,
+  Store,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -95,6 +96,7 @@ const navItems = [
   { href: "/planner", label: "Planner", icon: CalendarRange },
   { href: "/accounts", label: "Accounts", icon: Users },
   { href: "/templates", label: "Templates", icon: LayoutTemplate },
+  { href: "/marketplace", label: "Marketplace", icon: Store },
   { href: "/schedules", label: "Schedules", icon: Repeat },
   { href: "/sequences", label: "Sequences", icon: ListVideo },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
