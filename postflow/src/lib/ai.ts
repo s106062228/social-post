@@ -3951,3 +3951,132 @@ export async function summarizeContent(
   }
   return null;
 }
+
+// ---------------------------------------------------------------------------
+// Phase 280 — Growth Strategy Generator
+// ---------------------------------------------------------------------------
+
+const GROWTH_STRATEGY_SYSTEM = `You are an expert social media growth consultant. Analyze the provided account metrics and generate a personalized, actionable growth strategy.
+
+Return ONLY valid JSON in this exact shape:
+{
+  "weeks": [
+    {
+      "week": 1,
+      "focus": "<theme for this week>",
+      "tactics": ["<tactic 1>", "<tactic 2>", "<tactic 3>"],
+      "kpis": ["<kpi 1>", "<kpi 2>"]
+    }
+  ],
+  "platformSpecific": [
+    {
+      "platform": "<platform name>",
+      "tips": ["<tip 1>", "<tip 2>", "<tip 3>"]
+    }
+  ],
+  "overallApproach": "<concise strategic overview>",
+  "estimatedGrowth": "<realistic growth estimate e.g. +15-25% followers>"
+}
+
+For a 30-day timeframe provide 4 weekly entries. For 90-day provide 4 entries covering phases of the strategy. Keep tactics specific and actionable.`;
+
+export interface GrowthStrategyWeek {
+  week: number;
+  focus: string;
+  tactics: string[];
+  kpis: string[];
+}
+
+export interface GrowthStrategyResult {
+  weeks: GrowthStrategyWeek[];
+  platformSpecific: { platform: string; tips: string[] }[];
+  overallApproach: string;
+  estimatedGrowth: string;
+}
+
+export interface GrowthStrategyMetrics {
+  platforms: string[];
+  followerCounts: { platform: string; followers: number }[];
+  avgEngagementRate: number;
+  postsPerWeek: number;
+  topCategories: string[];
+  goals?: string;
+  timeframe: "30d" | "90d";
+}
+
+export async function generateGrowthStrategy(
+  metrics: GrowthStrategyMetrics
+): Promise<GrowthStrategyResult | null> {
+  const client = getClient();
+  if (!client) return null;
+
+  const timeframeLabel = metrics.timeframe === "30d" ? "30 days" : "90 days";
+  const followerSummary = metrics.followerCounts
+    .map((f) => `${f.platform}: ${f.followers.toLocaleString()} followers`)
+    .join(", ");
+
+  const userMsg = [
+    `Timeframe: ${timeframeLabel}`,
+    `Platforms: ${metrics.platforms.join(", ")}`,
+    followerSummary ? `Current follower counts: ${followerSummary}` : "",
+    `Average engagement rate: ${metrics.avgEngagementRate.toFixed(2)}%`,
+    `Current posting frequency: ~${metrics.postsPerWeek.toFixed(1)} posts/week`,
+    metrics.topCategories.length > 0
+      ? `Top content categories: ${metrics.topCategories.join(", ")}`
+      : "",
+    metrics.goals ? `Growth goals: ${metrics.goals}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  try {
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 2048,
+      system: [
+        {
+          type: "text",
+          text: GROWTH_STRATEGY_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userMsg }],
+    });
+
+    const text = response.content
+      .filter((b) => b.type === "text")
+      .map((b) => (b as { type: "text"; text: string }).text)
+      .join("");
+
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+
+    const parsed = JSON.parse(jsonMatch[0]) as {
+      weeks?: unknown[];
+      platformSpecific?: unknown[];
+      overallApproach?: unknown;
+      estimatedGrowth?: unknown;
+    };
+
+    if (
+      !Array.isArray(parsed.weeks) ||
+      !Array.isArray(parsed.platformSpecific) ||
+      typeof parsed.overallApproach !== "string" ||
+      typeof parsed.estimatedGrowth !== "string"
+    ) {
+      return null;
+    }
+
+    return {
+      weeks: parsed.weeks as GrowthStrategyWeek[],
+      platformSpecific: parsed.platformSpecific as {
+        platform: string;
+        tips: string[];
+      }[],
+      overallApproach: parsed.overallApproach,
+      estimatedGrowth: parsed.estimatedGrowth,
+    };
+  } catch {
+    return null;
+  }
+}
