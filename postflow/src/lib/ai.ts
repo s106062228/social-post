@@ -3861,3 +3861,93 @@ export async function checkContentAccessibility(
   }
   return null;
 }
+
+// ---------------------------------------------------------------------------
+// Phase 279 — Content Summarizer
+// ---------------------------------------------------------------------------
+
+const SUMMARIZE_SYSTEM = `You are an expert social media content strategist. Your task is to summarize long-form content into concise, platform-optimized social media posts.
+
+When summarizing:
+- Preserve all hashtags from the original content
+- Keep @mentions that are important to the message
+- Match the requested style: "narrative" (flowing prose), "bullet_points" (key facts as short bullets), or "headline" (single punchy title line)
+- Hit the target character count as closely as possible without exceeding it
+- Extract 3-5 key points from the original content
+
+Return ONLY valid JSON in this exact shape:
+{
+  "summary": "<the summarized content>",
+  "keyPoints": ["<point 1>", "<point 2>", "<point 3>"],
+  "title": "<optional punchy headline, omit if style is not 'headline'>",
+  "charCount": <integer character count of the summary>
+}`;
+
+export interface SummarizeResult {
+  summary: string;
+  keyPoints: string[];
+  title?: string;
+  charCount: number;
+}
+
+export async function summarizeContent(
+  content: string,
+  targetLength: number,
+  style?: "bullet_points" | "narrative" | "headline",
+  platforms?: string[]
+): Promise<SummarizeResult | null> {
+  const client = getClient();
+  if (!client) return null;
+
+  const effectiveStyle = style ?? "narrative";
+  const platformCtx =
+    platforms && platforms.length > 0
+      ? `Target platforms: ${platforms.join(", ")}`
+      : "";
+
+  const userMsg = [
+    `Style: ${effectiveStyle}`,
+    `Target character count: ${targetLength}`,
+    platformCtx,
+    `Original content:\n${content}`,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  try {
+    const response = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 1024,
+      system: [
+        {
+          type: "text",
+          text: SUMMARIZE_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userMsg }],
+    });
+
+    const text =
+      response.content[0]?.type === "text" ? response.content[0].text : "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+
+    const parsed = JSON.parse(jsonMatch[0]) as Partial<SummarizeResult>;
+    if (
+      typeof parsed.summary === "string" &&
+      Array.isArray(parsed.keyPoints) &&
+      typeof parsed.charCount === "number"
+    ) {
+      return {
+        summary: parsed.summary,
+        keyPoints: parsed.keyPoints as string[],
+        title: typeof parsed.title === "string" ? parsed.title : undefined,
+        charCount: parsed.charCount,
+      };
+    }
+  } catch {
+    // fall through
+  }
+  return null;
+}

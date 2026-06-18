@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap, ShoppingBag, HelpCircle, Palette, Target, Scale, ImageIcon, GalleryHorizontal, Megaphone } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap, ShoppingBag, HelpCircle, Palette, Target, Scale, ImageIcon, GalleryHorizontal, Megaphone, Scissors } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -44,6 +44,7 @@ import { ImagePromptsDialog } from "@/components/image-prompts-dialog";
 import { CarouselContentDialog } from "@/components/carousel-content-dialog";
 import { AdCopyDialog } from "@/components/ad-copy-dialog";
 import { PlatformSuggestionDialog } from "@/components/platform-suggestion-dialog";
+import { ContentSummarizerDialog } from "@/components/content-summarizer-dialog";
 import { TextFormatterBar } from "@/components/text-formatter-bar";
 import { WritingCoachPanel } from "@/components/writing-coach-panel";
 import type { PostOptimizationResult } from "@/lib/ai";
@@ -262,6 +263,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
   // Platform suggestion dialog state
   const [showPlatformSuggestionDialog, setShowPlatformSuggestionDialog] = useState(false);
+
+  // Summarizer dialog state
+  const [showSummarizerDialog, setShowSummarizerDialog] = useState(false);
 
   // Optimize dialog state
   const [showOptimizeDialog, setShowOptimizeDialog] = useState(false);
@@ -1209,6 +1213,15 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
               <Megaphone className="h-3 w-3" />
               Ad Copy
             </button>
+            <button
+              type="button"
+              onClick={() => setShowSummarizerDialog(true)}
+              disabled={content.length < 50}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:pointer-events-none disabled:opacity-50"
+            >
+              <Scissors className="h-3 w-3" />
+              Summarize
+            </button>
             <GrammarCheckButton
               content={content}
               onApply={(newContent) => setContent(newContent)}
@@ -1548,6 +1561,18 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
           );
         }}
       />
+
+      {showSummarizerDialog && (
+        <ContentSummarizerDialog
+          content={content}
+          platforms={selectedPlatforms.map((p) => String(p))}
+          onApply={(summary) => {
+            setContent(summary);
+            setShowSummarizerDialog(false);
+          }}
+          onClose={() => setShowSummarizerDialog(false)}
+        />
+      )}
 
       {/* First comment — shown when Facebook or Instagram accounts are selected */}
       {selectedPlatforms.some((p) => p === "FACEBOOK" || p === "INSTAGRAM") && (
