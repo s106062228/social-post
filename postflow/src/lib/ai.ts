@@ -3752,3 +3752,112 @@ Return JSON with scores and reasoning for each platform.`;
   }
   return null;
 }
+
+// ─── Phase 278: Content Accessibility & Inclusive Language ───────────────────
+
+export interface AccessibilityIssue {
+  type:
+    | "readability"
+    | "inclusive_language"
+    | "emoji"
+    | "hashtag_casing"
+    | "alt_text"
+    | "sentence_length";
+  severity: "low" | "medium" | "high";
+  text?: string;
+  suggestion: string;
+  explanation: string;
+}
+
+export interface AccessibilityCheckResult {
+  score: number;
+  passesStandards: boolean;
+  issues: AccessibilityIssue[];
+  recommendations: string[];
+  summary: string;
+}
+
+const ACCESSIBILITY_SYSTEM = `You are a social media content accessibility and inclusive language expert. Analyze post content for the following accessibility and inclusivity concerns:
+
+1. **Readability**: Complex vocabulary, jargon, or sentence structure that may be difficult for people with cognitive disabilities or non-native speakers
+2. **Inclusive Language**: Gender-exclusive terms, ableist language, racial/ethnic biases, or exclusionary phrasing
+3. **Emoji Usage**: Emoji placed mid-sentence that disrupt screen reader flow; excessive emoji stacking; emoji without semantic context
+4. **Hashtag Casing**: Hashtags written in all-lowercase that are hard to read for screen readers (e.g., #blackhistorymonth vs #BlackHistoryMonth)
+5. **Alt Text**: Missing or inadequate description of visual content when images are referenced in text
+6. **Sentence Length**: Very long sentences (>30 words) that may be difficult to process
+
+Return a JSON object with exactly this structure:
+{
+  "score": <integer 0-100, 100 means fully accessible>,
+  "passesStandards": <boolean, true if score >= 70>,
+  "issues": [
+    {
+      "type": "<one of: readability|inclusive_language|emoji|hashtag_casing|alt_text|sentence_length>",
+      "severity": "<one of: low|medium|high>",
+      "text": "<the specific problematic text, if applicable>",
+      "suggestion": "<the corrected or improved text>",
+      "explanation": "<brief explanation of why this is an issue>"
+    }
+  ],
+  "recommendations": ["<actionable recommendation 1>", ...],
+  "summary": "<1-2 sentence overall accessibility assessment>"
+}
+
+Be concise and actionable. Focus on real issues, not nitpicks.`;
+
+export async function checkContentAccessibility(
+  content: string,
+  altTexts?: string[],
+  platform?: string
+): Promise<AccessibilityCheckResult | null> {
+  const client = getClient();
+  if (!client) return null;
+
+  const userMsg = [
+    `Platform: ${platform ?? "general"}`,
+    `Content:\n${content}`,
+    altTexts && altTexts.length > 0
+      ? `Alt texts provided:\n${altTexts.map((t, i) => `[${i + 1}] ${t}`).join("\n")}`
+      : "No alt texts provided.",
+  ].join("\n\n");
+
+  try {
+    const response = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 1024,
+      system: [
+        {
+          type: "text",
+          text: ACCESSIBILITY_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userMsg }],
+    });
+
+    const text =
+      response.content[0]?.type === "text" ? response.content[0].text : "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+
+    const parsed = JSON.parse(jsonMatch[0]) as Partial<AccessibilityCheckResult>;
+    if (
+      typeof parsed.score === "number" &&
+      typeof parsed.passesStandards === "boolean" &&
+      Array.isArray(parsed.issues) &&
+      Array.isArray(parsed.recommendations) &&
+      typeof parsed.summary === "string"
+    ) {
+      return {
+        score: Math.max(0, Math.min(100, Math.round(parsed.score))),
+        passesStandards: parsed.passesStandards,
+        issues: parsed.issues as AccessibilityIssue[],
+        recommendations: parsed.recommendations,
+        summary: parsed.summary,
+      };
+    }
+  } catch {
+    // fall through
+  }
+  return null;
+}
