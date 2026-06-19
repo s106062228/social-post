@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap, ShoppingBag, HelpCircle, Palette, Target, Scale, ImageIcon, GalleryHorizontal, Megaphone, Scissors } from "lucide-react";
+import { Loader2, Eye, EyeOff, ListOrdered, Sparkles, Hash, Bell, MessageCirclePlus, Link2, Camera, FileText, Search, Type, Wand2, Film, Layers, Zap, ShoppingBag, HelpCircle, Palette, Target, Scale, ImageIcon, GalleryHorizontal, Megaphone, Scissors, Globe } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tag-selector";
 import { PlatformCharCounter } from "@/components/platform-char-counter";
@@ -45,6 +45,7 @@ import { CarouselContentDialog } from "@/components/carousel-content-dialog";
 import { AdCopyDialog } from "@/components/ad-copy-dialog";
 import { PlatformSuggestionDialog } from "@/components/platform-suggestion-dialog";
 import { ContentSummarizerDialog } from "@/components/content-summarizer-dialog";
+import { UrlToPostDialog } from "@/components/url-to-post-dialog";
 import { TextFormatterBar } from "@/components/text-formatter-bar";
 import { WritingCoachPanel } from "@/components/writing-coach-panel";
 import type { PostOptimizationResult } from "@/lib/ai";
@@ -266,6 +267,9 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
 
   // Summarizer dialog state
   const [showSummarizerDialog, setShowSummarizerDialog] = useState(false);
+
+  // URL-to-post dialog state
+  const [showUrlToPostDialog, setShowUrlToPostDialog] = useState(false);
 
   // Optimize dialog state
   const [showOptimizeDialog, setShowOptimizeDialog] = useState(false);
@@ -1222,6 +1226,14 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
               <Scissors className="h-3 w-3" />
               Summarize
             </button>
+            <button
+              type="button"
+              onClick={() => setShowUrlToPostDialog(true)}
+              className="flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <Globe className="h-3 w-3" />
+              From URL
+            </button>
             <GrammarCheckButton
               content={content}
               onApply={(newContent) => setContent(newContent)}
@@ -1571,6 +1583,18 @@ export function PostComposer({ defaultScheduledAt, accounts }: PostComposerProps
             setShowSummarizerDialog(false);
           }}
           onClose={() => setShowSummarizerDialog(false)}
+        />
+      )}
+
+      {showUrlToPostDialog && (
+        <UrlToPostDialog
+          open={showUrlToPostDialog}
+          onClose={() => setShowUrlToPostDialog(false)}
+          platforms={selectedPlatforms.map((p) => String(p))}
+          onApply={(text) => {
+            setContent(text);
+            setShowUrlToPostDialog(false);
+          }}
         />
       )}
 

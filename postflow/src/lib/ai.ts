@@ -4158,3 +4158,77 @@ export async function suggestGapContent(
     return null;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Phase 284: URL-to-Post Content Generator
+// ---------------------------------------------------------------------------
+
+export interface UrlPost {
+  platform: string;
+  content: string;
+}
+
+const URL_TO_POST_SYSTEM = `You are a social media content specialist. You receive a web page title and extracted body text and produce platform-optimized social media posts.
+
+For each requested platform produce a post that:
+- Summarizes the key insight or value from the article
+- Matches the platform's style and character limits (Twitter ≤280, Instagram ≤2200, LinkedIn ≤3000, Threads ≤500, Facebook ≤63206)
+- Includes 2-4 relevant hashtags at the end
+- Is engaging and shareable
+
+Always respond with valid JSON in this exact format:
+{"posts": [{"platform": "PLATFORM_NAME", "content": "post content here"}]}`;
+
+export async function generatePostFromUrl(
+  urlTitle: string,
+  urlContent: string,
+  platforms: string[]
+): Promise<{ posts: UrlPost[] } | null> {
+  const client = getClient();
+  if (!client) return null;
+
+  const userMsg = [
+    `Article title: ${urlTitle}`,
+    `Article content (excerpt):\n${urlContent.slice(0, 3000)}`,
+    `Generate posts for these platforms: ${platforms.join(", ")}`,
+  ].join("\n\n");
+
+  try {
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 2048,
+      system: [
+        {
+          type: "text",
+          text: URL_TO_POST_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userMsg }],
+    });
+
+    const text = response.content
+      .filter((b) => b.type === "text")
+      .map((b) => (b as { type: "text"; text: string }).text)
+      .join("");
+
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+
+    const parsed = JSON.parse(jsonMatch[0]) as { posts?: unknown[] };
+
+    if (!Array.isArray(parsed.posts)) return null;
+
+    const posts = (parsed.posts as unknown[]).filter(
+      (p): p is UrlPost =>
+        typeof p === "object" &&
+        p !== null &&
+        typeof (p as Record<string, unknown>).platform === "string" &&
+        typeof (p as Record<string, unknown>).content === "string"
+    );
+
+    return { posts };
+  } catch {
+    return null;
+  }
+}
