@@ -59,6 +59,7 @@ import { TrendingTopicsCard } from "@/components/trending-topics-card";
 import { EngagementMilestonesCard } from "@/components/engagement-milestones-card";
 import { TagPerformanceCard } from "@/components/tag-performance-card";
 import { PublishingStreakCard } from "@/components/publishing-streak-card";
+import { ContentROICard } from "@/components/content-roi-card";
 import { ContentHealthCard } from "@/components/content-health-card";
 import { SchedulingAnalyticsCard } from "@/components/scheduling-analytics-card";
 import { WorkflowEfficiencyCard } from "@/components/workflow-efficiency-card";
@@ -657,6 +658,9 @@ export function AnalyticsDashboard() {
 
       {/* Publishing Streak */}
       {isVisible("publishing_streak") && <PublishingStreakCard />}
+
+      {/* Content ROI & Conversions */}
+      {isVisible("content_roi") && <ContentROICard />}
 
       {/* Content Health Dashboard */}
       {isVisible("content_health") && <ContentHealthCard />}

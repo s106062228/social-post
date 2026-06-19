@@ -2558,3 +2558,16 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] Marketplace page in dashboard (`/marketplace`) — grid of community template cards (name, category badge, tag chips, import count badge, content preview 100 chars, mediaType icon); search input; category filter pills; "Import" button per card (disabled/showing "Imported" when already imported for authenticated users); full-content preview dialog on card click; "Publish Your Template" button linking to `/templates` with instructions
 - [x] Add "Marketplace" to sidebar navigation (icon: `Store`)
 - [x] Unit tests for marketplace API (GET no-auth/rate-limit/search-filter/category-filter/tag-filter/published-only/content-truncated/no-PII; POST publish: auth/rate-limit/ownership/empty-content/success/tags-saved; POST unpublish: auth/rate-limit/ownership/success; POST import: auth/rate-limit/not-found/success-creates-copy/already-imported-idempotent/increments-count — 20 tests)
+
+### Phase 282: Content Conversion Tracking & Organic ROI Attribution
+- [x] `ConversionType` enum (SALE/LEAD/SIGNUP/DOWNLOAD/CLICK/OTHER) + `ContentConversion` model in Prisma (id, userId, postId, type, value?, currency, notes?, occurredAt, createdAt) + migration (`20261003000000_add_content_conversions`)
+- [x] `GET /api/posts/[id]/conversions` endpoint — auth + rate limit + ownership; returns conversions for a post ordered by occurredAt desc
+- [x] `POST /api/posts/[id]/conversions` endpoint — auth + rate limit + ownership; zod validation (type nativeEnum, value positive optional, currency, notes, occurredAt); max 500 conversions per post (422 when exceeded); returns 201
+- [x] `DELETE /api/posts/[id]/conversions/[conversionId]` endpoint — auth + rate limit + ownership; returns 204
+- [x] `GET /api/analytics/content-roi` endpoint — auth + rate limit + `?period=7d|30d|90d|all` (default 30d); aggregates totalConversions, totalRevenue, avgRevenue (only from value>0 conversions), conversionsByType, topPostsByCount (top 5), topPostsByRevenue (top 5)
+- [x] `ContentROICard` component (`src/components/content-roi-card.tsx`) — period selector, Recharts PieChart for conversions by type, top posts tables; integrated into analytics dashboard with `"content_roi"` widget key
+- [x] `LogConversionDialog` component (`src/components/log-conversion-dialog.tsx`) — modal form (type, value, notes, occurredAt); POSTs to conversions endpoint
+- [x] `LogConversionButton` in posts list row — TrendingUp icon button with conversion count badge; opens LogConversionDialog
+- [x] Add `"content_roi"` to sidebar navigation (`/analytics/content-roi`, icon: `TrendingUp`) and to `WIDGET_KEYS`/`WIDGET_LABELS` in dashboard-widgets route
+- [x] Unit tests for conversions API (GET, POST, DELETE — auth, rate limit, not-found, limit exceeded, type validation, success shape — 15 tests)
+- [x] Unit tests for content-roi API (auth, rate limit, period validation, empty state, totalConversions, totalRevenue, avgRevenue calculation, conversionsByType grouping, topPostsByCount ordering, topPostsByRevenue ordering, period/currency fields — 11 tests)

@@ -137,6 +137,15 @@ enum RuleSeverity {
   WARNING
 }
 
+enum ConversionType {
+  SALE
+  LEAD
+  SIGNUP
+  DOWNLOAD
+  CLICK
+  OTHER
+}
+
 model User {
   id                 String              @id @default(cuid())
   email              String              @unique
@@ -251,6 +260,7 @@ model User {
   affiliateLinks            AffiliateLink[]
   influencerProfiles        InfluencerProfile[]
   engagementMilestones      PostEngagementMilestone[]
+  conversions               ContentConversion[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -368,6 +378,7 @@ model Post {
   journalEntries    ContentJournalEntry[]
   contests       Contest[]
   engagementMilestones PostEngagementMilestone[]
+  conversions    ContentConversion[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -2375,4 +2386,23 @@ model PostEngagementMilestone {
   @@unique([postId, metric, threshold])
   @@index([userId])
   @@index([userId, achievedAt(sort: Desc)])
+}
+
+model ContentConversion {
+  id         String         @id @default(cuid())
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId     String
+  post       Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  type       ConversionType
+  value      Float?
+  currency   String         @default("USD")
+  notes      String?
+  occurredAt DateTime       @default(now())
+  createdAt  DateTime       @default(now())
+
+  @@index([userId])
+  @@index([postId])
+  @@index([userId, occurredAt(sort: Desc)])
+  @@index([userId, type])
 }

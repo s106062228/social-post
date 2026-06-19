@@ -53,6 +53,7 @@ export const WIDGET_KEYS = [
   "engagement_depth",
   "queue_health",
   "anomalies",
+  "content_roi",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -112,6 +113,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   engagement_depth: "Engagement Depth & Interaction Quality",
   queue_health: "Publishing Queue Health",
   anomalies: "Performance Anomaly Detection",
+  content_roi: "Content ROI & Conversions",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {

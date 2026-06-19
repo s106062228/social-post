@@ -163,6 +163,7 @@ const navItems = [
   { href: "/audit-reports", label: "Audit", icon: ClipboardList },
   { href: "/testimonials", label: "Testimonials", icon: Quote },
   { href: "/promotions", label: "Promotions", icon: BadgeDollarSign },
+  { href: "/analytics/content-roi", label: "Content ROI", icon: TrendingUp },
   { href: "/custom-fields", label: "Custom Fields", icon: Tags },
   { href: "/syndication", label: "Syndication", icon: GitBranch },
   { href: "/competitors", label: "Competitors", icon: Swords },
