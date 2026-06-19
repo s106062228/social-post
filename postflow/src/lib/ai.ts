@@ -4080,3 +4080,81 @@ export async function generateGrowthStrategy(
     return null;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Phase 283 — Calendar Gap Content Suggester
+// ---------------------------------------------------------------------------
+
+const GAP_CONTENT_SYSTEM = `You are a social media content strategist. Given scheduling gaps in a content calendar, suggest specific post content for each gap date. Return ONLY valid JSON in this exact shape: {"suggestions":[{"date":"YYYY-MM-DD","content":"post content here","platform":"PLATFORM_NAME","reasoning":"why this content for this date"}]}`;
+
+export interface GapContentSuggestion {
+  date: string;
+  content: string;
+  platform: string;
+  reasoning: string;
+}
+
+export async function suggestGapContent(
+  gapDates: string[],
+  platforms: string[],
+  tone?: string,
+  recentContext?: string
+): Promise<{ suggestions: GapContentSuggestion[] } | null> {
+  const client = getClient();
+  if (!client) return null;
+
+  const userMsg = [
+    `Gap dates to fill: ${gapDates.join(", ")}`,
+    `Available platforms: ${platforms.join(", ")}`,
+    tone ? `Desired tone: ${tone}` : "",
+    recentContext
+      ? `Recent published post examples for context:\n${recentContext}`
+      : "",
+    `Please suggest one post per gap date, choosing the most suitable platform from the list.`,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  try {
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 2048,
+      system: [
+        {
+          type: "text",
+          text: GAP_CONTENT_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userMsg }],
+    });
+
+    const text = response.content
+      .filter((b) => b.type === "text")
+      .map((b) => (b as { type: "text"; text: string }).text)
+      .join("");
+
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+
+    const parsed = JSON.parse(jsonMatch[0]) as {
+      suggestions?: unknown[];
+    };
+
+    if (!Array.isArray(parsed.suggestions)) return null;
+
+    const suggestions = (parsed.suggestions as unknown[]).filter(
+      (s): s is GapContentSuggestion =>
+        typeof s === "object" &&
+        s !== null &&
+        typeof (s as Record<string, unknown>).date === "string" &&
+        typeof (s as Record<string, unknown>).content === "string" &&
+        typeof (s as Record<string, unknown>).platform === "string" &&
+        typeof (s as Record<string, unknown>).reasoning === "string"
+    );
+
+    return { suggestions };
+  } catch {
+    return null;
+  }
+}

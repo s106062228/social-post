@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarView } from "@/components/calendar-view";
 import { CalendarExport } from "@/components/calendar-export";
 import { CalendarPlannerDialog } from "@/components/calendar-planner-dialog";
+import { CalendarGapFillerDialog } from "@/components/calendar-gap-filler-dialog";
 import { Plus, StickyNote, Share2, Upload } from "lucide-react";
 
 export default async function CalendarPage() {
@@ -78,6 +79,7 @@ export default async function CalendarPage() {
             </Link>
           </Button>
           <CalendarExport />
+          <CalendarGapFillerDialog />
           <CalendarPlannerDialog />
           <Button asChild>
             <Link href="/posts/new">
