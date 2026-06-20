@@ -31,6 +31,7 @@ import { ConsistencyCard } from "@/components/consistency-card";
 import { SchedulingAdvisorCard } from "@/components/scheduling-advisor-card";
 import { HashtagPerformanceCard } from "@/components/hashtag-performance-card";
 import { PostingHeatmapCard } from "@/components/posting-heatmap-card";
+import { PerformanceHeatmapCard } from "@/components/performance-heatmap-card";
 import { ContentMixCard } from "@/components/content-mix-card";
 import { BenchmarkCard } from "@/components/benchmark-card";
 import { ContentGapCard } from "@/components/content-gap-card";
@@ -574,6 +575,9 @@ export function AnalyticsDashboard() {
 
       {/* Year Heatmap */}
       {isVisible("year_heatmap") && <PostingHeatmapCard />}
+
+      {/* Content Performance Heatmap */}
+      {isVisible("performance_heatmap") && <PerformanceHeatmapCard />}
 
       {/* Content Mix Analysis */}
       {isVisible("content_mix") && <ContentMixCard />}

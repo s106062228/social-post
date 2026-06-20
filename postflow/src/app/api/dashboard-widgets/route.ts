@@ -54,6 +54,7 @@ export const WIDGET_KEYS = [
   "queue_health",
   "anomalies",
   "content_roi",
+  "performance_heatmap",
 ] as const;
 
 export type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -114,6 +115,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
   queue_health: "Publishing Queue Health",
   anomalies: "Performance Anomaly Detection",
   content_roi: "Content ROI & Conversions",
+  performance_heatmap: "Content Performance Heatmap",
 };
 
 function buildDefaultConfig(): WidgetConfig[] {
