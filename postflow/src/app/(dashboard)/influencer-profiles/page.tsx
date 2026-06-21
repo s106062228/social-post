@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Users, Plus, Trash2, ExternalLink, Handshake, Search,
+  Users, Plus, Trash2, ExternalLink, Handshake, Search, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import { InfluencerOutreachDialog } from "@/components/influencer-outreach-dialog";
 
 const OUTREACH_STATUSES = [
   "ALL", "PROSPECT", "CONTACTED", "RESPONDED", "NEGOTIATING", "AGREED", "COMPLETED", "DECLINED",
@@ -57,6 +58,7 @@ export default function InfluencerProfilesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [creatingCollab, setCreatingCollab] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [outreachProfile, setOutreachProfile] = useState<InfluencerProfile | null>(null);
 
   // Form state
   const [form, setForm] = useState({
@@ -428,6 +430,15 @@ export default function InfluencerProfilesPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs"
+                          onClick={() => setOutreachProfile(profile)}
+                        >
+                          <Sparkles className="h-3 w-3 mr-1" />
+                          Outreach
+                        </Button>
                         {(profile.outreachStatus === "AGREED" ||
                           profile.outreachStatus === "COMPLETED") && (
                           <Button
@@ -475,6 +486,13 @@ export default function InfluencerProfilesPage() {
             );
           })}
         </div>
+      )}
+
+      {outreachProfile && (
+        <InfluencerOutreachDialog
+          influencer={outreachProfile}
+          onClose={() => setOutreachProfile(null)}
+        />
       )}
     </div>
   );

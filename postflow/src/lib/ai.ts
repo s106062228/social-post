@@ -4232,3 +4232,97 @@ export async function generatePostFromUrl(
     return null;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Phase 286 — Influencer Outreach Message Generator
+// ---------------------------------------------------------------------------
+
+export interface InfluencerOutreachResult {
+  subject: string;
+  emailBody: string;
+  dmMessage: string;
+  followUpMessage: string;
+}
+
+const INFLUENCER_OUTREACH_SYSTEM = `You are an expert influencer marketing strategist who specializes in writing compelling, authentic outreach messages. Your messages are personalized, concise, and lead to high response rates.
+
+You always respond with valid JSON in this exact format:
+{
+  "subject": "email subject line (max 80 chars)",
+  "emailBody": "full email body with greeting, value prop, collaboration details, and CTA (200-400 words)",
+  "dmMessage": "short direct message for social platforms (max 280 chars)",
+  "followUpMessage": "brief follow-up message to send if no response after 1 week (100-150 words)"
+}`;
+
+export async function generateInfluencerOutreach(
+  influencerName: string,
+  handle: string,
+  platform: string | null,
+  followerCount: number | null,
+  niche: string | null,
+  campaignBrief: string,
+  tone: "professional" | "friendly" | "casual" = "friendly"
+): Promise<InfluencerOutreachResult | null> {
+  const client = getClient();
+  if (!client) return null;
+
+  const platformStr = platform ?? "social media";
+  const followerStr = followerCount ? `${followerCount.toLocaleString()} followers` : "an established following";
+  const nicheStr = niche ? `in the ${niche} niche` : "";
+
+  const userMsg = `Generate influencer outreach messages for the following influencer:
+
+Name: ${influencerName}
+Handle: @${handle}
+Platform: ${platformStr}
+Audience: ${followerStr} ${nicheStr}
+Tone: ${tone}
+
+Campaign Brief:
+${campaignBrief}
+
+Write personalized outreach messages that feel genuine and tailored to this specific influencer.`;
+
+  try {
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 1500,
+      system: [
+        {
+          type: "text",
+          text: INFLUENCER_OUTREACH_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userMsg }],
+    });
+
+    const text = response.content
+      .filter((b) => b.type === "text")
+      .map((b) => (b as { type: "text"; text: string }).text)
+      .join("");
+
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+
+    const parsed = JSON.parse(jsonMatch[0]) as Record<string, unknown>;
+
+    if (
+      typeof parsed.subject !== "string" ||
+      typeof parsed.emailBody !== "string" ||
+      typeof parsed.dmMessage !== "string" ||
+      typeof parsed.followUpMessage !== "string"
+    ) {
+      return null;
+    }
+
+    return {
+      subject: parsed.subject,
+      emailBody: parsed.emailBody,
+      dmMessage: parsed.dmMessage,
+      followUpMessage: parsed.followUpMessage,
+    };
+  } catch {
+    return null;
+  }
+}
