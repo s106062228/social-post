@@ -261,6 +261,7 @@ model User {
   influencerProfiles        InfluencerProfile[]
   engagementMilestones      PostEngagementMilestone[]
   conversions               ContentConversion[]
+  whitelabelConfig          WhitelabelConfig?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -2405,4 +2406,18 @@ model ContentConversion {
   @@index([postId])
   @@index([userId, occurredAt(sort: Desc)])
   @@index([userId, type])
+}
+
+model WhitelabelConfig {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appName        String   @default("PostFlow")
+  logoUrl        String?
+  primaryColor   String   @default("#6366f1")
+  accentColor    String   @default("#8b5cf6")
+  emailSignature String?
+  faviconUrl     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

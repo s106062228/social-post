@@ -2601,3 +2601,12 @@ The scheduled agent picks the next unchecked `[ ]` item, implements it, commits,
 - [x] `InfluencerOutreachDialog` component (`src/components/influencer-outreach-dialog.tsx`) — modal with campaign brief textarea (2000-char counter) and tone selector (Professional/Friendly/Casual); calls `/api/ai/influencer-outreach`; shows 4 sections: Email Subject (copy), Email Body (copy), DM Message (copy with char count), Follow-Up Message (copy); regenerate option; loading state
 - [x] "Outreach" button (Sparkles icon) per influencer profile row in `/influencer-profiles` page — opens `InfluencerOutreachDialog` with pre-populated influencer name/handle/platform/followerCount/niche; passes `onClose` callback to reset `outreachProfile` state
 - [x] Unit tests for `POST /api/ai/influencer-outreach` (auth 401, rate limit 429, AI disabled 503, invalid JSON 400, missing influencerName 400, campaignBrief too short 400, success shape with all 4 message fields, tone param forwarded, AI returns null → 500 — 9 tests)
+
+### Phase 287: White-Label Dashboard Customization
+- [x] `WhitelabelConfig` model in Prisma (id, userId unique, appName String default "PostFlow", logoUrl?, primaryColor String default "#6366f1", accentColor String default "#8b5cf6", emailSignature?, faviconUrl?, createdAt, updatedAt) + migration (`20260817000000_add_whitelabel_config`)
+- [x] `GET /api/whitelabel` endpoint — returns stored config or defaults; auth + rate limit
+- [x] `PATCH /api/whitelabel` endpoint — upserts white-label config; zod validation (appName max 50 chars, colors must be valid hex, URLs optional); auth + rate limit; returns updated config
+- [x] White-label config management page in dashboard (`/whitelabel`) — form with app name input, color pickers (primary + accent), logo URL input with preview, favicon URL input, email signature textarea; save button; preview section showing how the dashboard header will look
+- [x] Integrate white-label config into dashboard layout — `useWhitelabelConfig` hook fetches config; sidebar header shows custom appName and logoUrl when set
+- [x] Add "White Label" to sidebar navigation (icon: `PaintBucket`)
+- [x] Unit tests for white-label API (GET auth 401, GET rate limit 429, GET returns defaults when no row, GET stored config shape; PATCH auth 401, PATCH rate limit 429, PATCH invalid hex color, PATCH appName too long, PATCH valid upsert, PATCH clears optional fields — 12 tests)

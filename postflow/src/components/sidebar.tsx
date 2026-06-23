@@ -80,10 +80,12 @@ import {
   TableProperties,
   UserSearch,
   Store,
+  PaintBucket,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useWhitelabelConfig } from "@/hooks/use-whitelabel-config";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -173,18 +175,24 @@ const navItems = [
   { href: "/contests", label: "Contests", icon: Trophy },
   { href: "/autopilot", label: "Autopilot", icon: Bot },
   { href: "/newsletter", label: "Newsletter", icon: MailOpen },
+  { href: "/whitelabel", label: "White Label", icon: PaintBucket },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { config } = useWhitelabelConfig();
 
   return (
     <aside className="flex h-full w-60 flex-col border-r bg-card">
       {/* Logo */}
-      <div className="flex h-16 items-center border-b px-6">
+      <div className="flex h-16 items-center gap-2 border-b px-6">
+        {config.logoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={config.logoUrl} alt="Logo" className="h-7 w-7 object-contain" />
+        )}
         <span className="text-xl font-bold tracking-tight text-primary">
-          PostFlow
+          {config.appName}
         </span>
       </div>
 
